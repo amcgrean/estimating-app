@@ -48,8 +48,8 @@ def upgrade():
 
     # Copy data from user to user_temp
     op.execute('''
-        INSERT INTO user_temp (id, username, email, password, usertype_id, estimatorID, sales_rep_id, user_branch_id, last_login, created_at, updated_at, is_active, is_admin, login_count)
-        SELECT id, username, email, password, usertype_id, estimatorID, sales_rep_id, user_branch_id, last_login, created_at, updated_at, is_active, is_admin, login_count
+        INSERT INTO user_temp (id, username, email, password, usertype_id, "estimatorID", sales_rep_id, user_branch_id, last_login, created_at, updated_at, is_active, is_admin, login_count)
+        SELECT id, username, email, password, usertype_id, "estimatorID", sales_rep_id, user_branch_id, last_login, created_at, updated_at, is_active, is_admin, login_count
         FROM user
     ''')
 

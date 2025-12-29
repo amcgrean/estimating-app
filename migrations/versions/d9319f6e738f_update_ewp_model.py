@@ -38,7 +38,10 @@ def upgrade():
         )
         SELECT 
             id, plan_number, sales_rep_id, customer_id, address, notes, login_date,
-            tji_depth, assigned_designer, layout_finalized, agility_quote, imported_stellar,
+            tji_depth, assigned_designer, 
+            CASE WHEN layout_finalized = '' THEN NULL ELSE layout_finalized::date END,
+            CASE WHEN CAST(agility_quote AS TEXT) = '' THEN NULL ELSE CAST(agility_quote AS TEXT)::date END,
+            CASE WHEN imported_stellar = '' THEN NULL ELSE imported_stellar::date END,
             last_updated_by, last_updated_at
         FROM ewp
     ''')
