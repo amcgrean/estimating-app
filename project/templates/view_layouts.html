@@ -1,0 +1,43 @@
+{% extends "base.html" %}
+
+{% block title %}EWP Layouts{% endblock %}
+
+{% block content %}
+<div class="container mt-3">
+    <h2>EWP Layouts</h2>
+    <table class="table table-bordered">
+        <thead>
+            <tr>
+                <th>Plan #</th>
+                <th>Sales Rep</th>
+                <th>Customer</th>
+                <th>Address</th>
+                <th>Notes</th>
+                <th>Login Date</th>
+                <th>TJI Depth</th>
+                <th>Assigned Designer</th>
+                <th>Layout Finalized</th>
+                <th>Agility Quote</th>
+                <th>Imported Stellar</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for ewp in ewps %}
+            <tr>
+                <td>{{ ewp.plan_number }}</td>
+                <td>{{ ewp.sales_rep.username if ewp.sales_rep else 'N/A' }}</td>
+                <td><a href="{{ url_for('main.view_customer_projects', customer_id=ewp.customer.id) }}">{{ ewp.customer.name }}</a></td>
+                <td><a href="{{ url_for('main.edit_layout', layout_id=ewp.id) }}">{{ ewp.address }}</a></td>
+                <td>{{ ewp.notes }}</td>
+                <td>{{ ewp.login_date }}</td>
+                <td>{{ ewp.tji_depth }}</td>
+                <td>{{ ewp.assigned_designer }}</td>
+                <td>{{ ewp.layout_finalized }}</td>
+                <td>{{ ewp.agility_quote }}</td>
+                <td>{{ ewp.imported_stellar }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

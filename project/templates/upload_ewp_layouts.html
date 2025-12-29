@@ -1,0 +1,16 @@
+{% extends "base.html" %}
+
+{% block title %}Upload EWP Layouts{% endblock %}
+
+{% block content %}
+<div class="container mt-3">
+    <h2>Upload Historical EWP Layouts</h2>
+    <form action="{{ url_for('main.upload_ewp_layouts') }}" method="POST" enctype="multipart/form-data">
+        <div class="form-group">
+            <label for="file">CSV File</label>
+            <input type="file" class="form-control" id="file" name="file" required>
+        </div>
+        <button type="submit" class="btn btn-primary">Upload</button>
+    </form>
+</div>
+{% endblock %}

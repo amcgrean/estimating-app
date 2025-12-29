@@ -1,0 +1,95 @@
+{% extends "base.html" %}
+
+{% block title %}EWP Layouts{% endblock %}
+
+{% block content %}
+<div class="container mt-3">
+    <h2>EWP Layouts</h2>
+    
+    <!-- Filters Form -->
+    <form method="GET" action="{{ url_for('main.view_layouts') }}" class="form-inline mb-3">
+        {{ form.hidden_tag() }}
+        <label for="sales_rep" class="mr-2">{{ form.sales_rep.label }}</label>
+        {{ form.sales_rep(class="form-control mr-2") }}
+        <label for="customer" class="mr-2">{{ form.customer.label }}</label>
+        {{ form.customer(class="form-control mr-2") }}
+        <label for="login_date" class="mr-2">{{ form.login_date.label }}</label>
+        {{ form.login_date(class="form-control mr-2") }}
+        <label for="layout_date" class="mr-2">{{ form.layout_date.label }}</label>
+        {{ form.layout_date(class="form-control mr-2") }}
+        {{ form.submit(class="btn btn-primary") }}
+    </form>
+
+    <!-- Layouts Table -->
+    <table class="table table-bordered mt-3">
+        <thead>
+            <tr>
+                <th><a href="{{ url_for('main.view_layouts', sort='plan_number', direction='asc' if sort_column != 'plan_number' or sort_direction == 'desc' else 'desc', sales_rep=form.sales_rep.data, customer=form.customer.data, login_date=form.login_date.data, layout_date=form.layout_date.data) }}">Plan #</a></th>
+                <th><a href="{{ url_for('main.view_layouts', sort='sales_rep', direction='asc' if sort_column != 'sales_rep' or sort_direction == 'desc' else 'desc', sales_rep=form.sales_rep.data, customer=form.customer.data, login_date=form.login_date.data, layout_date=form.layout_date.data) }}">Sales Rep</a></th>
+                <th><a href="{{ url_for('main.view_layouts', sort='customer', direction='asc' if sort_column != 'customer' or sort_direction == 'desc' else 'desc', sales_rep=form.sales_rep.data, customer=form.customer.data, login_date=form.login_date.data, layout_date=form.layout_date.data) }}">Customer</a></th>
+                <th><a href="{{ url_for('main.view_layouts', sort='address', direction='asc' if sort_column != 'address' or sort_direction == 'desc' else 'desc', sales_rep=form.sales_rep.data, customer=form.customer.data, login_date=form.login_date.data, layout_date=form.layout_date.data) }}">Address</a></th>
+                <th>Notes</th>
+                <th><a href="{{ url_for('main.view_layouts', sort='login_date', direction='asc' if sort_column != 'login_date' or sort_direction == 'desc' else 'desc', sales_rep=form.sales_rep.data, customer=form.customer.data, login_date=form.login_date.data, layout_date=form.layout_date.data) }}">Login Date</a></th>
+                <th>TJI Depth</th>
+                <th>Assigned Designer</th>
+                <th><a href="{{ url_for('main.view_layouts', sort='layout_finalized', direction='asc' if sort_column != 'layout_finalized' or sort_direction == 'desc' else 'desc', sales_rep=form.sales_rep.data, customer=form.customer.data, login_date=form.login_date.data, layout_date=form.layout_date.data) }}">Layout Finalized</a></th>
+                <th>Agility Quote</th>
+                <th>Imported Stellar</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for ewp in layouts %}
+            <tr>
+                <td>{{ ewp.plan_number }}</td>
+                <td>{{ ewp.sales_rep.username if ewp.sales_rep else 'N/A' }}</td>
+                <td><a href="{{ url_for('main.view_customer_bids', customer_id=ewp.customer.id) }}">{{ ewp.customer.name }}</a></td>
+                <td><a href="{{ url_for('main.edit_layout', layout_id=ewp.id) }}">{{ ewp.address }}</a></td>
+                <td>{{ ewp.notes }}</td>
+                <td>{{ ewp.login_date }}</td>
+                <td>{{ ewp.tji_depth }}</td>
+                <td>{{ ewp.assigned_designer }}</td>
+                <td>{{ ewp.layout_finalized }}</td>
+                <td>{{ ewp.agility_quote }}</td>
+                <td>{{ ewp.imported_stellar }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    <!-- Pagination Controls -->
+    <nav aria-label="Page navigation">
+        <ul class="pagination justify-content-center">
+            <li class="page-item {% if not pagination.has_prev %}disabled{% endif %}">
+                <a class="page-link" href="{{ url_for('main.view_layouts', sales_rep=form.sales_rep.data, customer=form.customer.data, login_date=form.login_date.data, layout_date=form.layout_date.data, page=pagination.prev_num, per_page=pagination.per_page) }}" aria-label="Previous">
+                    <span aria-hidden="true">&laquo;</span>
+                </a>
+            </li>
+            {% for page_num in pagination.iter_pages() %}
+                <li class="page-item {% if page_num == pagination.page %}active{% endif %}">
+                    <a class="page-link" href="{{ url_for('main.view_layouts', sales_rep=form.sales_rep.data, customer=form.customer.data, login_date=form.login_date.data, layout_date=form.layout_date.data, page=page_num, per_page=pagination.per_page) }}">{{ page_num }}</a>
+                </li>
+            {% endfor %}
+            <li class="page-item {% if not pagination.has_next %}disabled{% endif %}">
+                <a class="page-link" href="{{ url_for('main.view_layouts', sales_rep=form.sales_rep.data, customer=form.customer.data, login_date=form.login_date.data, layout_date=form.layout_date.data, page=pagination.next_num, per_page=pagination.per_page) }}" aria-label="Next">
+                    <span aria-hidden="true">&raquo;</span>
+                </a>
+            </li>
+        </ul>
+    </nav>
+
+    <!-- Items per page selection -->
+    <form method="GET" action="{{ url_for('main.view_layouts') }}" class="form-inline">
+        {{ form.hidden_tag() }}
+        <label for="per_page" class="mr-2">Items per page</label>
+        <select name="per_page" id="per_page" class="form-control mr-2" onchange="this.form.submit()">
+            <option value="50" {% if pagination.per_page == 50 %}selected{% endif %}>50</option>
+            <option value="100" {% if pagination.per_page == 100 %}selected{% endif %}>100</option>
+            <option value="all" {% if pagination.per_page == pagination.total %}selected{% endif %}>All</option>
+        </select>
+        <input type="hidden" name="sales_rep" value="{{ form.sales_rep.data }}">
+        <input type="hidden" name="customer" value="{{ form.customer.data }}">
+        <input type="hidden" name="login_date" value="{{ form.login_date.data }}">
+        <input type="hidden" name="layout_date" value="{{ form.layout_date.data }}">
+    </form>
+</div>
+{% endblock %}

@@ -1,0 +1,75 @@
+{% extends "base.html" %}
+
+{% block title %}Manage User Security{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <h2>Manage User Security</h2>
+    <form method="POST">
+        {{ form.hidden_tag() }}
+        <div class="table-responsive">
+            <table class="table table-bordered table-striped">
+                <thead class="thead-dark">
+                    <tr>
+                        <th>User Type ID</th>
+                        <th>User Type Name</th>
+                        <th>Admin</th>
+                        <th>Estimating</th>
+                        <th>Bid Request</th>
+                        <th>Design</th>
+                        <th>EWP</th>
+                        <th>Service</th>
+                        <th>Install</th>
+                        <th>Picking</th>
+                        <th>Work Orders</th>
+                        <th>Dashboards</th>
+                        <th>Security 10</th>
+                        <th>Security 11</th>
+                        <th>Security 12</th>
+                        <th>Security 13</th>
+                        <th>Security 14</th>
+                        <th>Security 15</th>
+                        <th>Security 16</th>
+                        <th>Security 17</th>
+                        <th>Security 18</th>
+                        <th>Security 19</th>
+                        <th>Security 20</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for usertype in usertypes %}
+                    <tr>
+                        <td>{{ usertype.id }}</td>
+                        <td>{{ usertype.name }}</td>
+                        <td>{{ form['admin_' ~ usertype.id]() }}</td>
+                        <td>{{ form['estimating_' ~ usertype.id]() }}</td>
+                        <td>{{ form['bid_request_' ~ usertype.id]() }}</td>
+                        <td>{{ form['design_' ~ usertype.id]() }}</td>
+                        <td>{{ form['ewp_' ~ usertype.id]() }}</td>
+                        <td>{{ form['service_' ~ usertype.id]() }}</td>
+                        <td>{{ form['install_' ~ usertype.id]() }}</td>
+                        <td>{{ form['picking_' ~ usertype.id]() }}</td>
+                        <td>{{ form['work_orders_' ~ usertype.id]() }}</td>
+                        <td>{{ form['dashboards_' ~ usertype.id]() }}</td>
+                        <td>{{ form['security_10_' ~ usertype.id]() }}</td>
+                        <td>{{ form['security_11_' ~ usertype.id]() }}</td>
+                        <td>{{ form['security_12_' ~ usertype.id]() }}</td>
+                        <td>{{ form['security_13_' ~ usertype.id]() }}</td>
+                        <td>{{ form['security_14_' ~ usertype.id]() }}</td>
+                        <td>{{ form['security_15_' ~ usertype.id]() }}</td>
+                        <td>{{ form['security_16_' ~ usertype.id]() }}</td>
+                        <td>{{ form['security_17_' ~ usertype.id]() }}</td>
+                        <td>{{ form['security_18_' ~ usertype.id]() }}</td>
+                        <td>{{ form['security_19_' ~ usertype.id]() }}</td>
+                        <td>{{ form['security_20_' ~ usertype.id]() }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        <div class="form-group">
+            {{ form.submit(class="btn btn-primary") }}
+        </div>
+    </form>
+</div>
+{% endblock %}

@@ -1,0 +1,260 @@
+{% extends "base.html" %}
+
+{% block title %}Open Bids{% endblock %}
+
+{% block content %}
+<div class="container mt-3">
+    <h2>Open Bids</h2>
+
+    <!-- Search box -->
+    <input type="search" id="search-input" placeholder="Search..." class="form-control mb-3">
+
+    <!-- Quick Filters -->
+<div class="mb-3">
+    <a href="{{ url_for('main.open_bids', quick_filter='residential') }}" class="btn btn-primary filter-btn {% if quick_filter == 'residential' %}selected{% endif %}">Residential</a>
+    <a href="{{ url_for('main.open_bids', quick_filter='commercial') }}" class="btn btn-primary filter-btn {% if quick_filter == 'commercial' %}selected{% endif %}">Commercial</a>
+    <a href="{{ url_for('main.open_bids') }}" class="btn btn-secondary filter-btn {% if quick_filter == 'all' %}selected{% endif %}">Show All</a>
+    <a href="{{ url_for('main.add_bid') }}" class="btn btn-success ml-auto">Create New</a>
+    <button type="button" class="btn btn-secondary ml-2" data-toggle="modal" data-target="#printModal">Print Report</button>
+
+</div>
+
+
+    <!-- Filters Form -->
+    <form method="GET" action="{{ url_for('main.open_bids') }}" class="form-inline mb-3">
+        <label for="plan_type" class="mr-2">Plan Type</label>
+            <select name="plan_type" id="plan_type" class="form-control mr-2">
+                <option value="all" {% if current_plan_type == 'all' %}selected{% endif %}>All</option>
+                <option value="Residential" {% if current_plan_type == 'Residential' %}selected{% endif %}>Residential</option>
+                <option value="Commercial" {% if current_plan_type == 'Commercial' %}selected{% endif %}>Commercial</option>
+            </select>
+        <label for="status" class="mr-2">Status</label>
+            <select name="status" id="status" class="form-control mr-2">
+                <option value="Incomplete" {% if current_status == 'Incomplete' %}selected{% endif %}>Incomplete</option>
+                <option value="all" {% if current_status == 'all' %}selected{% endif %}>All</option>
+            </select>
+        <label for="due_date_start" class="mr-2">Start</label>
+            <input type="date" name="due_date_start" id="due_date_start" class="form-control mr-2" value="{{ due_date_start }}">
+        <label for="due_date_end" class="mr-2">End</label>
+            <input type="date" name="due_date_end" id="due_date_end" class="form-control mr-2" value="{{ due_date_end }}">
+        <button type="submit" class="btn btn-primary">Filter</button>
+    </form>
+
+    <!-- Bids Table -->
+    <table class="table table-bordered table-hover">
+        <thead>
+            <tr>
+                <th><a href="{{ url_for('main.open_bids', sort='customer_name', direction='asc' if sort_column != 'customer_name' or sort_direction == 'desc' else 'desc', plan_type=current_plan_type, status=current_status, due_date_start=due_date_start, due_date_end=due_date_end, page=pagination.page, per_page=pagination.per_page) }}">Customer Name</a></th>
+                <th><a href="{{ url_for('main.open_bids', sort='project_name', direction='asc' if sort_column != 'project_name' or sort_direction == 'desc' else 'desc', plan_type=current_plan_type, status=current_status, due_date_start=due_date_start, due_date_end=due_date_end, page=pagination.page, per_page=pagination.per_page) }}">Project Name</a></th>
+                <th>Notes</th>
+                <th><a href="{{ url_for('main.open_bids', sort='estimator', direction='asc' if sort_column != 'estimator' or sort_direction == 'desc' else 'desc', plan_type=current_plan_type, status=current_status, due_date_start=due_date_start, due_date_end=due_date_end, page=pagination.page, per_page=pagination.per_page) }}">Estimator</a></th>
+                <th><a href="{{ url_for('main.open_bids', sort='log_date', direction='asc' if sort_column != 'log_date' or sort_direction == 'desc' else 'desc', plan_type=current_plan_type, status=current_status, due_date_start=due_date_start, due_date_end=due_date_end, page=pagination.page, per_page=pagination.per_page) }}">Log Date</a></th>
+                <th><a href="{{ url_for('main.open_bids', sort='due_date', direction='asc' if sort_column != 'due_date' or sort_direction == 'desc' else 'desc', plan_type=current_plan_type, status=current_status, due_date_start=due_date_start, due_date_end=due_date_end, page=pagination.page, per_page=pagination.per_page) }}">Due Date</a></th>
+            </tr>
+        </thead>
+        <tbody id="bids-table-body">
+            {% if bids_by_plan_type %}
+            {% for plan_type, bids in bids_by_plan_type.items() %}
+            <tr>
+                <th colspan="7">{{ plan_type }} ({{ total_bids_by_plan_type[plan_type] }})</th>
+            </tr>
+            {% for bid in bids %}
+            <tr>
+                <td><a href="{{ url_for('main.manage_bid', bid_id=bid.id) }}">{{ bid.customer.name }}</a></td>
+                <td><a href="{{ url_for('main.manage_bid', bid_id=bid.id) }}">{{ bid.project_name }}</a></td>
+                <td>{{ bid.notes }}</td>
+                <td>{{ bid.estimator.estimatorName if bid.estimator else '-' }}</td>
+
+                <td>{{ bid.log_date.strftime('%m/%d') }}</td>
+                <td>{{ bid.due_date.strftime('%m/%d') }}</td>
+            </tr>
+            {% endfor %}
+            {% endfor %}
+            {% else %}
+            <tr>
+                <td colspan="7">No bids found.</td>
+            </tr>
+            {% endif %}
+        </tbody>
+    </table>
+
+    <!-- Pagination Controls -->
+    <nav aria-label="Page navigation">
+        <ul class="pagination justify-content-center">
+            <li class="page-item {% if not pagination.has_prev %}disabled{% endif %}">
+                <a class="page-link" href="{{ url_for('main.open_bids', sort=sort_column, direction=sort_direction, plan_type=current_plan_type, status=current_status, start_date=start_date, end_date=end_date, page=pagination.prev_num, per_page=pagination.per_page) }}" aria-label="Previous">
+                    <span aria-hidden="true">&laquo;</span>
+                </a>
+            </li>
+            {% for page_num in pagination.iter_pages() %}
+                <li class="page-item {% if page_num == pagination.page %}active{% endif %}">
+                    <a class="page-link" href="{{ url_for('main.open_bids', sort=sort_column, direction=sort_direction, plan_type=current_plan_type, status=current_status, start_date=start_date, end_date=end_date, page=page_num, per_page=pagination.per_page) }}">{{ page_num }}</a>
+                </li>
+            {% endfor %}
+            <li class="page-item {% if not pagination.has_next %}disabled{% endif %}">
+                <a class="page-link" href="{{ url_for('main.open_bids', sort=sort_column, direction=sort_direction, plan_type=current_plan_type, status=current_status, start_date=start_date, end_date=end_date, page=pagination.next_num, per_page=pagination.per_page) }}" aria-label="Next">
+                    <span aria-hidden="true">&raquo;</span>
+                </a>
+            </li>
+        </ul>
+    </nav>
+
+    <!-- Items per page selection -->
+    <form method="GET" action="{{ url_for('main.open_bids') }}" class="form-inline">
+        <label for="per_page" class="mr-2">Items per page</label>
+        <select name="per_page" id="per_page" class="form-control mr-2" onchange="this.form.submit()">
+            <option value="50" {% if pagination.per_page == 50 %}selected{% endif %}>50</option>
+            <option value="100" {% if pagination.per_page == 100 %}selected{% endif %}>100</option>
+            <option value="All" {% if pagination.per_page == pagination.total %}selected{% endif %}>All</option>
+        </select>
+        <input type="hidden" name="sort" value="{{ sort_column }}">
+        <input type="hidden" name="direction" value="{{ sort_direction }}">
+        <input type="hidden" name="plan_type" value="{{ current_plan_type }}">
+        <input type="hidden" name="status" value="{{ current_status }}">
+        <input type="hidden" name="start_date" value="{{ start_date }}">
+        <input type="hidden" name="end_date" value="{{ end_date }}">
+    </form>
+
+      <!-- Print Modal for Column Selection -->
+<!-- Print Modal for Column Selection -->
+<div class="modal fade" id="printModal" tabindex="-1" role="dialog" aria-labelledby="printModalLabel" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="printModalLabel">Select Columns and Filters for Report</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <form action="{{ url_for('main.print_open_bids') }}" method="get" target="_blank">
+                <div class="modal-body">
+                    <div class="form-group">
+                        <label>Status</label>
+                        <input type="text" name="status" value="Incomplete" class="form-control" readonly>
+                    </div>
+                    <div class="form-group">
+                        <label>Plan Type</label><br>
+                        <div class="form-check form-check-inline">
+                            <input class="form-check-input" type="radio" name="plan_type" id="residential" value="Residential" checked>
+                            <label class="form-check-label" for="residential">Residential</label>
+                        </div>
+                        <div class="form-check form-check-inline">
+                            <input class="form-check-input" type="radio" name="plan_type" id="commercial" value="Commercial">
+                            <label class="form-check-label" for="commercial">Commercial</label>
+                        </div>
+                        <div class="form-check form-check-inline">
+                            <input class="form-check-input" type="radio" name="plan_type" id="all_types" value="all">
+                            <label class="form-check-label" for="all_types">All Types</label>
+                        </div>
+                    </div>
+                    <hr>
+                    <div><strong>Select Columns to Include:</strong></div>
+                    <div class="form-check">
+                        <input type="checkbox" name="columns" value="customer" id="customer" checked>
+                        <label for="customer">Customer</label>
+                    </div>
+                    <div class="form-check">
+                        <input type="checkbox" name="columns" value="project_name" id="project_name" checked>
+                        <label for="project_name">Project Name</label>
+                    </div>
+                    <div class="form-check">
+                        <input type="checkbox" name="columns" value="notes" id="notes" checked>
+                        <label for="notes">Notes</label>
+                    </div>
+                    <div class="form-check">
+                        <input type="checkbox" name="columns" value="estimator" id="estimator" checked>
+                        <label for="estimator">Estimator</label>
+                    </div>
+                    <div class="form-check">
+                        <input type="checkbox" name="columns" value="log_date" id="log_date" checked>
+                        <label for="log_date">Log Date</label>
+                    </div>
+                    <div class="form-check">
+                        <input type="checkbox" name="columns" value="due_date" id="due_date" checked>
+                        <label for="due_date">Due Date</label>
+                    </div>
+                    <!-- Additional columns -->
+                    <div class="form-check">
+                        <input type="checkbox" name="columns" value="plan_type" id="plan_type">
+                        <label for="plan_type">Plan Type</label>
+                    </div>
+                    <div class="form-check">
+                        <input type="checkbox" name="columns" value="status" id="status">
+                        <label for="status">Status</label>
+                    </div>
+                    <div class="form-check">
+                        <input type="checkbox" name="columns" value="last_updated_by" id="last_updated_by">
+                        <label for="last_updated_by">Last Updated By</label>
+                    </div>
+                    <div class="form-check">
+                        <input type="checkbox" name="columns" value="last_updated_at" id="last_updated_at">
+                        <label for="last_updated_at">Last Updated At</label>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="submit" class="btn btn-primary">Generate Report</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+
+</div>
+{% endblock %}
+
+{% block styles %}
+<style>
+    /* Alternating row colors for table body rows */
+    tbody tr:nth-child(even) {
+        background-color: #f2f2f2;
+    }
+    tbody tr:nth-child(odd) {
+        background-color: #ffffff;
+    }
+
+    /* Hover effect for table rows */
+    tbody tr:hover {
+        background-color: #ddd;
+    }
+
+    /* Cursor pointer for clickable column headers */
+    th {
+        cursor: pointer;
+    }
+    /* More specific selector for the filter buttons */
+    .filter-btn.selected {
+        background-color: #007bff !important; /* Bootstrap primary color */
+        color: white !important;
+        border-color: #0056b3 !important;
+    }
+    /* Style for completed issues - strike-through */
+    .completed td {
+        text-decoration: line-through;
+    }
+
+    /* Text color for completed issues */
+    .text-muted {
+        color: #6c757d;
+    }
+</style>
+{% endblock %}
+
+{% block scripts %}
+<script>
+  const searchInput = document.getElementById('search-input');
+  const tableRows = document.querySelectorAll('#bids-table-body tr');
+
+  searchInput.addEventListener('input', () => {
+    const searchTerm = searchInput.value.toLowerCase();
+    tableRows.forEach((row) => {
+      const rowText = row.textContent.toLowerCase();
+      if (rowText.includes(searchTerm)) {
+        row.style.display = '';
+      } else {
+        row.style.display = 'none';
+      }
+    });
+  });
+</script>
+{% endblock %}

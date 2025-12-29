@@ -1,0 +1,17 @@
+{% extends "base.html" %}
+
+{% block title %}Upload Historical Bids{% endblock %}
+
+{% block content %}
+<div class="container mt-3">
+    <h2>Upload Historical Bids</h2>
+    <form action="{{ url_for('main.upload_historical_bids') }}" method="post" enctype="multipart/form-data" class="mb-3">
+        {{ form.hidden_tag() }}
+        <div class="form-group">
+            {{ form.file.label }}
+            {{ form.file(class="form-control-file") }}
+        </div>
+        <button type="submit" class="btn btn-primary">{{ form.submit.label }}</button>
+    </form>
+</div>
+{% endblock %}

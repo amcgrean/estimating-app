@@ -1,0 +1,17 @@
+<div class="form-row">
+    <div class="col-md-6 mb-3">
+        {{ form.sales_rep.label }}<br>
+        {{ form.sales_rep(class="form-control") }}
+    </div>
+    <div class="col-md-6 mb-3">
+        {{ form.customer_id.label }}<br>
+        <select class="form-control select2" id="customer_id" name="customer_id">
+            <option value="">Select Customer</option>
+            {% for value, label in form.customer_id.choices %}
+                <option value="{{ value }}" {% if value == form.customer_id.data %}selected{% endif %}>
+                    {{ label }}
+                </option>
+            {% endfor %}
+        </select>
+    </div>
+</div>

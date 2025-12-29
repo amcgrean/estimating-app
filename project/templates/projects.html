@@ -1,0 +1,63 @@
+{% extends "base.html" %}
+
+{% block title %}Projects{% endblock %}
+
+{% block content %}
+<div class="container mt-3">
+    <h2>Projects</h2>
+
+    <!-- Filters Form -->
+    <form method="GET" action="{{ url_for('main.projects') }}" class="form-inline mb-3">
+        <label for="sort" class="mr-2">Sort By</label>
+        <select name="sort" id="sort" class="form-control mr-2">
+            <option value="created_at" {% if sort_column == 'created_at' %}selected{% endif %}>Created At</option>
+            <option value="last_updated_at" {% if sort_column == 'last_updated_at' %}selected{% endif %}>Last Updated</option>
+            <option value="project_address" {% if sort_column == 'project_address' %}selected{% endif %}>Project Address</option>
+            <option value="contractor" {% if sort_column == 'contractor' %}selected{% endif %}>Contractor</option>
+        </select>
+        <label for="direction" class="mr-2">Direction</label>
+        <select name="direction" id="direction" class="form-control mr-2">
+            <option value="asc" {% if sort_direction == 'asc' %}selected{% endif %}>Ascending</option>
+            <option value="desc" {% if sort_direction == 'desc' %}selected{% endif %}>Descending</option>
+        </select>
+        <button type="submit" class="btn btn-primary">Apply</button>
+    </form>
+
+    <!-- Projects Table -->
+    <table class="table table-bordered table-hover">
+        <thead>
+            <tr>
+                <th>Address</th>
+                <th>Contractor</th>
+                <th>Created</th>
+                <th>Updated</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for project in projects %}
+            <tr>
+                <td>{{ project.project_address }}</td>
+                <td>{{ project.contractor }}</td>
+                <td>{{ project.created_at }}</td>
+                <td>{{ project.last_updated_at }}</td>
+                <td>
+                    <a href="{{ url_for('main.manage_project', project_id=project.id) }}" class="btn btn-primary btn-sm">Edit</a>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    <!-- Pagination Controls -->
+    <nav aria-label="Page navigation">
+        <ul class="pagination justify-content-center">
+            {% for page_num in pagination.iter_pages() %}
+                <li class="page-item {% if page_num == pagination.page %}active{% endif %}">
+                    <a class="page-link" href="{{ url_for('main.projects', page=page_num, sort=sort_column, direction=sort_direction) }}">{{ page_num }}</a>
+                </li>
+            {% endfor %}
+        </ul>
+    </nav>
+</div>
+{% endblock %}

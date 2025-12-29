@@ -1,0 +1,36 @@
+<div id="siding-section" style="display: none;">
+    <h3>Siding</h3>
+    {{ siding_form.hidden_tag() }}
+    <div class="form-row">
+        <div class="col-md-6 mb-3">
+            {{ siding_form.lap_type.label }}<br>
+            {{ siding_form.lap_type(class="form-control") }}
+        </div>
+        <div class="col-md-6 mb-3">
+            {{ siding_form.panel_type.label }}<br>
+            {{ siding_form.panel_type(class="form-control") }}
+        </div>
+    </div>
+    <div class="form-row">
+        <div class="col-md-6 mb-3">
+            {{ siding_form.shake_type.label }}<br>
+            {{ siding_form.shake_type(class="form-control") }}
+        </div>
+        <div class="col-md-6 mb-3">
+            {{ siding_form.soffit_trim.label }}<br>
+            {{ siding_form.soffit_trim(class="form-control") }}
+        </div>
+    </div>
+    <div class="form-row">
+        <div class="col-md-6 mb-3">
+            {{ siding_form.window_trim_detail.label }}<br>
+            {{ siding_form.window_trim_detail(class="form-control") }}
+        </div>
+    </div>
+    <div class="form-row">
+        <div class="col-md-12 mb-3">
+            {{ siding_form.siding_notes.label }}<br>
+            {{ siding_form.siding_notes(class="form-control") }}
+        </div>
+    </div>
+</div>

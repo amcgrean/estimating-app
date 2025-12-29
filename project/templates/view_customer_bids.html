@@ -1,0 +1,184 @@
+{% extends "base.html" %}
+
+{% block title %}Bids, Designs & Layouts for {{ customer.name }}{% endblock %}
+
+{% block content %}
+<div class="container mt-3">
+    <h2>Bids, Designs & Layouts for {{ customer.name }}</h2>
+
+    <!-- KPIs Section -->
+    <div class="row">
+        <div class="col-md-4">
+            <div class="card text-white bg-primary mb-3">
+                <div class="card-header">Total Bids</div>
+                <div class="card-body">
+                    <h5 class="card-title">{{ total_bids }}</h5>
+                    <p class="card-text">Total number of bids</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card text-white bg-success mb-3">
+                <div class="card-header">Bids YTD</div>
+                <div class="card-body">
+                    <h5 class="card-title">{{ bids_ytd }}</h5>
+                    <p class="card-text">Bids logged this year</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card text-white bg-warning mb-3">
+                <div class="card-header">Completed Bids YTD</div>
+                <div class="card-body">
+                    <h5 class="card-title">{{ completed_bids_ytd }}</h5>
+                    <p class="card-text">Bids completed this year</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-md-4">
+            <div class="card text-white bg-primary mb-3">
+                <div class="card-header">Total Designs</div>
+                <div class="card-body">
+                    <h5 class="card-title">{{ total_designs }}</h5>
+                    <p class="card-text">Total number of designs</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card text-white bg-success mb-3">
+                <div class="card-header">Designs YTD</div>
+                <div class="card-body">
+                    <h5 class="card-title">{{ designs_ytd }}</h5>
+                    <p class="card-text">Designs logged this year</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card text-white bg-warning mb-3">
+                <div class="card-header">Completed Designs YTD</div>
+                <div class="card-body">
+                    <h5 class="card-title">{{ completed_designs_ytd }}</h5>
+                    <p class="card-text">Designs completed this year</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Date Filter Form -->
+    <form method="GET" action="{{ url_for('main.view_customer_bids', customer_id=customer.id) }}" class="form-inline mb-3">
+        <label for="start_date" class="mr-2">Start Date</label>
+        <input type="text" name="start_date" id="start_date" class="form-control mr-2" value="{{ start_date }}">
+        <label for="end_date" class="mr-2">End Date</label>
+        <input type="text" name="end_date" id="end_date" class="form-control mr-2" value="{{ end_date }}">
+        <button type="submit" class="btn btn-primary">Filter</button>
+    </form>
+    <div class="mb-3">
+        <a href="{{ url_for('main.add_bid') }}" class="btn btn-success ml-auto">Create New</a>
+    </div>
+    <!-- Bids Table -->
+    <h3>Bids</h3>
+    <table class="table">
+        <thead>
+            <tr>
+                <th><a href="{{ url_for('main.view_customer_bids', customer_id=customer.id, sort='plan_type', direction='asc' if sort_column != 'plan_type' or sort_direction == 'desc' else 'desc', start_date=start_date, end_date=end_date) }}">Plan Type</a></th>
+                <th><a href="{{ url_for('main.view_customer_bids', customer_id=customer.id, sort='project_name', direction='asc' if sort_column != 'project_name' or sort_direction == 'desc' else 'desc', start_date=start_date, end_date=end_date) }}">Project Name</a></th>
+                <th><a href="{{ url_for('main.view_customer_bids', customer_id=customer.id, sort='estimator', direction='asc' if sort_column != 'estimator' or sort_direction == 'desc' else 'desc', start_date=start_date, end_date=end_date) }}">Estimator</a></th>
+                <th><a href="{{ url_for('main.view_customer_bids', customer_id=customer.id, sort='status', direction='asc' if sort_column != 'status' or sort_direction == 'desc' else 'desc', start_date=start_date, end_date=end_date) }}">Status</a></th>
+                <th><a href="{{ url_for('main.view_customer_bids', customer_id=customer.id, sort='log_date', direction='asc' if sort_column != 'log_date' or sort_direction == 'desc' else 'desc', start_date=start_date, end_date=end_date) }}">Log Date</a></th>
+                <th><a href="{{ url_for('main.view_customer_bids', customer_id=customer.id, sort='due_date', direction='asc' if sort_column != 'due_date' or sort_direction == 'desc' else 'desc', start_date=start_date, end_date=end_date) }}">Due Date</a></th>
+                <th>Notes</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for bid in bids %}
+            <tr>
+                <td>{{ bid.plan_type }}</td>
+                <td><a href="{{ url_for('main.manage_bid', bid_id=bid.id) }}">{{ bid.project_name }}</a></td>
+                <td>{{ bid.estimator.estimatorName if bid.estimator else 'N/A' }}</td>
+                <td>{{ bid.status }}</td>
+                <td>{{ bid.log_date.strftime('%m/%d/%y') }}</td>
+                <td>{{ bid.due_date.strftime('%m/%d/%y') }}</td>
+                <td>{{ bid.notes }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    <!-- Designs Table -->
+    <h3>Designs</h3>
+    <table class="table">
+        <thead>
+            <tr>
+                <th><a href="{{ url_for('main.view_customer_bids', customer_id=customer.id, sort='planNumber', direction='asc' if sort_column != 'planNumber' or sort_direction == 'desc' else 'desc', start_date=start_date, end_date=end_date) }}">Plan Number</a></th>
+                <th><a href="{{ url_for('main.view_customer_bids', customer_id=customer.id, sort='plan_name', direction='asc' if sort_column != 'plan_name' or sort_direction == 'desc' else 'desc', start_date=start_date, end_date=end_date) }}">Plan Name</a></th>
+                <th><a href="{{ url_for('main.view_customer_bids', customer_id=customer.id, sort='project_address', direction='asc' if sort_column != 'project_address' or sort_direction == 'desc' else 'desc', start_date=start_date, end_date=end_date) }}">Project Address</a></th>
+                <th><a href="{{ url_for('main.view_customer_bids', customer_id=customer.id, sort='designer', direction='asc' if sort_column != 'designer' or sort_direction == 'desc' else 'desc', start_date=start_date, end_date=end_date) }}">Designer</a></th>
+                <th><a href="{{ url_for('main.view_customer_bids', customer_id=customer.id, sort='status', direction='asc' if sort_column != 'status' or sort_direction == 'desc' else 'desc', start_date=start_date, end_date=end_date) }}">Status</a></th>
+                <th><a href="{{ url_for('main.view_customer_bids', customer_id=customer.id, sort='log_date', direction='asc' if sort_column != 'log_date' or sort_direction == 'desc' else 'desc', start_date=start_date, end_date=end_date) }}">Log Date</a></th>
+                <th>Notes</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for design in designs %}
+            <tr>
+                <td>{{ design.planNumber }}</td>
+                <td><a href="{{ url_for('main.manage_design', design_id=design.id) }}">{{ design.plan_name }}</a></td>
+                <td>{{ design.project_address }}</td>
+                <td>{{ design.designer.estimatorName if design.designer else 'N/A' }}</td>
+                <td>{{ design.status }}</td>
+                <td>{{ design.log_date.strftime('%m/%d/%y') }}</td>
+                <td>{{ design.notes }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    <!-- Layouts Table -->
+    <h3>Layouts</h3>
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Plan #</th>
+                <th>Sales Rep</th>
+                <th>Customer</th>
+                <th>Address</th>
+                <th>Notes</th>
+                <th>Login Date</th>
+                <th>TJI Depth</th>
+                <th>Assigned Designer</th>
+                <th>Layout Finalized</th>
+                <th>Agility Quote</th>
+                <th>Imported Stellar</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for ewp in layouts %}
+            <tr>
+                <td>{{ ewp.plan_number }}</td>
+                <td>{{ ewp.sales_rep.username if ewp.sales_rep else 'N/A' }}</td>
+                <td><a href="{{ url_for('main.view_customer_bids', customer_id=ewp.customer.id) }}">{{ ewp.customer.name }}</a></td>
+                <td><a href="{{ url_for('main.edit_layout', layout_id=ewp.id) }}">{{ ewp.address }}</a></td>
+                <td>{{ ewp.notes }}</td>
+                <td>{{ ewp.login_date }}</td>
+                <td>{{ ewp.tji_depth }}</td>
+                <td>{{ ewp.assigned_designer }}</td>
+                <td>{{ ewp.layout_finalized }}</td>
+                <td>{{ ewp.agility_quote }}</td>
+                <td>{{ ewp.imported_stellar }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    $(function() {
+        $("#start_date, #end_date").datepicker();
+    });
+</script>
+{% endblock %}

@@ -1,0 +1,183 @@
+{% extends "base.html" %}
+
+{% block title %}Beisser Internal{% endblock %}
+
+{% block content %}
+<div class="container mt-3">
+    <h2>Dashboard</h2>
+
+    <!-- Metrics -->
+    <div class="row">
+        <div class="col-md-3">
+            <a href="{{ url_for('main.open_bids') }}" class="text-white">
+                <div class="card text-white bg-primary mb-3">
+                    <div class="card-header">Open Bids</div>
+                    <div class="card-body">
+                        <h5 class="card-title">{{ open_bids_count }}</h5>
+                    </div>
+                </div>
+            </a>
+        </div>
+        <div class="col-md-3">
+            <div class="card text-white bg-success mb-3">
+                <div class="card-header">Bids YTD</div>
+                <div class="card-body">
+                    <h5 class="card-subtitle mb-2 text-white">{{ current_year }}</h5>
+                    <h5 class="card-title">{{ bids_ytd }}</h5>
+                    <h6 class="card-subtitle mb-2 text-white">MTD: {{ bids_mtd }}</h6>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card text-white bg-warning mb-3">
+                <div class="card-header">Previous YTD Bids</div>
+                <div class="card-body">
+                    <h5 class="card-subtitle mb-2 text-white">{{ previous_year }}</h5>
+                    <h5 class="card-title">{{ prev_bids_ytd }}</h5>
+                    <h6 class="card-subtitle mb-2 text-white">MTD: {{ prev_bids_mtd }}</h6>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Design Metrics -->
+    <div class="row">
+        <div class="col-md-3">
+            <a href="{{ url_for('main.open_designs') }}" class="text-white">
+                <div class="card text-white bg-primary mb-3">
+                    <div class="card-header">Open Designs</div>
+                    <div class="card-body">
+                        <h5 class="card-title">{{ open_designs_count }}</h5>
+                    </div>
+                </div>
+            </a>
+        </div>
+        <div class="col-md-3">
+            <div class="card text-white bg-success mb-3">
+                <div class="card-header">Designs YTD</div>
+                <div class="card-body">
+                    <h5 class="card-subtitle mb-2 text-white">{{ current_year }}</h5>
+                    <h5 class="card-title">{{ designs_ytd }}</h5>
+                    <h6 class="card-subtitle mb-2 text-white">MTD: {{ designs_mtd }}</h6>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card text-white bg-warning mb-3">
+                <div class="card-header">Previous YTD Designs</div>
+                <div class="card-body">
+                    <h5 class="card-subtitle mb-2 text-white">{{ previous_year }}</h5>
+                    <h5 class="card-title">{{ prev_designs_ytd }}</h5>
+                    <h6 class="card-subtitle mb-2 text-white">MTD: {{ prev_designs_mtd }}</h6>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Search Results -->
+    {% if search_query %}
+    <h3>Search Results for "{{ search_query }}"</h3>
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Type</th>
+                <th>Project Name</th>
+                <th>Status</th>
+                <th>Customer Name</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for bid in bids %}
+            <tr>
+                <td>Bid</td>
+                <td>{{ bid.project_name }}</td>
+                <td>{{ bid.status }}</td>
+                <td>{{ bid.customer.name }}</td>
+            </tr>
+            {% endfor %}
+            {% for design in designs %}
+            <tr>
+                <td>Design</td>
+                <td>{{ design.plan_name }}</td>
+                <td>{{ design.status }}</td>
+                <td>{{ design.customer.name }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    {% endif %}
+
+    <!-- Recently Opened Projects Section -->
+    <div class="mt-4">
+        <h3>Recently Opened Projects</h3>
+        <table class="table table-striped">
+            <thead>
+                <tr>
+                    <th>Project Name</th>
+                    <th>Last Updated By</th>
+                    <th>Last Updated At</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for project in recently_opened_projects %}
+                <tr>
+                    <td><a href="{{ url_for('main.manage_bid', bid_id=project.id) }}">{{ project.project_name }}</a></td>
+                    <td>{{ project.last_updated_by }}</td>
+                    <td>{{ project.last_updated_at.strftime('%m/%d/%Y %H:%M:%S') }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Recently Created Projects Section -->
+    <div class="mt-4">
+        <h3>Recently Created Projects</h3>
+        <table class="table table-striped">
+            <thead>
+                <tr>
+                    <th>Project Name</th>
+                    <th>Log Date</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for project in recently_created_projects %}
+                <tr>
+                    <td><a href="{{ url_for('main.manage_bid', bid_id=project.id) }}">{{ project.project_name }}</a></td>
+                    <td>{{ project.log_date.strftime('%m/%d/%Y') }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Quick Links -->
+    <div class="row mt-4">
+        <div class="col-md-3">
+            <a href="{{ url_for('main.add_bid') }}" class="btn btn-lg btn-primary btn-block">
+                <i class="fas fa-plus-circle"></i> Add Bid
+            </a>
+        </div>
+        <div class="col-md-3">
+            <a href="{{ url_for('main.add_design') }}" class="btn btn-lg btn-secondary btn-block">
+                <i class="fas fa-plus-circle"></i> Add Design
+            </a>
+        </div>
+        <div class="col-md-3">
+            <a href="{{ url_for('main.manage_customers') }}" class="btn btn-lg btn-primary btn-block">
+                <i class="fas fa-users"></i> Manage Customers
+            </a>
+        </div>
+        <div class="col-md-3">
+            <a href="{{ url_for('main.manage_users') }}" class="btn btn-lg btn-primary btn-block">
+                <i class="fas fa-user-tie"></i> Manage Users
+            </a>
+        </div>
+        <div class="col-md-3">
+            <a href="{{ url_for('main.bid_request') }}" class="btn btn-lg btn-primary btn-block">
+                <i class="fas fa-clipboard-list"></i> Bid Request Form
+            </a>
+        </div>
+    </div>
+</div>
+{% endblock %}

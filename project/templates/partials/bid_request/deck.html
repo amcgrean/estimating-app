@@ -1,0 +1,26 @@
+<div id="deck-section" style="display: none;">
+    <h3>Exterior Deck</h3>
+    {{ deck_form.hidden_tag() }}
+    <div class="form-row">
+        <div class="col-md-6 mb-3">
+            {{ deck_form.decking_type.label }}<br>
+            {{ deck_form.decking_type(class="form-control") }}
+        </div>
+        <div class="col-md-6 mb-3">
+            {{ deck_form.railing_type.label }}<br>
+            {{ deck_form.railing_type(class="form-control") }}
+        </div>
+    </div>
+    <div class="form-row">
+        <div class="col-md-6 mb-3">
+            {{ deck_form.stairs.label }}<br>
+            {{ deck_form.stairs(class="form-control") }}
+        </div>
+    </div>
+    <div class="form-row">
+        <div class="col-md-12 mb-3">
+            {{ deck_form.deck_notes.label }}<br>
+            {{ deck_form.deck_notes(class="form-control") }}
+        </div>
+    </div>
+</div>

@@ -1,0 +1,45 @@
+{% extends "base.html" %}
+
+{% block title %}Open Bids - Print Friendly{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    <h2>Open Bids as of {{ current_date }}</h2>
+    <p><strong>Filters Applied:</strong> Status: Open{% if plan_type != 'all' %}, Plan Type: {{ plan_type }}{% endif %}</p>
+    
+    <table class="table table-bordered">
+        <thead>
+            <tr>
+                {% if 'customer' in selected_columns %}<th>Customer</th>{% endif %}
+                {% if 'project_name' in selected_columns %}<th>Project Name</th>{% endif %}
+                {% if 'notes' in selected_columns %}<th>Notes</th>{% endif %}
+                {% if 'estimator' in selected_columns %}<th>Estimator</th>{% endif %}
+                {% if 'log_date' in selected_columns %}<th>Log Date</th>{% endif %}
+                {% if 'due_date' in selected_columns %}<th>Due Date</th>{% endif %}
+                {% if 'plan_type' in selected_columns %}<th>Plan Type</th>{% endif %}
+                {% if 'status' in selected_columns %}<th>Status</th>{% endif %}
+                {% if 'last_updated_by' in selected_columns %}<th>Last Updated By</th>{% endif %}
+                {% if 'last_updated_at' in selected_columns %}<th>Last Updated At</th>{% endif %}
+            </tr>
+        </thead>
+        <tbody>
+            {% for bid in bids %}
+            <tr>
+                {% if 'customer' in selected_columns %}<td>{{ bid.customer.name }}</td>{% endif %}
+                {% if 'project_name' in selected_columns %}<td>{{ bid.project_name }}</td>{% endif %}
+                {% if 'notes' in selected_columns %}<td>{{ bid.notes or 'N/A' }}</td>{% endif %}
+                {% if 'estimator' in selected_columns %}<td>{{ bid.estimator.estimatorName if bid.estimator else 'N/A' }}</td>{% endif %}
+                {% if 'log_date' in selected_columns %}<td>{{ bid.log_date.strftime('%m/%d/%y') }}</td>{% endif %}
+                {% if 'due_date' in selected_columns %}<td>{{ bid.due_date.strftime('%m/%d/%y') }}</td>{% endif %}
+                {% if 'plan_type' in selected_columns %}<td>{{ bid.plan_type }}</td>{% endif %}
+                {% if 'status' in selected_columns %}<td>{{ bid.status }}</td>{% endif %}
+                {% if 'last_updated_by' in selected_columns %}<td>{{ bid.last_updated_by or 'N/A' }}</td>{% endif %}
+                {% if 'last_updated_at' in selected_columns %}<td>{{ bid.last_updated_at.strftime('%m/%d/%y') }}</td>{% endif %}
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}
+
+

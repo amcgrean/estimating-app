@@ -1,0 +1,29 @@
+{% extends "base.html" %}
+
+{% block title %}User Settings{% endblock %}
+
+{% block content %}
+<div class="container mt-3">
+    <h2>User Settings</h2>
+    <form action="{{ url_for('main.user_settings') }}" method="POST">
+        {{ form.hidden_tag() }}
+        <div class="mb-3">
+            {{ form.username.label }}<br>
+            {{ form.username(size=32, class="form-control") }}
+        </div>
+        <div class="mb-3">
+            {{ form.email.label }}<br>
+            {{ form.email(size=32, class="form-control") }}
+        </div>
+        <div class="mb-3">
+            {{ form.password.label }}<br>
+            {{ form.password(size=32, class="form-control") }}
+        </div>
+        <div class="mb-3">
+            {{ form.confirm_password.label }}<br>
+            {{ form.confirm_password(size=32, class="form-control") }}
+        </div>
+        <button type="submit" class="btn btn-primary">Update Settings</button>
+    </form>
+</div>
+{% endblock %}

@@ -1,0 +1,82 @@
+{% extends "base.html" %}
+
+{% block title %}Bid Request{% endblock %}
+
+{% block content %}
+<div class="container mt-3">
+    <h1>Bid Request Form</h1>
+    <form method="POST" action="{{ url_for('main.bid_request') }}" enctype="multipart/form-data">
+        {{ form.hidden_tag() }}
+
+        <!-- Sales Rep and Customer Selection -->
+        {% include "partials/bid_request/sales_rep_and_customer.html" %}
+
+        <!-- Custom Contractor Name -->
+        {% include "partials/bid_request/custom_contractor.html" %}
+
+        <!-- Project Details -->
+        {% include "partials/bid_request/project_details.html" %}
+
+        <!-- Bid Inclusions -->
+        {% include "partials/bid_request/bid_inclusions.html" %}
+
+        <!-- Sections -->
+        <div id="framing-section" style="display: none;">
+            {% include "partials/bid_request/framing.html" %}
+        </div>
+
+        <div id="siding-section" style="display: none;">
+            {% include "partials/bid_request/siding.html" %}
+        </div>
+
+        <div id="shingles-section" style="display: none;">
+            {% include "partials/bid_request/shingles.html" %}
+        </div>
+
+        <div id="deck-section" style="display: none;">
+            {% include "partials/bid_request/deck.html" %}
+        </div>
+
+        <div id="doors-section" style="display: none;">
+            {% include "partials/bid_request/doors.html" %}
+        </div>
+
+        <div id="windows-section" style="display: none;">
+            {% include "partials/bid_request/windows.html" %}
+        </div>
+
+        <div id="trim-section" style="display: none;">
+            {% include "partials/bid_request/trim.html" %}
+        </div>
+
+        <!-- File Upload -->
+        {% include "partials/bid_request/file_upload.html" %}
+
+        <!-- Submit Button -->
+        <div class="form-row">
+            <div class="col-md-12 mb-3">
+                {{ form.submit(class="btn btn-primary") }}
+            </div>
+        </div>
+    </form>
+
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            <ul>
+                {% for category, message in messages %}
+                    <li class="alert alert-{{ category }}">{{ message }}</li>
+                {% endfor %}
+            </ul>
+        {% endif %}
+    {% endwith %}
+</div>
+
+<!-- Include Select2 JavaScript and CSS -->
+<link href="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.13/css/select2.min.css" rel="stylesheet" />
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.13/js/select2.min.js"></script>
+
+{% endblock %}
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/bid_request.js') }}"></script>
+{% endblock %}

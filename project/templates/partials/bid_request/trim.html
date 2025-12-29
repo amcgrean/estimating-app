@@ -1,0 +1,50 @@
+<div id="trim-section" style="display: none;">
+    <h3>Trim</h3>
+    {{ trim_form.hidden_tag() }}
+    <div class="form-row">
+        <div class="col-md-6 mb-3">
+            {{ trim_form.base.label }}<br>
+            {{ trim_form.base(class="form-control") }}
+        </div>
+        <div class="col-md-6 mb-3">
+            {{ trim_form.case.label }}<br>
+            {{ trim_form.case(class="form-control") }}
+        </div>
+    </div>
+    <div class="form-row">
+        <div class="col-md-6 mb-3">
+            {{ trim_form.stair_material.label }}<br>
+            {{ trim_form.stair_material(class="form-control") }}
+        </div>
+        <div class="col-md-6 mb-3">
+            {{ trim_form.door_material_type.label }}<br>
+            {{ trim_form.door_material_type(class="form-control") }}
+        </div>
+    </div>
+    <div class="form-row">
+        <div class="col-md-6 mb-3">
+            {{ trim_form.number_of_panels.label }}<br>
+            {{ trim_form.number_of_panels(class="form-control") }}
+        </div>
+        <div class="col-md-6 mb-3">
+            {{ trim_form.door_hardware.label }}<br>
+            {{ trim_form.door_hardware(class="form-control") }}
+        </div>
+    </div>
+    <div class="form-row">
+        <div class="col-md-6 mb-3">
+            {{ trim_form.built_in_materials_type.label }}<br>
+            {{ trim_form.built_in_materials_type(class="form-control") }}
+        </div>
+        <div class="col-md-6 mb-3">
+            {{ trim_form.plywood_1x_count.label }}<br>
+            {{ trim_form.plywood_1x_count(class="form-control") }}
+        </div>
+    </div>
+    <div class="form-row">
+        <div class="col-md-12 mb-3">
+            {{ trim_form.trim_notes.label }}<br>
+            {{ trim_form.trim_notes(class="form-control") }}
+        </div>
+    </div>
+</div>

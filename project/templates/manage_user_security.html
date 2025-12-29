@@ -1,0 +1,68 @@
+{% extends "base.html" %}
+
+{% block title %}Manage User Security{% endblock %}
+
+{% block content %}
+<div class="container mt-3">
+    <h2>Manage User Security</h2>
+    <form action="{{ url_for('main.user_security') }}" method="POST">
+        <table class="table table-bordered">
+            <thead>
+                <tr>
+                    <th>User Type</th>
+                    <th>Admin</th>
+                    <th>Estimating</th>
+                    <th>Bid Request</th>
+                    <th>Design</th>
+                    <th>EWP</th>
+                    <th>Service</th>
+                    <th>Install</th>
+                    <th>Picking</th>
+                    <th>Work Orders</th>
+                    <th>Dashboards</th>
+                    <th>Security 10</th>
+                    <th>Security 11</th>
+                    <th>Security 12</th>
+                    <th>Security 13</th>
+                    <th>Security 14</th>
+                    <th>Security 15</th>
+                    <th>Security 16</th>
+                    <th>Security 17</th>
+                    <th>Security 18</th>
+                    <th>Security 19</th>
+                    <th>Security 20</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for form in forms %}
+                <tr>
+                    <td>{{ form.user_type_name.data }}</td>
+                    <td>{{ form.admin() }}</td>
+                    <td>{{ form.estimating() }}</td>
+                    <td>{{ form.bid_request() }}</td>
+                    <td>{{ form.design() }}</td>
+                    <td>{{ form.ewp() }}</td>
+                    <td>{{ form.service() }}</td>
+                    <td>{{ form.install() }}</td>
+                    <td>{{ form.picking() }}</td>
+                    <td>{{ form.work_orders() }}</td>
+                    <td>{{ form.dashboards() }}</td>
+                    <td>{{ form.security_10() }}</td>
+                    <td>{{ form.security_11() }}</td>
+                    <td>{{ form.security_12() }}</td>
+                    <td>{{ form.security_13() }}</td>
+                    <td>{{ form.security_14() }}</td>
+                    <td>{{ form.security_15() }}</td>
+                    <td>{{ form.security_16() }}</td>
+                    <td>{{ form.security_17() }}</td>
+                    <td>{{ form.security_18() }}</td>
+                    <td>{{ form.security_19() }}</td>
+                    <td>{{ form.security_20() }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        <button type="submit" class="btn btn-primary">Save Changes</button>
+    </form>
+</div>
+{% endblock %}

@@ -1,0 +1,57 @@
+{% extends "base.html" %}
+
+{% block title %}Edit Layout{% endblock %}
+
+{% block content %}
+<div class="container mt-3">
+    <h2>Edit Layout</h2>
+    <form action="{{ url_for('main.edit_layout', layout_id=layout.id) }}" method="POST">
+        {{ form.hidden_tag() }}
+        <div class="form-group">
+            {{ form.plan_number.label }}
+            {{ form.plan_number(class="form-control") }}
+        </div>
+        <div class="form-group">
+            {{ form.sales_rep_id.label }}
+            {{ form.sales_rep_id(class="form-control") }}
+        </div>
+        <div class="form-group">
+            {{ form.customer_id.label }}
+            {{ form.customer_id(class="form-control") }}
+        </div>
+        <div class="form-group">
+            {{ form.address.label }}
+            {{ form.address(class="form-control") }}
+        </div>
+        <div class="form-group">
+            {{ form.notes.label }}
+            {{ form.notes(class="form-control") }}
+        </div>
+        <div class="form-group">
+            {{ form.login_date.label }}
+            {{ form.login_date(class="form-control") }}
+        </div>
+        <div class="form-group">
+            {{ form.tji_depth.label }}
+            {{ form.tji_depth(class="form-control") }}
+        </div>
+        <div class="form-group">
+            {{ form.assigned_designer.label }}
+            {{ form.assigned_designer(class="form-control") }}
+        </div>
+        <div class="form-group">
+            {{ form.layout_finalized.label }}
+            {{ form.layout_finalized(class="form-control") }}
+        </div>
+        <div class="form-group">
+            {{ form.agility_quote.label }}
+            {{ form.agility_quote(class="form-control") }}
+        </div>
+        <div class="form-group">
+            {{ form.imported_stellar.label }}
+            {{ form.imported_stellar(class="form-control") }}
+        </div>
+        <button type="submit" class="btn btn-primary">{{ form.submit.label }}</button>
+    </form>
+</div>
+{% endblock %}

@@ -1,0 +1,137 @@
+Exception on /add_design [GET]
+Traceback (most recent call last):
+  File "/home/amcgrean/mysite/bidtrackenv/lib/python3.9/site-packages/flask/app.py", line 2463, in wsgi_app
+    response = self.full_dispatch_request()
+  File "/home/amcgrean/mysite/bidtrackenv/lib/python3.9/site-packages/flask/app.py", line 1760, in full_dispatch_request
+    rv = self.handle_user_exception(e)
+  File "/home/amcgrean/mysite/bidtrackenv/lib/python3.9/site-packages/flask/app.py", line 1758, in full_dispatch_request
+    rv = self.dispatch_request()
+  File "/home/amcgrean/mysite/bidtrackenv/lib/python3.9/site-packages/flask/app.py", line 1734, in dispatch_request
+    return self.ensure_sync(self.view_functions[rule.endpoint])(**view_args)
+  File "/home/amcgrean/mysite/project/routes.py", line 793, in add_design
+    return render_template('add_design.html', customers=customers, designers=designers)
+  File "/home/amcgrean/mysite/bidtrackenv/lib/python3.9/site-packages/flask/templating.py", line 147, in render_template
+    return _render(app, template, context)
+  File "/home/amcgrean/mysite/bidtrackenv/lib/python3.9/site-packages/flask/templating.py", line 130, in _render
+    rv = template.render(context)
+  File "/home/amcgrean/mysite/bidtrackenv/lib/python3.9/site-packages/jinja2/environment.py", line 1301, in render
+    self.environment.handle_exception()
+  File "/home/amcgrean/mysite/bidtrackenv/lib/python3.9/site-packages/jinja2/environment.py", line 936, in handle_exception
+    raise rewrite_traceback_stack(source=source)
+  File "/home/amcgrean/mysite/project/templates/add_design.html", line 1, in top-level template code
+    {% extends "base.html" %}
+  File "/home/amcgrean/mysite/project/templates/base.html", line 130, in top-level template code
+    {% block content %}
+  File "/home/amcgrean/mysite/project/templates/add_design.html", line 9, in block 'content'
+    {{ form.hidden_tag() }}
+  File "/home/amcgrean/mysite/bidtrackenv/lib/python3.9/site-packages/jinja2/environment.py", line 485, in getattr
+    return getattr(obj, attribute)
+jinja2.exceptions.UndefinedError: 'form' is undefined
+Exception on /user_security [GET]
+Traceback (most recent call last):
+  File "/home/amcgrean/mysite/bidtrackenv/lib/python3.9/site-packages/flask/app.py", line 2463, in wsgi_app
+    response = self.full_dispatch_request()
+  File "/home/amcgrean/mysite/bidtrackenv/lib/python3.9/site-packages/flask/app.py", line 1760, in full_dispatch_request
+    rv = self.handle_user_exception(e)
+  File "/home/amcgrean/mysite/bidtrackenv/lib/python3.9/site-packages/flask/app.py", line 1758, in full_dispatch_request
+    rv = self.dispatch_request()
+  File "/home/amcgrean/mysite/bidtrackenv/lib/python3.9/site-packages/flask/app.py", line 1734, in dispatch_request
+    return self.ensure_sync(self.view_functions[rule.endpoint])(**view_args)
+  File "/home/amcgrean/mysite/project/routes.py", line 1481, in user_security
+    return render_template('user_security.html', form=form, usertypes=usertypes)
+  File "/home/amcgrean/mysite/bidtrackenv/lib/python3.9/site-packages/flask/templating.py", line 147, in render_template
+    return _render(app, template, context)
+  File "/home/amcgrean/mysite/bidtrackenv/lib/python3.9/site-packages/flask/templating.py", line 130, in _render
+    rv = template.render(context)
+  File "/home/amcgrean/mysite/bidtrackenv/lib/python3.9/site-packages/jinja2/environment.py", line 1301, in render
+    self.environment.handle_exception()
+  File "/home/amcgrean/mysite/bidtrackenv/lib/python3.9/site-packages/jinja2/environment.py", line 936, in handle_exception
+    raise rewrite_traceback_stack(source=source)
+  File "/home/amcgrean/mysite/project/templates/user_security.html", line 1, in top-level template code
+    {% extends "base.html" %}
+  File "/home/amcgrean/mysite/project/templates/base.html", line 130, in top-level template code
+    {% block content %}
+  File "/home/amcgrean/mysite/project/templates/user_security.html", line 44, in block 'content'
+    <td>{{ form['admin_' ~ usertype.id]() }}</td>
+TypeError: 'UnboundField' object is not callable
+Exception on /add_design [GET]
+Traceback (most recent call last):
+  File "/home/amcgrean/mysite/bidtrackenv/lib/python3.9/site-packages/flask/app.py", line 2463, in wsgi_app
+    response = self.full_dispatch_request()
+  File "/home/amcgrean/mysite/bidtrackenv/lib/python3.9/site-packages/flask/app.py", line 1760, in full_dispatch_request
+    rv = self.handle_user_exception(e)
+  File "/home/amcgrean/mysite/bidtrackenv/lib/python3.9/site-packages/flask/app.py", line 1758, in full_dispatch_request
+    rv = self.dispatch_request()
+  File "/home/amcgrean/mysite/bidtrackenv/lib/python3.9/site-packages/flask/app.py", line 1734, in dispatch_request
+    return self.ensure_sync(self.view_functions[rule.endpoint])(**view_args)
+  File "/home/amcgrean/mysite/project/routes.py", line 793, in add_design
+    return render_template('add_design.html', customers=customers, designers=designers)
+  File "/home/amcgrean/mysite/bidtrackenv/lib/python3.9/site-packages/flask/templating.py", line 147, in render_template
+    return _render(app, template, context)
+  File "/home/amcgrean/mysite/bidtrackenv/lib/python3.9/site-packages/flask/templating.py", line 130, in _render
+    rv = template.render(context)
+  File "/home/amcgrean/mysite/bidtrackenv/lib/python3.9/site-packages/jinja2/environment.py", line 1301, in render
+    self.environment.handle_exception()
+  File "/home/amcgrean/mysite/bidtrackenv/lib/python3.9/site-packages/jinja2/environment.py", line 936, in handle_exception
+    raise rewrite_traceback_stack(source=source)
+  File "/home/amcgrean/mysite/project/templates/add_design.html", line 1, in top-level template code
+    {% extends "base.html" %}
+  File "/home/amcgrean/mysite/project/templates/base.html", line 130, in top-level template code
+    {% block content %}
+  File "/home/amcgrean/mysite/project/templates/add_design.html", line 9, in block 'content'
+    {{ form.hidden_tag() }}
+  File "/home/amcgrean/mysite/bidtrackenv/lib/python3.9/site-packages/jinja2/environment.py", line 485, in getattr
+    return getattr(obj, attribute)
+jinja2.exceptions.UndefinedError: 'form' is undefined
+Exception on /add_bid [POST]
+Traceback (most recent call last):
+  File "/home/amcgrean/mysite/bidtrackenv/lib/python3.9/site-packages/flask/app.py", line 2463, in wsgi_app
+    response = self.full_dispatch_request()
+  File "/home/amcgrean/mysite/bidtrackenv/lib/python3.9/site-packages/flask/app.py", line 1760, in full_dispatch_request
+    rv = self.handle_user_exception(e)
+  File "/home/amcgrean/mysite/bidtrackenv/lib/python3.9/site-packages/flask/app.py", line 1758, in full_dispatch_request
+    rv = self.dispatch_request()
+  File "/home/amcgrean/mysite/bidtrackenv/lib/python3.9/site-packages/flask/app.py", line 1734, in dispatch_request
+    return self.ensure_sync(self.view_functions[rule.endpoint])(**view_args)
+  File "/home/amcgrean/mysite/project/routes.py", line 184, in add_bid
+    last_updated_by = current_user.username
+AttributeError: 'AnonymousUserMixin' object has no attribute 'username'
+Exception on /add_bid [POST]
+Traceback (most recent call last):
+  File "/home/amcgrean/mysite/bidtrackenv/lib/python3.9/site-packages/flask/app.py", line 2463, in wsgi_app
+    response = self.full_dispatch_request()
+  File "/home/amcgrean/mysite/bidtrackenv/lib/python3.9/site-packages/flask/app.py", line 1760, in full_dispatch_request
+    rv = self.handle_user_exception(e)
+  File "/home/amcgrean/mysite/bidtrackenv/lib/python3.9/site-packages/flask/app.py", line 1758, in full_dispatch_request
+    rv = self.dispatch_request()
+  File "/home/amcgrean/mysite/bidtrackenv/lib/python3.9/site-packages/flask/app.py", line 1734, in dispatch_request
+    return self.ensure_sync(self.view_functions[rule.endpoint])(**view_args)
+  File "/home/amcgrean/mysite/project/routes.py", line 184, in add_bid
+    last_updated_by = current_user.username
+AttributeError: 'AnonymousUserMixin' object has no attribute 'username'
+Exception on /add_bid [POST]
+Traceback (most recent call last):
+  File "/home/amcgrean/mysite/bidtrackenv/lib/python3.9/site-packages/flask/app.py", line 2463, in wsgi_app
+    response = self.full_dispatch_request()
+  File "/home/amcgrean/mysite/bidtrackenv/lib/python3.9/site-packages/flask/app.py", line 1760, in full_dispatch_request
+    rv = self.handle_user_exception(e)
+  File "/home/amcgrean/mysite/bidtrackenv/lib/python3.9/site-packages/flask/app.py", line 1758, in full_dispatch_request
+    rv = self.dispatch_request()
+  File "/home/amcgrean/mysite/bidtrackenv/lib/python3.9/site-packages/flask/app.py", line 1734, in dispatch_request
+    return self.ensure_sync(self.view_functions[rule.endpoint])(**view_args)
+  File "/home/amcgrean/mysite/project/routes.py", line 184, in add_bid
+    last_updated_by = current_user.username
+AttributeError: 'AnonymousUserMixin' object has no attribute 'username'
+Exception on /add_bid [POST]
+Traceback (most recent call last):
+  File "/home/amcgrean/mysite/bidtrackenv/lib/python3.9/site-packages/flask/app.py", line 2463, in wsgi_app
+    response = self.full_dispatch_request()
+  File "/home/amcgrean/mysite/bidtrackenv/lib/python3.9/site-packages/flask/app.py", line 1760, in full_dispatch_request
+    rv = self.handle_user_exception(e)
+  File "/home/amcgrean/mysite/bidtrackenv/lib/python3.9/site-packages/flask/app.py", line 1758, in full_dispatch_request
+    rv = self.dispatch_request()
+  File "/home/amcgrean/mysite/bidtrackenv/lib/python3.9/site-packages/flask/app.py", line 1734, in dispatch_request
+    return self.ensure_sync(self.view_functions[rule.endpoint])(**view_args)
+  File "/home/amcgrean/mysite/project/routes.py", line 184, in add_bid
+    last_updated_by = current_user.username
+AttributeError: 'AnonymousUserMixin' object has no attribute 'username'

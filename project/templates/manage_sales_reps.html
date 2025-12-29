@@ -1,0 +1,62 @@
+{% extends "base.html" %}
+
+{% block title %}Manage Sales Reps{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <h1>Manage Sales Reps</h1>
+
+    <!-- Display Flash Messages -->
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            <div class="alert alert-dismissible fade show" role="alert">
+                {% for category, message in messages %}
+                    <div class="alert alert-{{ category }}">{{ message }}</div>
+                {% endfor %}
+            </div>
+        {% endif %}
+    {% endwith %}
+
+    <h3>Current Sales Reps</h3>
+    <table class="table">
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Name</th>
+                <th>Username</th>
+                <th>Action</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for sales_rep in sales_reps %}
+            <tr>
+                <td>{{ sales_rep.id }}</td>
+                <td>{{ sales_rep.name }}</td>
+                <td>{{ sales_rep.username }}</td>
+                <td>
+                    <form method="POST" action="{{ url_for('main.manage_sales_reps') }}">
+                        <input type="hidden" name="sales_rep_id" value="{{ sales_rep.id }}">
+                        <button type="submit" name="remove_sales_rep" class="btn btn-danger btn-sm">
+                            Remove
+                        </button>
+                    </form>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    <h3>Add New Sales Rep</h3>
+    <form method="POST" action="{{ url_for('main.manage_sales_reps') }}">
+        <div class="form-group">
+            <label for="user_id">Select User</label>
+            <select id="user_id" name="user_id" class="form-control" required>
+                {% for user in available_users %}
+                <option value="{{ user.id }}">{{ user.username }} ({{ user.email }})</option>
+                {% endfor %}
+            </select>
+        </div>
+        <button type="submit" name="add_sales_rep" class="btn btn-primary mt-2">Add Sales Rep</button>
+    </form>
+</div>
+{% endblock %}

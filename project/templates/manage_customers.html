@@ -1,0 +1,118 @@
+{% extends "base.html" %}
+
+{% block title %}Manage Customers{% endblock %}
+
+{% block content %}
+<div class="container mt-3">
+    <h2>Add New Customer</h2>
+    <form action="{{ url_for('main.manage_customers') }}" method="POST" class="mb-3">
+        {{ add_customer_form.hidden_tag() }}
+        <div class="form-group">
+            {{ add_customer_form.customerCode.label }}
+            {{ add_customer_form.customerCode(class="form-control") }}
+        </div>
+        <div class="form-group">
+            {{ add_customer_form.name.label }}
+            {{ add_customer_form.name(class="form-control") }}
+        </div>
+        {{ add_customer_form.submit(class="btn btn-primary") }}
+    </form>
+
+    <h2>Customer List</h2>
+    <form method="GET" action="{{ url_for('main.manage_customers') }}" class="form-inline mb-3">
+        {{ search_form.hidden_tag() }}
+        {{ search_form.search_input(id="searchInput", class="form-control", placeholder="Search for customers..") }}
+
+    </form>
+
+    <table class="table" id="customerTable">
+        <thead>
+            <tr>
+                <th onclick="sortTable(0)">ID</th>
+                <th onclick="sortTable(1)">Customer Code</th>
+                <th onclick="sortTable(2)">Name</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for customer in customers %}
+            <tr>
+                <td>{{ customer.id }}</td>
+                <td>{{ customer.customerCode }}</td>
+                <td><a href="{{ url_for('main.view_customer_bids', customer_id=customer.id) }}">{{ customer.name }}</a></td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    <h2>Upload Customers</h2>
+    <form action="{{ url_for('main.upload_customers') }}" method="post" enctype="multipart/form-data" class="mb-3">
+        <div class="form-group">
+            <label for="file">Upload CSV File of Customers</label>
+            <input type="file" name="file" id="file" required class="form-control-file">
+        </div>
+        <button type="submit" class="btn btn-primary">Upload</button>
+    </form>
+
+    <a href="{{ url_for('main.index') }}" class="btn btn-secondary mt-3">Back to Bids</a>
+</div>
+
+<script>
+function sortTable(n) {
+    var table, rows, switching, i, x, y, shouldSwitch, dir, switchcount = 0;
+    table = document.getElementById("customerTable");
+    switching = true;
+    dir = "asc";
+    while (switching) {
+        switching = false;
+        rows = table.rows;
+        for (i = 1; i < (rows.length - 1); i++) {
+            shouldSwitch = false;
+            x = rows[i].getElementsByTagName("TD")[n];
+            y = rows[i + 1].getElementsByTagName("TD")[n];
+            if (dir == "asc") {
+                if (x.innerHTML.toLowerCase() > y.innerHTML.toLowerCase()) {
+                    shouldSwitch = true;
+                    break;
+                }
+            } else if (dir == "desc") {
+                if (x.innerHTML.toLowerCase() < y.innerHTML.toLowerCase()) {
+                    shouldSwitch = true;
+                    break;
+                }
+            }
+        }
+        if (shouldSwitch) {
+            rows[i].parentNode.insertBefore(rows[i + 1], rows[i]);
+            switching = true;
+            switchcount++;
+        } else {
+            if (switchcount == 0 && dir == "asc") {
+                dir = "desc";
+                switching = true;
+            }
+        }
+    }
+}
+
+document.getElementById('searchInput').addEventListener('input', function () {
+    var input, filter, table, tr, td, i, j, txtValue;
+    input = document.getElementById("searchInput");
+    filter = input.value.toLowerCase();
+    table = document.getElementById("customerTable");
+    tr = table.getElementsByTagName("tr");
+    for (i = 1; i < tr.length; i++) {
+        tr[i].style.display = "none";
+        td = tr[i].getElementsByTagName("td");
+        for (j = 0; j < td.length; j++) {
+            if (td[j]) {
+                txtValue = td[j].textContent || td[j].innerText;
+                if (txtValue.toLowerCase().indexOf(filter) > -1) {
+                    tr[i].style.display = "";
+                    break;
+                }
+            }
+        }
+    }
+});
+</script>
+{% endblock %}

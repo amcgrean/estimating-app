@@ -1,0 +1,38 @@
+{% extends "base.html" %}
+
+{% block title %}Admin Dashboard{% endblock %}
+
+{% block content %}
+<div class="container mt-3">
+    <h2>Admin Dashboard</h2>
+    <div class="row">
+        <div class="col-md-4">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">Quick Links</h5>
+                    <ul>
+                        <li><a href="{{ url_for('main.add_bid') }}">Add Bid</a></li>
+                        <li><a href="{{ url_for('main.upload_historical_bids') }}">Upload Historical Bids</a></li>
+                        <!-- Add more links as needed -->
+                    </ul>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-8">
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="card">
+                        <div class="card-body">
+                            <h5 class="card-title">KPIs</h5>
+                            <p><strong>Bids Completed Today:</strong> {{ bids_completed_today }}</p>
+                            <p><strong>Users Logged In Today:</strong> {{ users_logged_in_today }}</p>
+                            <p><strong>Current Active Users:</strong> {{ active_users }}</p>
+                            <!-- Add more KPIs as needed -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

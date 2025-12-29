@@ -1,0 +1,41 @@
+{% extends "base.html" %}
+
+{% block title %}Add User{% endblock %}
+
+{% block content %}
+<div class="container mt-3">
+    <h2>Add New User</h2>
+    <form action="{{ url_for('main.register') }}" method="POST" class="mb-3">
+        {{ form.hidden_tag() }}
+        <div class="mb-3">
+            {{ form.username.label }}<br>
+            {{ form.username(size=32, class="form-control") }}
+        </div>
+        <div class="mb-3">
+            {{ form.email.label }}<br>
+            {{ form.email(size=32, class="form-control") }}
+        </div>
+        <div class="mb-3">
+            {{ form.password.label }}<br>
+            {{ form.password(size=32, class="form-control") }}
+        </div>
+        <div class="mb-3">
+            {{ form.confirm_password.label }}<br>
+            {{ form.confirm_password(size=32, class="form-control") }}
+        </div>
+        <div class="mb-3">
+            {{ form.usertype_id.label }}<br>
+            {{ form.usertype_id(class="form-control") }}
+        </div>
+        <div class="mb-3">
+            {{ form.estimatorID.label }}<br>
+            {{ form.estimatorID(class="form-control") }}
+        </div>
+        <div class="form-group">
+            {{ form.user_branch_id.label }}<br>
+            {{ form.user_branch_id(class="form-control") }}
+        </div>
+        <button type="submit" class="btn btn-primary">Add User</button>
+    </form>
+</div>
+{% endblock %}

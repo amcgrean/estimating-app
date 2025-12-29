@@ -1,0 +1,40 @@
+{% extends "base.html" %}
+
+{% block title %}Submit New Issue{% endblock %}
+
+{% block content %}
+<div class="container mt-3">
+    <h2>Submit a New Issue</h2>
+    <form action="{{ url_for('main.submit_issue') }}" method="POST">
+        {{ form.hidden_tag() }}
+
+        <!-- Issue Type Dropdown -->
+        <div class="form-group">
+            {{ form.issue_type.label }}
+            {{ form.issue_type(class="form-control") }}
+            {% if form.issue_type.errors %}
+                <div class="text-danger">{{ form.issue_type.errors[0] }}</div>
+            {% endif %}
+        </div>
+
+        <!-- Description Field -->
+        <div class="form-group">
+            {{ form.description.label }}
+            {{ form.description(class="form-control", rows="4") }}
+            {% if form.description.errors %}
+                <div class="text-danger">{{ form.description.errors[0] }}</div>
+            {% endif %}
+        </div>
+
+        <!-- Notes Field -->
+        <div class="form-group">
+            {{ form.notes.label }}
+            {{ form.notes(class="form-control", rows="4") }}
+        </div>
+
+        <!-- Submit Button -->
+        <button type="submit" class="btn btn-primary">{{ form.submit.label }}</button>
+        <a href="{{ url_for('main.index') }}" class="btn btn-secondary">Back</a>
+    </form>
+</div>
+{% endblock %}

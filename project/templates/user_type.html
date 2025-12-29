@@ -1,0 +1,42 @@
+{% extends "base.html" %}
+
+{% block title %}Manage User Types{% endblock %}
+
+{% block content %}
+<div class="container mt-3">
+    <h2>User Types</h2>
+    <form action="{{ url_for('main.add_user_type') }}" method="POST" class="mb-3">
+        {{ form.hidden_tag() }}
+        <div class="mb-3">
+            {{ form.name.label }}<br>
+            {{ form.name(size=32, class="form-control") }}
+        </div>
+        <button type="submit" class="btn btn-primary">Add User Type</button>
+    </form>
+
+    <h2>Existing User Types</h2>
+    <table class="table">
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Name</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for usertype in usertypes %}
+            <tr>
+                <td>{{ usertype.id }}</td>
+                <td>{{ usertype.name }}</td>
+                <td>
+                    <form action="{{ url_for('main.delete_user_type', usertype_id=usertype.id) }}" method="POST" style="display:inline;">
+                        <button type="submit" class="btn btn-sm btn-danger">Delete</button>
+                    </form>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    <a href="{{ url_for('main.manage_users') }}" class="btn btn-secondary mt-3">Back to Manage Users</a>
+</div>
+{% endblock %}

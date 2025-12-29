@@ -1,0 +1,186 @@
+{% extends "base.html" %}
+
+{% block title %}Manage Project{% endblock %}
+
+{% block content %}
+<div class="container mt-3">
+    <h2>Manage Project</h2>
+    <a href="{{ url_for('main.projects') }}" class="btn btn-secondary mb-3">Back to Projects</a>
+    <form method="POST" action="{{ url_for('main.manage_project', project_id=project.id) }}">
+        {{ form.hidden_tag() }}
+
+        <div class="form-group">
+            <label for="contractor">Contractor</label>
+            {{ form.contractor(class="form-control") }}
+        </div>
+        <div class="form-group">
+            <label for="project_address">Project Address</label>
+            {{ form.project_address(class="form-control") }}
+        </div>
+
+        <!-- Framing Section -->
+        <div class="card mb-3">
+            <div class="card-header" data-toggle="collapse" data-target="#framing-section">
+                Framing
+            </div>
+            <div id="framing-section" class="collapse {% if form.include_framing.data %}show{% endif %}">
+                {{ framing_form.hidden_tag() }}
+                <div class="form-group">
+                    <label for="plate">Plate</label>
+                    {{ framing_form.plate(class="form-control") }}
+                </div>
+                <div class="form-group">
+                    <label for="lot_type">Lot Type</label>
+                    {{ framing_form.lot_type(class="form-control") }}
+                </div>
+                <div class="form-group">
+                    <label for="basement_wall_height">Basement Wall Height</label>
+                    {{ framing_form.basement_wall_height(class="form-control") }}
+                </div>
+                <div class="form-group">
+                    <label for="basement_exterior_walls">Basement Exterior Walls</label>
+                    {{ framing_form.basement_exterior_walls(class="form-control") }}
+                </div>
+                <div class="form-group">
+                    <label for="basement_interior_walls">Basement Interior Walls</label>
+                    {{ framing_form.basement_interior_walls(class="form-control") }}
+                </div>
+                <div class="form-group">
+                    <label for="framing_notes">Framing Notes</label>
+                    {{ framing_form.framing_notes(class="form-control", rows="3") }}
+                </div>
+            </div>
+        </div>
+
+        <!-- Siding Section -->
+        <div class="card mb-3">
+            <div class="card-header" data-toggle="collapse" data-target="#siding-section">
+                Siding
+            </div>
+            <div id="siding-section" class="collapse {% if form.include_siding.data %}show{% endif %}">
+                {{ siding_form.hidden_tag() }}
+                <div class="form-group">
+                    <label for="lap_type">Lap Type</label>
+                    {{ siding_form.lap_type(class="form-control") }}
+                </div>
+                <div class="form-group">
+                    <label for="panel_type">Panel Type</label>
+                    {{ siding_form.panel_type(class="form-control") }}
+                </div>
+                <div class="form-group">
+                    <label for="siding_notes">Siding Notes</label>
+                    {{ siding_form.siding_notes(class="form-control", rows="3") }}
+                </div>
+            </div>
+        </div>
+
+        <!-- Shingles Section -->
+        <div class="card mb-3">
+            <div class="card-header" data-toggle="collapse" data-target="#shingles-section">
+                Shingles
+            </div>
+            <div id="shingles-section" class="collapse {% if form.include_shingles.data %}show{% endif %}">
+                {{ shingle_form.hidden_tag() }}
+                <div class="form-group">
+                    <label for="shingle_notes">Shingle Notes</label>
+                    {{ shingle_form.shingle_notes(class="form-control", rows="3") }}
+                </div>
+            </div>
+        </div>
+
+        <!-- Deck Section -->
+        <div class="card mb-3">
+            <div class="card-header" data-toggle="collapse" data-target="#deck-section">
+                Deck
+            </div>
+            <div id="deck-section" class="collapse {% if form.include_deck.data %}show{% endif %}">
+                {{ deck_form.hidden_tag() }}
+                <div class="form-group">
+                    <label for="decking_type">Decking Type</label>
+                    {{ deck_form.decking_type(class="form-control") }}
+                </div>
+                <div class="form-group">
+                    <label for="deck_notes">Deck Notes</label>
+                    {{ deck_form.deck_notes(class="form-control", rows="3") }}
+                </div>
+            </div>
+        </div>
+
+        <!-- Doors Section -->
+        <div class="card mb-3">
+            <div class="card-header" data-toggle="collapse" data-target="#doors-section">
+                Doors
+            </div>
+            <div id="doors-section" class="collapse {% if form.include_doors.data %}show{% endif %}">
+                {{ door_form.hidden_tag() }}
+                <div class="form-group">
+                    <label for="door_notes">Door Notes</label>
+                    {{ door_form.door_notes(class="form-control", rows="3") }}
+                </div>
+            </div>
+        </div>
+
+        <!-- Windows Section -->
+        <div class="card mb-3">
+            <div class="card-header" data-toggle="collapse" data-target="#windows-section">
+                Windows
+            </div>
+            <div id="windows-section" class="collapse {% if form.include_windows.data %}show{% endif %}">
+                {{ window_form.hidden_tag() }}
+                <div class="form-group">
+                    <label for="window_notes">Window Notes</label>
+                    {{ window_form.window_notes(class="form-control", rows="3") }}
+                </div>
+            </div>
+        </div>
+
+        <!-- Trim Section -->
+        <div class="card mb-3">
+            <div class="card-header" data-toggle="collapse" data-target="#trim-section">
+                Trim
+            </div>
+            <div id="trim-section" class="collapse {% if form.include_trim.data %}show{% endif %}">
+                {{ trim_form.hidden_tag() }}
+                <div class="form-group">
+                    <label for="base">Base</label>
+                    {{ trim_form.base(class="form-control") }}
+                </div>
+                <div class="form-group">
+                    <label for="trim_notes">Trim Notes</label>
+                    {{ trim_form.trim_notes(class="form-control", rows="3") }}
+                </div>
+            </div>
+        </div>
+
+        <button type="submit" class="btn btn-primary mt-3">Save</button>
+    </form>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    const sections = {
+        'include_framing': '#framing-section',
+        'include_siding': '#siding-section',
+        'include_shingles': '#shingles-section',
+        'include_deck': '#deck-section',
+        'include_doors': '#doors-section',
+        'include_windows': '#windows-section',
+        'include_trim': '#trim-section'
+    };
+
+    Object.keys(sections).forEach(id => {
+        const checkbox = document.getElementById(id);
+        const section = document.querySelector(sections[id]);
+
+        if (checkbox) {
+            checkbox.addEventListener('change', function () {
+                section.style.display = checkbox.checked ? 'block' : 'none';
+            });
+
+            // Initialize visibility
+            section.style.display = checkbox.checked ? 'block' : 'none';
+        }
+    });
+});
+</script>
+{% endblock %}

@@ -1,0 +1,41 @@
+{% extends "base.html" %}
+
+{% block title %}View Bids{% endblock %}
+
+{% block content %}
+<div class="container mt-3">
+    <h2>View Bids</h2>
+    <table class="table table-bordered">
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Plan Type</th>
+                <th>Customer ID</th>
+                <th>Project Name</th>
+                <th>Estimator ID</th>
+                <th>Status</th>
+                <th>Log Date</th>
+                <th>Due Date</th>
+                <th>Completion Date</th>
+                <th>Notes</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for bid in bids %}
+            <tr>
+                <td>{{ bid.id }}</td>
+                <td>{{ bid.plan_type }}</td>
+                <td>{{ bid.customer_id }}</td>
+                <td>{{ bid.project_name }}</td>
+                <td>{{ bid.estimator_id }}</td>
+                <td>{{ bid.status }}</td>
+                <td>{{ bid.log_date }}</td>
+                <td>{{ bid.due_date }}</td>
+                <td>{{ bid.completion_date }}</td>
+                <td>{{ bid.notes }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}
