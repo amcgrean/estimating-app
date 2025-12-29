@@ -22,19 +22,40 @@ mail = Mail()
 def create_app():
     app = Flask(__name__)
 
-    # Configuration
-    app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:////home/amcgrean/mysite/instance/bids.db?timeout=60'
-    app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
-    app.config['SQLALCHEMY_ENGINE_OPTIONS'] = {
-        'connect_args': {'timeout': 30}
-    }
-    app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY')
-    app.config['UPLOAD_FOLDER'] = '/home/amcgrean/mysite/project/upload/folder'
-    app.config['PDF_TEMPLATE'] = '/home/amcgrean/mysite/project/form.pdf'
-    app.config['PDF_OUTPUT'] = '/home/amcgrean/mysite/project/output.pdf'
-    app.config['SESSION_TYPE'] = 'filesystem'  # Update this line
-    app.config['PERMANENT_SESSION_LIFETIME'] = timedelta(minutes=30)
-    app.config['LOGIN_VIEW'] = 'main.login'
+    # --- Core secrets ---
+    app.config["SECRET_KEY"] = os.environ.get("SECRET_KEY", "dev-secret-change-me")
+    if os.environ.get("VERCEL") and app.config["SECRET_KEY"] == "dev-secret-change-me":
+        raise RuntimeError("SECRET_KEY is required in production")
+
+
+    # --- Database ---
+    # Prefer DATABASE_URL (common on hosts like Vercel/Render/Heroku-style)
+    # Fall back to SQLALCHEMY_DATABASE_URI if you want to set that directly.
+    db_url = os.environ.get("DATABASE_URL") or os.environ.get("SQLALCHEMY_DATABASE_URI")
+
+    if not db_url:
+        # local default for dev only (keeps you running locally)
+        db_url = "sqlite:///bids.db"
+
+    # Some providers supply postgres:// which SQLAlchemy expects as postgresql://
+    if db_url.startswith("postgres://"):
+        db_url = db_url.replace("postgres://", "postgresql://", 1)
+
+    app.config["SQLALCHEMY_DATABASE_URI"] = db_url
+    app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
+    engine_opts = {}
+    if db_url.startswith("sqlite:"):
+        engine_opts = {"connect_args": {"timeout": 30}}
+    app.config["SQLALCHEMY_ENGINE_OPTIONS"] = engine_opts
+
+
+    # --- Paths / files (make these env-configurable) ---
+    app.config["UPLOAD_FOLDER"] = os.environ.get("UPLOAD_FOLDER", "uploads")
+    app.config["PDF_TEMPLATE"] = os.environ.get("PDF_TEMPLATE", "project/form.pdf")
+    app.config["PDF_OUTPUT"] = os.environ.get("PDF_OUTPUT", "output.pdf")
+
+    app.config["SESSION_TYPE"] = "filesystem"
+    app.config["PERMANENT_SESSION_LIFETIME"] = timedelta(minutes=30)
 
     # Initialize extensions
     db.init_app(app)
@@ -42,7 +63,6 @@ def create_app():
     login_manager.init_app(app)
     mail.init_app(app)
     bcrypt.init_app(app)
-
 
     # Flask-Login configuration
     login_manager.login_view = 'main.login'
@@ -62,9 +82,12 @@ def create_app():
     app.register_blueprint(main_blueprint)
 
     # Set up logging
-    if not app.debug:
-        handler = RotatingFileHandler('error.log', maxBytes=10000, backupCount=1)
-        handler.setLevel(logging.INFO)
-        app.logger.addHandler(handler)
+import sys
+
+if not app.debug:
+    stream_handler = logging.StreamHandler(sys.stdout)
+    stream_handler.setLevel(logging.INFO)
+    app.logger.addHandler(stream_handler)
+
 
     return app
