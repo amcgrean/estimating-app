@@ -75,7 +75,7 @@ def create_app():
     def load_user(user_id):
         logging.info(f'Loading user with ID: {user_id}')
         print("Loading user with ID:", user_id)
-        return User.query.get(int(user_id))
+        return db.session.get(User, int(user_id))
 
     # Register blueprint
     from .routes import main as main_blueprint
