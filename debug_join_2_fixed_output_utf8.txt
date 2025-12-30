@@ -1,0 +1,2 @@
+--- Granular Join Test 2 ---
+Total Joins (base): 9

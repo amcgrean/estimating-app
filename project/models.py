@@ -116,18 +116,6 @@ class User(db.Model, UserMixin):
     def check_password(self, password):
         return self.password == password
 
-    @property
-    def is_authenticated(self):
-        return True
-
-    @property
-    def is_active(self):
-        return True
-
-    @property
-    def is_anonymous(self):
-        return False
-
     def get_id(self):
         return self.id
 
