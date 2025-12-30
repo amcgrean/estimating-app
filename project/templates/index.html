@@ -27,7 +27,11 @@
         <div class="col-md-3">
             <a href="{{ url_for('main.open_bids', branch_id=current_branch_id) }}" class="text-white">
                 <div class="card text-white bg-primary mb-3">
-                    <div class="card-header">Open Bids</div>
+                    <div class="card-header d-flex justify-content-between">
+                        <span>Open Bids</span>
+                        <a href="{{ url_for('main.bids_calendar', branch_id=current_branch_id) }}"
+                            class="text-white small" style="text-decoration: underline;">View Calendar</a>
+                    </div>
                     <div class="card-body">
                         <h5 class="card-title">{{ open_bids_count }}</h5>
                     </div>

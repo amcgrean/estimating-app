@@ -716,6 +716,48 @@ def print_open_bids():
     # Pass only selected columns and filtered bids to the template, plus current date
     return render_template('print_open_bids.html', bids=bids, selected_columns=selected_columns,current_date=current_date)
 
+@main.route('/bids_calendar')
+@login_required
+def bids_calendar():
+    branch_id = request.args.get('branch_id', current_user.user_branch_id, type=int)
+    branches = Branch.query.all()
+    return render_template('bids_calendar.html', branches=branches, current_branch_id=branch_id)
+
+@main.route('/api/bids_events')
+@login_required
+def api_bids_events():
+    branch_id = request.args.get('branch_id', type=int)
+    
+    query = Bid.query.filter(Bid.status == 'Incomplete')
+    if branch_id and branch_id != 0:
+        query = query.filter(Bid.branch_id == branch_id)
+        
+    bids = query.all()
+    events = []
+    
+    for bid in bids:
+        if bid.due_date:
+            # Color coding based on Plan Type
+            color = '#00008b' if bid.plan_type == 'Residential' else '#6c757d'
+            
+            events.append({
+                'id': bid.id,
+                'title': f"{bid.customer.name if bid.customer else 'Unassigned'} - {bid.project_name}",
+                'start': bid.due_date.strftime('%Y-%m-%d'),
+                'url': url_for('main.manage_bid', bid_id=bid.id),
+                'backgroundColor': color,
+                'borderColor': color,
+                'textColor': '#ffffff',
+                'extendedProps': {
+                    'customer': bid.customer.name if bid.customer else 'N/A',
+                    'project': bid.project_name,
+                    'plan_type': bid.plan_type,
+                    'estimator': bid.estimator.estimatorName if bid.estimator else 'Unassigned'
+                }
+            })
+            
+    return jsonify(events)
+
 @main.route('/completed_bids', methods=['GET'])
 @login_required
 def completed_bids():
