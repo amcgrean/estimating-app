@@ -15,7 +15,7 @@
             class="btn btn-primary filter-btn {% if quick_filter == 'residential' %}selected{% endif %}">Residential</a>
         <a href="{{ url_for('main.open_bids', quick_filter='commercial') }}"
             class="btn btn-primary filter-btn {% if quick_filter == 'commercial' %}selected{% endif %}">Commercial</a>
-        <a href="{{ url_for('main.open_bids') }}"
+        <a href="{{ url_for('main.open_bids', quick_filter='all', branch_id=current_branch_id) }}"
             class="btn btn-secondary filter-btn {% if quick_filter == 'all' %}selected{% endif %}">Show All</a>
         <a href="{{ url_for('main.add_bid') }}" class="btn btn-success ml-auto">Create New</a>
         <button type="button" class="btn btn-secondary ml-2" data-toggle="modal" data-target="#printModal">Print
@@ -59,20 +59,20 @@
         <thead>
             <tr>
                 <th><a
-                        href="{{ url_for('main.open_bids', sort='customer_name', direction='asc' if sort_column != 'customer_name' or sort_direction == 'desc' else 'desc', plan_type=current_plan_type, status=current_status, due_date_start=due_date_start, due_date_end=due_date_end, page=pagination.page, per_page=pagination.per_page) }}">Customer
+                        href="{{ url_for('main.open_bids', sort='customer_name', direction='asc' if sort_column != 'customer_name' or sort_direction == 'desc' else 'desc', plan_type=current_plan_type, status=current_status, due_date_start=due_date_start, due_date_end=due_date_end, page=pagination.page, per_page=pagination.per_page, branch_id=current_branch_id) }}">Customer
                         Name</a></th>
                 <th><a
-                        href="{{ url_for('main.open_bids', sort='project_name', direction='asc' if sort_column != 'project_name' or sort_direction == 'desc' else 'desc', plan_type=current_plan_type, status=current_status, due_date_start=due_date_start, due_date_end=due_date_end, page=pagination.page, per_page=pagination.per_page) }}">Project
+                        href="{{ url_for('main.open_bids', sort='project_name', direction='asc' if sort_column != 'project_name' or sort_direction == 'desc' else 'desc', plan_type=current_plan_type, status=current_status, due_date_start=due_date_start, due_date_end=due_date_end, page=pagination.page, per_page=pagination.per_page, branch_id=current_branch_id) }}">Project
                         Name</a></th>
                 <th>Notes</th>
                 <th><a
-                        href="{{ url_for('main.open_bids', sort='estimator', direction='asc' if sort_column != 'estimator' or sort_direction == 'desc' else 'desc', plan_type=current_plan_type, status=current_status, due_date_start=due_date_start, due_date_end=due_date_end, page=pagination.page, per_page=pagination.per_page) }}">Estimator</a>
+                        href="{{ url_for('main.open_bids', sort='estimator', direction='asc' if sort_column != 'estimator' or sort_direction == 'desc' else 'desc', plan_type=current_plan_type, status=current_status, due_date_start=due_date_start, due_date_end=due_date_end, page=pagination.page, per_page=pagination.per_page, branch_id=current_branch_id) }}">Estimator</a>
                 </th>
                 <th><a
-                        href="{{ url_for('main.open_bids', sort='log_date', direction='asc' if sort_column != 'log_date' or sort_direction == 'desc' else 'desc', plan_type=current_plan_type, status=current_status, due_date_start=due_date_start, due_date_end=due_date_end, page=pagination.page, per_page=pagination.per_page) }}">Log
+                        href="{{ url_for('main.open_bids', sort='log_date', direction='asc' if sort_column != 'log_date' or sort_direction == 'desc' else 'desc', plan_type=current_plan_type, status=current_status, due_date_start=due_date_start, due_date_end=due_date_end, page=pagination.page, per_page=pagination.per_page, branch_id=current_branch_id) }}">Log
                         Date</a></th>
                 <th><a
-                        href="{{ url_for('main.open_bids', sort='due_date', direction='asc' if sort_column != 'due_date' or sort_direction == 'desc' else 'desc', plan_type=current_plan_type, status=current_status, due_date_start=due_date_start, due_date_end=due_date_end, page=pagination.page, per_page=pagination.per_page) }}">Due
+                        href="{{ url_for('main.open_bids', sort='due_date', direction='asc' if sort_column != 'due_date' or sort_direction == 'desc' else 'desc', plan_type=current_plan_type, status=current_status, due_date_start=due_date_start, due_date_end=due_date_end, page=pagination.page, per_page=pagination.per_page, branch_id=current_branch_id) }}">Due
                         Date</a></th>
             </tr>
         </thead>
@@ -107,7 +107,7 @@
         <ul class="pagination justify-content-center">
             <li class="page-item {% if not pagination.has_prev %}disabled{% endif %}">
                 <a class="page-link"
-                    href="{{ url_for('main.open_bids', sort=sort_column, direction=sort_direction, plan_type=current_plan_type, status=current_status, start_date=start_date, end_date=end_date, page=pagination.prev_num, per_page=pagination.per_page) }}"
+                    href="{{ url_for('main.open_bids', sort=sort_column, direction=sort_direction, plan_type=current_plan_type, status=current_status, start_date=start_date, end_date=end_date, page=pagination.prev_num, per_page=pagination.per_page, branch_id=current_branch_id) }}"
                     aria-label="Previous">
                     <span aria-hidden="true">&laquo;</span>
                 </a>
@@ -115,13 +115,13 @@
             {% for page_num in pagination.iter_pages() %}
             <li class="page-item {% if page_num == pagination.page %}active{% endif %}">
                 <a class="page-link"
-                    href="{{ url_for('main.open_bids', sort=sort_column, direction=sort_direction, plan_type=current_plan_type, status=current_status, start_date=start_date, end_date=end_date, page=page_num, per_page=pagination.per_page) }}">{{
+                    href="{{ url_for('main.open_bids', sort=sort_column, direction=sort_direction, plan_type=current_plan_type, status=current_status, start_date=start_date, end_date=end_date, page=page_num, per_page=pagination.per_page, branch_id=current_branch_id) }}">{{
                     page_num }}</a>
             </li>
             {% endfor %}
             <li class="page-item {% if not pagination.has_next %}disabled{% endif %}">
                 <a class="page-link"
-                    href="{{ url_for('main.open_bids', sort=sort_column, direction=sort_direction, plan_type=current_plan_type, status=current_status, start_date=start_date, end_date=end_date, page=pagination.next_num, per_page=pagination.per_page) }}"
+                    href="{{ url_for('main.open_bids', sort=sort_column, direction=sort_direction, plan_type=current_plan_type, status=current_status, start_date=start_date, end_date=end_date, page=pagination.next_num, per_page=pagination.per_page, branch_id=current_branch_id) }}"
                     aria-label="Next">
                     <span aria-hidden="true">&raquo;</span>
                 </a>
@@ -143,6 +143,7 @@
         <input type="hidden" name="status" value="{{ current_status }}">
         <input type="hidden" name="start_date" value="{{ start_date }}">
         <input type="hidden" name="end_date" value="{{ end_date }}">
+        <input type="hidden" name="branch_id" value="{{ current_branch_id }}">
     </form>
 
     <!-- Print Modal for Column Selection -->

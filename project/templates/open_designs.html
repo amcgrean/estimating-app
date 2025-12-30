@@ -30,28 +30,28 @@
         <thead>
             <tr>
                 <th><a
-                        href="{{ url_for('main.open_designs', sort='planNumber', direction='asc' if sort_column != 'planNumber' or sort_direction == 'desc' else 'desc', status=current_status) }}">Plan
+                        href="{{ url_for('main.open_designs', sort='planNumber', direction='asc' if sort_column != 'planNumber' or sort_direction == 'desc' else 'desc', status=current_status, branch_id=current_branch_id) }}">Plan
                         Number</a></th>
                 <th><a
-                        href="{{ url_for('main.open_designs', sort='plan_name', direction='asc' if sort_column != 'plan_name' or sort_direction == 'desc' else 'desc', status=current_status) }}">Plan
+                        href="{{ url_for('main.open_designs', sort='plan_name', direction='asc' if sort_column != 'plan_name' or sort_direction == 'desc' else 'desc', status=current_status, branch_id=current_branch_id) }}">Plan
                         Name</a></th>
                 <th><a
-                        href="{{ url_for('main.open_designs', sort='customer_name', direction='asc' if sort_column != 'customer_name' or sort_direction == 'desc' else 'desc', status=current_status) }}">Customer
+                        href="{{ url_for('main.open_designs', sort='customer_name', direction='asc' if sort_column != 'customer_name' or sort_direction == 'desc' else 'desc', status=current_status, branch_id=current_branch_id) }}">Customer
                         Name</a></th>
                 <th><a
-                        href="{{ url_for('main.open_designs', sort='project_address', direction='asc' if sort_column != 'project_address' or sort_direction == 'desc' else 'desc', status=current_status) }}">Project
+                        href="{{ url_for('main.open_designs', sort='project_address', direction='asc' if sort_column != 'project_address' or sort_direction == 'desc' else 'desc', status=current_status, branch_id=current_branch_id) }}">Project
                         Address</a></th>
                 <th><a
-                        href="{{ url_for('main.open_designs', sort='designer', direction='asc' if sort_column != 'designer' or sort_direction == 'desc' else 'desc', status=current_status) }}">Designer</a>
+                        href="{{ url_for('main.open_designs', sort='designer', direction='asc' if sort_column != 'designer' or sort_direction == 'desc' else 'desc', status=current_status, branch_id=current_branch_id) }}">Designer</a>
                 </th>
                 <th><a
-                        href="{{ url_for('main.open_designs', sort='status', direction='asc' if sort_column != 'status' or sort_direction == 'desc' else 'desc', status=current_status) }}">Status</a>
+                        href="{{ url_for('main.open_designs', sort='status', direction='asc' if sort_column != 'status' or sort_direction == 'desc' else 'desc', status=current_status, branch_id=current_branch_id) }}">Status</a>
                 </th>
                 <th><a
-                        href="{{ url_for('main.open_designs', sort='log_date', direction='asc' if sort_column != 'log_date' or sort_direction == 'desc' else 'desc', status=current_status) }}">Log
+                        href="{{ url_for('main.open_designs', sort='log_date', direction='asc' if sort_column != 'log_date' or sort_direction == 'desc' else 'desc', status=current_status, branch_id=current_branch_id) }}">Log
                         Date</a></th>
                 <th><a
-                        href="{{ url_for('main.open_designs', sort='notes', direction='asc' if sort_column != 'notes' or sort_direction == 'desc' else 'desc', status=current_status) }}">Notes</a>
+                        href="{{ url_for('main.open_designs', sort='notes', direction='asc' if sort_column != 'notes' or sort_direction == 'desc' else 'desc', status=current_status, branch_id=current_branch_id) }}">Notes</a>
                 </th>
             </tr>
         </thead>
