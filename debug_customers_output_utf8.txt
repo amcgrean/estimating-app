@@ -1,0 +1,12 @@
+--- Customer Branch Check ---
+Total customers: 1161
+Customers with no branch: 0
+Branch 'Grimes' (ID: 1): 1161 customers
+  -> Filtered count for this branch (incl. NULL): 1161
+Branch 'Fort Dodge' (ID: 2): 0 customers
+  -> Filtered count for this branch (incl. NULL): 0
+Branch 'Coralville' (ID: 3): 0 customers
+  -> Filtered count for this branch (incl. NULL): 0
+Branch 'Birchwood' (ID: 4): 0 customers
+  -> Filtered count for this branch (incl. NULL): 0
+Branch 0 (All) should show all customers.

@@ -44,3 +44,14 @@
     </form>
 </div>
 {% endblock %}
+
+{% block scripts %}
+<script>
+    document.getElementById('branch_id').onchange = function () {
+        var branchId = this.value;
+        var url = new URL(window.location.href);
+        url.searchParams.set('branch_id', branchId);
+        window.location.href = url.toString();
+    };
+</script>
+{% endblock %}
