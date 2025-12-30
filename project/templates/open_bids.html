@@ -17,7 +17,8 @@
             class="btn btn-primary filter-btn {% if quick_filter == 'commercial' %}selected{% endif %}">Commercial</a>
         <a href="{{ url_for('main.open_bids', quick_filter='all', branch_id=current_branch_id) }}"
             class="btn btn-secondary filter-btn {% if quick_filter == 'all' %}selected{% endif %}">Show All</a>
-        <a href="{{ url_for('main.add_bid') }}" class="btn btn-success ml-auto">Create New</a>
+        <a href="{{ url_for('main.add_bid', branch_id=current_branch_id) }}" class="btn btn-success ml-auto">Create
+            New</a>
         <button type="button" class="btn btn-secondary ml-2" data-toggle="modal" data-target="#printModal">Print
             Report</button>
 

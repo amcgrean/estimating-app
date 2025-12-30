@@ -89,8 +89,7 @@ def index():
     
     def apply_branch_filter(query, model):
         if branch_id and branch_id != 0:
-            # Show branch-specific data OR data with no branch (legacy)
-            return query.filter((model.branch_id == branch_id) | (model.branch_id == None))
+            return query.filter(model.branch_id == branch_id)
         return query
 
     # Open bids count (incomplete)
@@ -134,10 +133,8 @@ def index():
         Bid.last_updated_by == current_user.username
     ).order_by(Bid.last_updated_at.desc()).limit(5).all()
 
-    # Recently created projects (filtered by current user)
-    recently_created_projects = apply_branch_filter(db.session.query(Bid), Bid).filter(
-        Bid.customer_id == current_user.id
-    ).order_by(Bid.log_date.desc()).limit(5).all()
+    # Recently created projects
+    recently_created_projects = apply_branch_filter(db.session.query(Bid), Bid).order_by(Bid.log_date.desc()).limit(5).all()
 
     search_query = request.args.get('search')
     bids = []
@@ -193,7 +190,7 @@ def add_bid():
     form.branch_id.choices = [(b.branch_id, b.branch_name) for b in Branch.query.all()]
     
     if not form.branch_id.data:
-        form.branch_id.data = current_user.user_branch_id
+        form.branch_id.data = request.args.get('branch_id', current_user.user_branch_id, type=int)
 
     # Set default value for due_date to 14 days from today
     if not form.due_date.data:
@@ -312,7 +309,7 @@ def manage_customers():
     branch_id = request.args.get('branch_id', current_user.user_branch_id, type=int)
     customers = Customer.query
     if branch_id and branch_id != 0:
-        customers = customers.filter((Customer.branch_id == branch_id) | (Customer.branch_id == None))
+        customers = customers.filter(Customer.branch_id == branch_id)
     customers = customers.order_by(Customer.customerCode).all()
     branches = Branch.query.all()
     return render_template('manage_customers.html', add_customer_form=add_customer_form, search_form=search_form, customers=customers, branches=branches, current_branch_id=branch_id)
@@ -653,7 +650,7 @@ def open_bids():
     # Branch filtering
     branch_id = request.args.get('branch_id', current_user.user_branch_id, type=int)
     if branch_id and branch_id != 0:
-        query = query.filter((Bid.branch_id == branch_id) | (Bid.branch_id == None))
+        query = query.filter(Bid.branch_id == branch_id)
 
     # Apply status filter
     if status_filter != 'all':
@@ -760,7 +757,7 @@ def completed_bids():
     # Branch filtering
     branch_id = request.args.get('branch_id', current_user.user_branch_id, type=int)
     if branch_id and branch_id != 0:
-        query = query.filter((Bid.branch_id == branch_id) | (Bid.branch_id == None))
+        query = query.filter(Bid.branch_id == branch_id)
 
     if status_filter != 'all':
         query = query.filter(Bid.status == status_filter)
@@ -842,7 +839,7 @@ def add_design():
         status = request.form['status']
         plan_description = request.form['plan_description']
         notes = request.form['notes']
-        branch_id = request.form.get('branch_id', current_user.user_branch_id)
+        branch_id = request.form.get('branch_id') or request.args.get('branch_id') or current_user.user_branch_id
 
         new_design = Design(
             plan_name=plan_name, 
@@ -905,7 +902,7 @@ def open_designs():
     # Branch filtering
     branch_id = request.args.get('branch_id', current_user.user_branch_id, type=int)
     if branch_id and branch_id != 0:
-        query = query.filter((Design.branch_id == branch_id) | (Design.branch_id == None))
+        query = query.filter(Design.branch_id == branch_id)
 
     # Apply status filter
     query = query.filter(Design.status == status_filter)
@@ -1251,7 +1248,7 @@ def projects():
     # Branch filtering
     branch_id = request.args.get('branch_id', current_user.user_branch_id, type=int)
     if branch_id and branch_id != 0:
-        query = query.filter((Project.branch_id == branch_id) | (Project.branch_id == None))
+        query = query.filter(Project.branch_id == branch_id)
 
     query = query.order_by(sort_column_attr)
 
@@ -1660,7 +1657,7 @@ def view_layouts():
     # Branch filtering
     branch_id = request.args.get('branch_id', current_user.user_branch_id, type=int)
     if branch_id and branch_id != 0:
-        query = query.filter((EWP.branch_id == branch_id) | (EWP.branch_id == None))
+        query = query.filter(EWP.branch_id == branch_id)
 
     if sales_rep:
         query = query.filter(User.username.ilike(f"%{sales_rep}%"))
