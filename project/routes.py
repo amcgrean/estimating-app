@@ -361,6 +361,10 @@ def manage_bid(bid_id):
     form.branch_id.choices = [(b.branch_id, b.branch_name) for b in Branch.query.all()]
 
     if form.validate_on_submit():
+        if current_user.usertype.name == 'Sales Rep':
+            flash('Sales Reps do not have permission to update bids.', 'danger')
+            return redirect(url_for('main.manage_bid', bid_id=bid.id))
+
         form.populate_obj(bid)
         db.session.commit()
         flash('Bid updated successfully!', 'success')

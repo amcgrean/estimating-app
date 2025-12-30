@@ -8,41 +8,49 @@
     <div class="mb-3">
         <a href="{{ url_for('main.open_bids') }}" class="btn btn-secondary">Back to Open Bids</a>
     </div>
+    {% set is_readonly = (current_user.usertype.name == 'Sales Rep') %}
     <form action="{{ url_for('main.manage_bid', bid_id=bid.id) }}" method="POST" class="mb-3">
-        {{ form.hidden_tag() }}
-        <div class="form-group">
-            <label for="plan_type">Plan Type</label>
-            {{ form.plan_type(class="form-control") }}
-        </div>
-        <div class="form-group">
-            <label for="customer_id">Customer</label>
-            {{ form.customer_id(class="form-control") }}
-        </div>
-        <div class="form-group">
-            <label for="project_name">Project Name</label>
-            {{ form.project_name(class="form-control") }}
-        </div>
-        <div class="form-group">
-            <label for="estimator_id">Estimator</label>
-            {{ form.estimator_id(class="form-control") }}
-        </div>
-        <div class="form-group">
-            <label for="status">Status</label>
-            {{ form.status(class="form-control") }}
-        </div>
-        <div class="form-group">
-            <label for="due_date">Due Date</label>
-            {{ form.due_date(class="form-control") }}
-        </div>
-        <div class="form-group">
-            <label for="notes">Notes</label>
-            {{ form.notes(class="form-control", rows="4") }}
-        </div>
-        {{ form.submit(class="btn btn-primary") }}
+        <fieldset {% if is_readonly %}disabled{% endif %}>
+            {{ form.hidden_tag() }}
+            <div class="form-group">
+                <label for="plan_type">Plan Type</label>
+                {{ form.plan_type(class="form-control") }}
+            </div>
+            <div class="form-group">
+                <label for="customer_id">Customer</label>
+                {{ form.customer_id(class="form-control") }}
+            </div>
+            <div class="form-group">
+                <label for="project_name">Project Name</label>
+                {{ form.project_name(class="form-control") }}
+            </div>
+            <div class="form-group">
+                <label for="estimator_id">Estimator</label>
+                {{ form.estimator_id(class="form-control") }}
+            </div>
+            <div class="form-group">
+                <label for="status">Status</label>
+                {{ form.status(class="form-control") }}
+            </div>
+            <div class="form-group">
+                <label for="due_date">Due Date</label>
+                {{ form.due_date(class="form-control") }}
+            </div>
+            <div class="form-group">
+                <label for="notes">Notes</label>
+                {{ form.notes(class="form-control", rows="4") }}
+            </div>
+            {% if not is_readonly %}
+            {{ form.submit(class="btn btn-primary") }}
+            {% endif %}
+        </fieldset>
     </form>
 
+    {% if not is_readonly %}
     <form action="{{ url_for('main.delete_bid', bid_id=bid.id) }}" method="POST" class="mb-3">
-        <input type="submit" value="Delete Bid" class="btn btn-danger" onclick="return confirm('Are you sure you want to delete this bid?');">
+        <input type="submit" value="Delete Bid" class="btn btn-danger"
+            onclick="return confirm('Are you sure you want to delete this bid?');">
     </form>
+    {% endif %}
 </div>
 {% endblock %}
