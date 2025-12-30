@@ -4,7 +4,7 @@ from . import mail, db
 from .models import (
     Bid, Customer, Estimator, Design, User, EWP, UserType, UserSecurity,
     Branch, SalesRep, LoginActivity, ITService, Project, Framing, Siding,
-    Shingle, Deck, Door, Window, Trim
+    Shingle, Deck, Door, Window, Trim, BidActivity
 )
 import csv
 from werkzeug.utils import secure_filename
@@ -128,10 +128,22 @@ def index():
     prev_designs_ytd = apply_branch_filter(Design.query, Design).filter(Design.log_date.between(datetime(previous_year, 1, 1), datetime(previous_year, 12, 31))).count()
     prev_designs_mtd = apply_branch_filter(Design.query, Design).filter(Design.log_date.between(start_date, end_date)).count()
 
-    # Recently opened projects (filtered by current user)
-    recently_opened_projects = apply_branch_filter(db.session.query(Bid), Bid).filter(
-        Bid.last_updated_by == current_user.username
-    ).order_by(Bid.last_updated_at.desc()).limit(5).all()
+    # Recently opened projects (using BidActivity)
+    # Get distinct bid_ids first to avoid duplicates
+    recent_activities = db.session.query(BidActivity.bid_id, func.max(BidActivity.timestamp).label('max_time')) \
+        .filter(BidActivity.user_id == current_user.id, BidActivity.action == 'viewed') \
+        .group_by(BidActivity.bid_id) \
+        .order_by(func.max(BidActivity.timestamp).desc()) \
+        .limit(5) \
+        .all()
+    
+    recent_bid_ids = [r.bid_id for r in recent_activities]
+    
+    recently_opened_projects = []
+    if recent_bid_ids:
+        # Preserve order
+        projects_dict = {b.id: b for b in Bid.query.filter(Bid.id.in_(recent_bid_ids)).all()}
+        recently_opened_projects = [projects_dict[bid_id] for bid_id in recent_bid_ids if bid_id in projects_dict]
 
     # Recently created projects
     recently_created_projects = apply_branch_filter(db.session.query(Bid), Bid).order_by(Bid.log_date.desc()).limit(5).all()
@@ -321,6 +333,22 @@ def manage_customers():
 @main.route('/manage_bid/<int:bid_id>', methods=['GET', 'POST'])
 def manage_bid(bid_id):
     bid = Bid.query.get_or_404(bid_id)
+
+    # Log view activity
+    try:
+        activity = BidActivity(
+            user_id=current_user.id,
+            bid_id=bid.id,
+            action='viewed',
+            timestamp=datetime.utcnow()
+        )
+        db.session.add(activity)
+        db.session.commit()
+    except Exception as e:
+        db.session.rollback()
+        # Fail silently for logging to avoid breaking the user experience
+        print(f"Error logging bid view: {e}")
+
     form = BidForm(obj=bid)
 
     # Populate customer and estimator choices with a branch filter

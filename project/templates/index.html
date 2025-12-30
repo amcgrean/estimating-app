@@ -58,6 +58,15 @@
                 </div>
             </div>
         </div>
+        <div class="col-md-3">
+            <div class="card text-white bg-info mb-3">
+                <div class="card-header">Avg. Completion Time</div>
+                <div class="card-body">
+                    <h5 class="card-title">{{ avg_completion_time }} Days</h5>
+                    <p class="card-text text-white small">Average time to complete a bid</p>
+                </div>
+            </div>
+        </div>
     </div>
 
     <!-- Design Metrics -->
@@ -109,17 +118,25 @@
         <tbody>
             {% for bid in bids %}
             <tr>
-                <td>Bid</td>
-                <td>{{ bid.project_name }}</td>
-                <td>{{ bid.status }}</td>
+                <td><span class="badge badge-primary">Bid</span></td>
+                <td><a href="{{ url_for('main.manage_bid', bid_id=bid.id) }}">{{ bid.project_name }}</a></td>
+                <td>
+                    {% if bid.status == 'Incomplete' %}
+                    <span class="badge badge-warning">Incomplete</span>
+                    {% elif bid.status == 'Complete' %}
+                    <span class="badge badge-success">Complete</span>
+                    {% else %}
+                    <span class="badge badge-secondary">{{ bid.status }}</span>
+                    {% endif %}
+                </td>
                 <td>{{ bid.customer.name }}</td>
             </tr>
             {% endfor %}
             {% for design in designs %}
             <tr>
-                <td>Design</td>
-                <td>{{ design.plan_name }}</td>
-                <td>{{ design.status }}</td>
+                <td><span class="badge badge-info">Design</span></td>
+                <td><a href="{{ url_for('main.manage_design', design_id=design.id) }}">{{ design.plan_name }}</a></td>
+                <td><span class="badge badge-secondary">{{ design.status }}</span></td>
                 <td>{{ design.customer.name }}</td>
             </tr>
             {% endfor %}
@@ -135,6 +152,7 @@
                 <tr>
                     <th>Project Name</th>
                     <th>Last Updated By</th>
+                    <th>Status</th>
                     <th>Last Updated At</th>
                 </tr>
             </thead>
@@ -144,6 +162,15 @@
                     <td><a href="{{ url_for('main.manage_bid', bid_id=project.id) }}">{{ project.project_name }}</a>
                     </td>
                     <td>{{ project.last_updated_by }}</td>
+                    <td>
+                        {% if project.status == 'Incomplete' %}
+                        <span class="badge badge-warning">Incomplete</span>
+                        {% elif project.status == 'Complete' %}
+                        <span class="badge badge-success">Complete</span>
+                        {% else %}
+                        <span class="badge badge-secondary">{{ project.status }}</span>
+                        {% endif %}
+                    </td>
                     <td>{{ project.last_updated_at.strftime('%m/%d/%Y %H:%M:%S') }}</td>
                 </tr>
                 {% endfor %}
