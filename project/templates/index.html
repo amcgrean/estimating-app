@@ -4,7 +4,23 @@
 
 {% block content %}
 <div class="container mt-3">
-    <h2>Dashboard</h2>
+    <div class="d-flex justify-content-between align-items-center">
+        <h2>Dashboard</h2>
+        <form method="GET" action="{{ url_for('main.index') }}" class="form-inline">
+            <label for="branch_id" class="mr-2">Branch:</label>
+            <select name="branch_id" id="branch_id" class="form-control" onchange="this.form.submit()">
+                <option value="0" {% if current_branch_id==0 %}selected{% endif %}>All Branches</option>
+                {% for branch in branches %}
+                <option value="{{ branch.branch_id }}" {% if current_branch_id==branch.branch_id %}selected{% endif %}>
+                    {{ branch.branch_name }}
+                </option>
+                {% endfor %}
+            </select>
+            {% if search_query %}
+            <input type="hidden" name="search" value="{{ search_query }}">
+            {% endif %}
+        </form>
+    </div>
 
     <!-- Metrics -->
     <div class="row">
@@ -121,7 +137,8 @@
             <tbody>
                 {% for project in recently_opened_projects %}
                 <tr>
-                    <td><a href="{{ url_for('main.manage_bid', bid_id=project.id) }}">{{ project.project_name }}</a></td>
+                    <td><a href="{{ url_for('main.manage_bid', bid_id=project.id) }}">{{ project.project_name }}</a>
+                    </td>
                     <td>{{ project.last_updated_by }}</td>
                     <td>{{ project.last_updated_at.strftime('%m/%d/%Y %H:%M:%S') }}</td>
                 </tr>
@@ -143,7 +160,8 @@
             <tbody>
                 {% for project in recently_created_projects %}
                 <tr>
-                    <td><a href="{{ url_for('main.manage_bid', bid_id=project.id) }}">{{ project.project_name }}</a></td>
+                    <td><a href="{{ url_for('main.manage_bid', bid_id=project.id) }}">{{ project.project_name }}</a>
+                    </td>
                     <td>{{ project.log_date.strftime('%m/%d/%Y') }}</td>
                 </tr>
                 {% endfor %}

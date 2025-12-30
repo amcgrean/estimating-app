@@ -149,6 +149,7 @@ class DesignForm(BaseForm):
         ('On Hold', 'On Hold')
     ])
     notes = TextAreaField('Notes')
+    branch_id = SelectField('Branch', coerce=int, choices=[])
     submit = SubmitField('Save Changes')
 
 class LayoutForm(BaseForm):
@@ -163,6 +164,7 @@ class LayoutForm(BaseForm):
     layout_finalized = DateField('Layout Finalized', format='%Y-%m-%d')
     agility_quote = DateField('Agility Quote', format='%Y-%m-%d')
     imported_stellar = DateField('Imported Stellar', format='%Y-%m-%d')
+    branch_id = SelectField('Branch', coerce=int, choices=[])
     submit = SubmitField('Save Changes')
 
 class BidForm(BaseForm):
@@ -173,6 +175,7 @@ class BidForm(BaseForm):
     project_name = StringField('Project Name', validators=[DataRequired()])
     due_date = DateField('Due Date', format='%Y-%m-%d', default=lambda: (datetime.utcnow() + timedelta(days=14)).date(), validators=[DataRequired()])
     notes = TextAreaField('Notes')
+    branch_id = SelectField('Branch', coerce=int, choices=[])
     submit = SubmitField('Submit')
 
 class CustomerForm(FlaskForm):
@@ -206,6 +209,7 @@ class BidRequestForm(BaseForm):
         Optional(),
         Regexp(r'^\S+@\S+\.\S+$', message="Invalid email address")
     ])
+    branch_id = SelectField('Branch', coerce=int, validators=[DataRequired()])
 
     include_framing = BooleanField('Framing')
     include_siding = BooleanField('Siding')

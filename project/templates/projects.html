@@ -8,17 +8,27 @@
 
     <!-- Filters Form -->
     <form method="GET" action="{{ url_for('main.projects') }}" class="form-inline mb-3">
+        <label for="branch_id" class="mr-2">Branch</label>
+        <select name="branch_id" id="branch_id" class="form-control mr-2">
+            <option value="0" {% if current_branch_id==0 %}selected{% endif %}>All</option>
+            {% for branch in branches %}
+            <option value="{{ branch.branch_id }}" {% if current_branch_id==branch.branch_id %}selected{% endif %}>{{
+                branch.branch_name }}</option>
+            {% endfor %}
+        </select>
         <label for="sort" class="mr-2">Sort By</label>
         <select name="sort" id="sort" class="form-control mr-2">
-            <option value="created_at" {% if sort_column == 'created_at' %}selected{% endif %}>Created At</option>
-            <option value="last_updated_at" {% if sort_column == 'last_updated_at' %}selected{% endif %}>Last Updated</option>
-            <option value="project_address" {% if sort_column == 'project_address' %}selected{% endif %}>Project Address</option>
-            <option value="contractor" {% if sort_column == 'contractor' %}selected{% endif %}>Contractor</option>
+            <option value="created_at" {% if sort_column=='created_at' %}selected{% endif %}>Created At</option>
+            <option value="last_updated_at" {% if sort_column=='last_updated_at' %}selected{% endif %}>Last Updated
+            </option>
+            <option value="project_address" {% if sort_column=='project_address' %}selected{% endif %}>Project Address
+            </option>
+            <option value="contractor" {% if sort_column=='contractor' %}selected{% endif %}>Contractor</option>
         </select>
         <label for="direction" class="mr-2">Direction</label>
         <select name="direction" id="direction" class="form-control mr-2">
-            <option value="asc" {% if sort_direction == 'asc' %}selected{% endif %}>Ascending</option>
-            <option value="desc" {% if sort_direction == 'desc' %}selected{% endif %}>Descending</option>
+            <option value="asc" {% if sort_direction=='asc' %}selected{% endif %}>Ascending</option>
+            <option value="desc" {% if sort_direction=='desc' %}selected{% endif %}>Descending</option>
         </select>
         <button type="submit" class="btn btn-primary">Apply</button>
     </form>
@@ -42,7 +52,8 @@
                 <td>{{ project.created_at }}</td>
                 <td>{{ project.last_updated_at }}</td>
                 <td>
-                    <a href="{{ url_for('main.manage_project', project_id=project.id) }}" class="btn btn-primary btn-sm">Edit</a>
+                    <a href="{{ url_for('main.manage_project', project_id=project.id) }}"
+                        class="btn btn-primary btn-sm">Edit</a>
                 </td>
             </tr>
             {% endfor %}
@@ -53,9 +64,11 @@
     <nav aria-label="Page navigation">
         <ul class="pagination justify-content-center">
             {% for page_num in pagination.iter_pages() %}
-                <li class="page-item {% if page_num == pagination.page %}active{% endif %}">
-                    <a class="page-link" href="{{ url_for('main.projects', page=page_num, sort=sort_column, direction=sort_direction) }}">{{ page_num }}</a>
-                </li>
+            <li class="page-item {% if page_num == pagination.page %}active{% endif %}">
+                <a class="page-link"
+                    href="{{ url_for('main.projects', page=page_num, sort=sort_column, direction=sort_direction) }}">{{
+                    page_num }}</a>
+            </li>
             {% endfor %}
         </ul>
     </nav>

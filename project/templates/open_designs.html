@@ -6,10 +6,18 @@
 <div class="container mt-3">
     <h2>Open Designs</h2>
     <form method="GET" action="{{ url_for('main.open_designs') }}" class="form-inline mb-3">
+        <label for="branch_id" class="mr-2">Branch</label>
+        <select name="branch_id" id="branch_id" class="form-control mr-2">
+            <option value="0" {% if current_branch_id==0 %}selected{% endif %}>All</option>
+            {% for branch in branches %}
+            <option value="{{ branch.branch_id }}" {% if current_branch_id==branch.branch_id %}selected{% endif %}>{{
+                branch.branch_name }}</option>
+            {% endfor %}
+        </select>
         <label for="status" class="mr-2">Status</label>
         <select name="status" id="status" class="form-control mr-2">
             {% for status in statuses %}
-            <option value="{{ status }}" {% if status == current_status %}selected{% endif %}>{{ status }}</option>
+            <option value="{{ status }}" {% if status==current_status %}selected{% endif %}>{{ status }}</option>
             {% endfor %}
         </select>
         <label for="start_date" class="mr-2">Start Date</label>
@@ -21,14 +29,30 @@
     <table class="table table-striped">
         <thead>
             <tr>
-                <th><a href="{{ url_for('main.open_designs', sort='planNumber', direction='asc' if sort_column != 'planNumber' or sort_direction == 'desc' else 'desc', status=current_status) }}">Plan Number</a></th>
-                <th><a href="{{ url_for('main.open_designs', sort='plan_name', direction='asc' if sort_column != 'plan_name' or sort_direction == 'desc' else 'desc', status=current_status) }}">Plan Name</a></th>
-                <th><a href="{{ url_for('main.open_designs', sort='customer_name', direction='asc' if sort_column != 'customer_name' or sort_direction == 'desc' else 'desc', status=current_status) }}">Customer Name</a></th>
-                <th><a href="{{ url_for('main.open_designs', sort='project_address', direction='asc' if sort_column != 'project_address' or sort_direction == 'desc' else 'desc', status=current_status) }}">Project Address</a></th>
-                <th><a href="{{ url_for('main.open_designs', sort='designer', direction='asc' if sort_column != 'designer' or sort_direction == 'desc' else 'desc', status=current_status) }}">Designer</a></th>
-                <th><a href="{{ url_for('main.open_designs', sort='status', direction='asc' if sort_column != 'status' or sort_direction == 'desc' else 'desc', status=current_status) }}">Status</a></th>
-                <th><a href="{{ url_for('main.open_designs', sort='log_date', direction='asc' if sort_column != 'log_date' or sort_direction == 'desc' else 'desc', status=current_status) }}">Log Date</a></th>
-                <th><a href="{{ url_for('main.open_designs', sort='notes', direction='asc' if sort_column != 'notes' or sort_direction == 'desc' else 'desc', status=current_status) }}">Notes</a></th>
+                <th><a
+                        href="{{ url_for('main.open_designs', sort='planNumber', direction='asc' if sort_column != 'planNumber' or sort_direction == 'desc' else 'desc', status=current_status) }}">Plan
+                        Number</a></th>
+                <th><a
+                        href="{{ url_for('main.open_designs', sort='plan_name', direction='asc' if sort_column != 'plan_name' or sort_direction == 'desc' else 'desc', status=current_status) }}">Plan
+                        Name</a></th>
+                <th><a
+                        href="{{ url_for('main.open_designs', sort='customer_name', direction='asc' if sort_column != 'customer_name' or sort_direction == 'desc' else 'desc', status=current_status) }}">Customer
+                        Name</a></th>
+                <th><a
+                        href="{{ url_for('main.open_designs', sort='project_address', direction='asc' if sort_column != 'project_address' or sort_direction == 'desc' else 'desc', status=current_status) }}">Project
+                        Address</a></th>
+                <th><a
+                        href="{{ url_for('main.open_designs', sort='designer', direction='asc' if sort_column != 'designer' or sort_direction == 'desc' else 'desc', status=current_status) }}">Designer</a>
+                </th>
+                <th><a
+                        href="{{ url_for('main.open_designs', sort='status', direction='asc' if sort_column != 'status' or sort_direction == 'desc' else 'desc', status=current_status) }}">Status</a>
+                </th>
+                <th><a
+                        href="{{ url_for('main.open_designs', sort='log_date', direction='asc' if sort_column != 'log_date' or sort_direction == 'desc' else 'desc', status=current_status) }}">Log
+                        Date</a></th>
+                <th><a
+                        href="{{ url_for('main.open_designs', sort='notes', direction='asc' if sort_column != 'notes' or sort_direction == 'desc' else 'desc', status=current_status) }}">Notes</a>
+                </th>
             </tr>
         </thead>
         <tbody>
@@ -36,8 +60,10 @@
             <tr>
                 <td>{{ design.planNumber }}</td>
                 <td><a href="{{ url_for('main.manage_design', design_id=design.id) }}">{{ design.plan_name }}</a></td>
-                <td><a href="{{ url_for('main.view_customer_bids', customer_id=design.customer_id) }}">{{ design.customer.name }}</a></td>
-                <td><a href="{{ url_for('main.manage_design', design_id=design.id) }}">{{ design.project_address }}</a></td>
+                <td><a href="{{ url_for('main.view_customer_bids', customer_id=design.customer_id) }}">{{
+                        design.customer.name }}</a></td>
+                <td><a href="{{ url_for('main.manage_design', design_id=design.id) }}">{{ design.project_address }}</a>
+                </td>
                 <td>{{ design.designer.estimatorName if design.designer else 'N/A' }}</td>
                 <td>{{ design.status }}</td>
                 <td>{{ design.log_date.strftime('%m/%d/%y') }}</td>

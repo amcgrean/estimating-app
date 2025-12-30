@@ -66,7 +66,7 @@ def login():
 def logout():
     logout_user()
     flash('You have been logged out.', 'info')
-    return redirect(url_for('main.index'))
+    return redirect(url_for('main.login'))
 
 @main.route('/')
 @login_required
@@ -153,6 +153,8 @@ def index():
             (Customer.name.ilike(f'%{search_query}%'))
         ).all()
 
+    branches = Branch.query.all()
+
     return render_template(
         'index.html',
         open_bids_count=open_bids_count,
@@ -172,7 +174,9 @@ def index():
         current_year=current_year,
         previous_year=previous_year,
         recently_opened_projects=recently_opened_projects,
-        recently_created_projects=recently_created_projects
+        recently_created_projects=recently_created_projects,
+        branches=branches,
+        current_branch_id=branch_id
     )
 
 @main.route('/add_bid', methods=['GET', 'POST'])
@@ -186,6 +190,10 @@ def add_bid():
     
     form.customer_id.choices = [(0, 'Select a customer')] + [(customer.id, customer.name) for customer in customer_query.all()]
     form.estimator_id.choices = [(0, 'No Estimator')] + [(estimator.estimatorID, estimator.estimatorName) for estimator in Estimator.query.all()]
+    form.branch_id.choices = [(b.branch_id, b.branch_name) for b in Branch.query.all()]
+    
+    if not form.branch_id.data:
+        form.branch_id.data = current_user.user_branch_id
 
     # Set default value for due_date to 14 days from today
     if not form.due_date.data:
@@ -214,7 +222,7 @@ def add_bid():
             notes=notes,
             last_updated_by=last_updated_by,
             last_updated_at=last_updated_at,
-            branch_id=current_user.user_branch_id
+            branch_id=form.branch_id.data
         )
         db.session.add(new_bid)
         try:
@@ -301,11 +309,13 @@ def manage_customers():
             flash('Please enter both customer code and name', 'danger')
         return redirect(url_for('main.manage_customers'))
 
+    branch_id = request.args.get('branch_id', current_user.user_branch_id, type=int)
     customers = Customer.query
-    if current_user.user_branch_id:
-        customers = customers.filter((Customer.branch_id == current_user.user_branch_id) | (Customer.branch_id == None))
+    if branch_id and branch_id != 0:
+        customers = customers.filter((Customer.branch_id == branch_id) | (Customer.branch_id == None))
     customers = customers.order_by(Customer.customerCode).all()
-    return render_template('manage_customers.html', add_customer_form=add_customer_form, search_form=search_form, customers=customers)
+    branches = Branch.query.all()
+    return render_template('manage_customers.html', add_customer_form=add_customer_form, search_form=search_form, customers=customers, branches=branches, current_branch_id=branch_id)
 
 
 @main.route('/manage_bid/<int:bid_id>', methods=['GET', 'POST'])
@@ -682,9 +692,11 @@ def open_bids():
     plan_types = [pt[0] for pt in db.session.query(Bid.plan_type).distinct().all()]
     statuses = ['all', 'Incomplete']
 
+    branches = Branch.query.all()
     return render_template('open_bids.html', bids_by_plan_type=bids_by_plan_type, sort_column=sort_column, sort_direction=sort_direction,
                            plan_types=plan_types, statuses=statuses, current_status=status_filter, current_plan_type=plan_type_filter,
-                           due_date_start=due_date_start, due_date_end=due_date_end, pagination=pagination, total_bids_by_plan_type=total_bids_by_plan_type)
+                           due_date_start=due_date_start, due_date_end=due_date_end, pagination=pagination, total_bids_by_plan_type=total_bids_by_plan_type,
+                           branches=branches, current_branch_id=branch_id)
 
 @main.route('/print_open_bids')
 @login_required
@@ -784,13 +796,11 @@ def completed_bids():
         estimator_name = bid.estimator.estimatorName if bid.estimator else "Unassigned"
         bids_by_estimator[estimator_name] += 1
 
-    plan_types = [pt[0] for pt in db.session.query(Bid.plan_type).distinct().all()]
-    statuses = ['all', 'Complete']
-
-    return render_template('completed_bids.html',
+    branches = Branch.query.all()
+    return render_template('open_bids.html',
                            bids_by_plan_type=bids_by_plan_type,
                            total_bids_by_plan_type=total_bids_by_plan_type,
-                           total_completed_bids=total_completed_bids,
+                           total_open_bids=total_open_bids,
                            bids_by_estimator=dict(bids_by_estimator),
                            sort_column=sort_column,
                            sort_direction=sort_direction,
@@ -799,7 +809,9 @@ def completed_bids():
                            current_status=status_filter,
                            current_plan_type=plan_type_filter,
                            due_date_start=due_date_start,
-                           due_date_end=due_date_end)
+                           due_date_end=due_date_end,
+                           branches=branches,
+                           current_branch_id=branch_id)
 
 
 
@@ -818,6 +830,8 @@ def add_design():
     customers = customer_query.all()
     
     designers = Estimator.query.filter_by(type='designer').all()
+    branches = Branch.query.all()
+    
     if request.method == 'POST':
         plan_name = request.form['plan_name']
         customer_id = request.form['customer_id']
@@ -828,6 +842,8 @@ def add_design():
         status = request.form['status']
         plan_description = request.form['plan_description']
         notes = request.form['notes']
+        branch_id = request.form.get('branch_id', current_user.user_branch_id)
+
         new_design = Design(
             plan_name=plan_name, 
             customer_id=customer_id, 
@@ -838,13 +854,13 @@ def add_design():
             status=status, 
             plan_description=plan_description, 
             notes=notes,
-            branch_id=current_user.user_branch_id
+            branch_id=branch_id
         )
         db.session.add(new_design)
         db.session.commit()
         flash('Design added successfully!')
         return redirect(url_for('main.index'))
-    return render_template('add_design.html', customers=customers, designers=designers)
+    return render_template('add_design.html', customers=customers, designers=designers, branches=branches)
 
 @main.route('/open_designs', methods=['GET'])
 def open_designs():
@@ -908,7 +924,9 @@ def open_designs():
     # Fetch distinct statuses for the filter dropdowns
     statuses = ['Active', 'Bid Set', 'Cancelled', 'Completed', 'On Hold']
 
-    return render_template('open_designs.html', designs=open_designs, sort_column=sort_column, sort_direction=sort_direction, statuses=statuses, current_status=status_filter)
+    branches = Branch.query.all()
+    return render_template('open_designs.html', designs=open_designs, sort_column=sort_column, sort_direction=sort_direction, statuses=statuses, current_status=status_filter,
+                           branches=branches, current_branch_id=branch_id)
 
 @main.route('/manage_design/<int:design_id>', methods=['GET', 'POST'])
 def manage_design(design_id):
@@ -1049,6 +1067,10 @@ def bid_request():
     window_form = WindowForm()
     trim_form = TrimForm()
 
+    form.branch_id.choices = [(b.branch_id, b.branch_name) for b in Branch.query.all()]
+    if not form.branch_id.data:
+        form.branch_id.data = current_user.user_branch_id
+
     if form.validate_on_submit():
         try:
             # Retrieve the selected Sales Rep
@@ -1071,7 +1093,7 @@ def bid_request():
                 include_doors=form.include_doors.data,
                 include_windows=form.include_windows.data,
                 include_trim=form.include_trim.data,
-                branch_id=current_user.user_branch_id
+                branch_id=form.branch_id.data
             )
             db.session.add(project)
             db.session.flush()  # Get project.id for related forms
@@ -1237,12 +1259,15 @@ def projects():
     pagination = query.paginate(page=page, per_page=per_page)
     projects = pagination.items
 
+    branches = Branch.query.all()
     return render_template(
         'projects.html',
         projects=projects,
         pagination=pagination,
         sort_column=sort_column,
-        sort_direction=sort_direction
+        sort_direction=sort_direction,
+        branches=branches,
+        current_branch_id=branch_id
     )
 
 @main.route('/manage_project/<int:project_id>', methods=['GET', 'POST'])
@@ -1659,13 +1684,16 @@ def view_layouts():
     pagination = query.paginate(page=page, per_page=per_page)
     layouts = pagination.items
 
+    branches = Branch.query.all()
     return render_template(
         'layouts.html',
         layouts=layouts,
         form=form,
         pagination=pagination,
         sort_column=sort_column,
-        sort_direction=sort_direction
+        sort_direction=sort_direction,
+        branches=branches,
+        current_branch_id=branch_id
     )
 
 
@@ -1678,10 +1706,15 @@ def create_layout():
     if current_user.user_branch_id:
         sales_rep_query = sales_rep_query.filter(User.user_branch_id == current_user.user_branch_id)
     form.sales_rep_id.choices = [(rep.id, rep.username) for rep in sales_rep_query.all()]
+    
     customer_query = Customer.query
     if current_user.user_branch_id:
         customer_query = customer_query.filter((Customer.branch_id == current_user.user_branch_id) | (Customer.branch_id == None))
     form.customer_id.choices = [(customer.id, customer.name) for customer in customer_query.all()]
+    
+    form.branch_id.choices = [(b.branch_id, b.branch_name) for b in Branch.query.all()]
+    if not form.branch_id.data:
+        form.branch_id.data = current_user.user_branch_id
 
     if form.validate_on_submit():
         new_ewp = EWP(
@@ -1696,7 +1729,7 @@ def create_layout():
             layout_finalized=form.layout_finalized.data,
             agility_quote=form.agility_quote.data,
             imported_stellar=form.imported_stellar.data,
-            branch_id=current_user.user_branch_id
+            branch_id=form.branch_id.data
         )
 
         form.save_instance(new_ewp)  # This will save the instance and log the activity
