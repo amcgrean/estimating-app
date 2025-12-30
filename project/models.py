@@ -32,8 +32,11 @@ class Bid(db.Model):
     last_updated_by = db.Column(db.String(150), nullable=True)
     last_updated_at = db.Column(db.DateTime, nullable=True, default=datetime.utcnow)
 
+    branch_id = db.Column(db.Integer, db.ForeignKey('branch.branch_id'), nullable=True)
+    
     customer = db.relationship('Customer', backref=db.backref('bid', lazy=True))
     estimator = db.relationship('Estimator', backref=db.backref('bid', lazy=True))
+    branch = db.relationship('Branch', backref=db.backref('bids', lazy=True))
 
     @staticmethod
     def before_update(mapper, connection, target):
@@ -52,6 +55,9 @@ class Customer(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     customerCode = db.Column(db.String(100), nullable=False, unique=True)
     name = db.Column(db.String(100), nullable=False, unique=False)
+    branch_id = db.Column(db.Integer, db.ForeignKey('branch.branch_id'), nullable=True)
+    
+    branch = db.relationship('Branch', backref=db.backref('customers', lazy=True))
 
 class Design(db.Model):  # New table
     id = db.Column(db.Integer, primary_key=True)
@@ -69,8 +75,11 @@ class Design(db.Model):  # New table
     last_updated_by = db.Column(db.String(150), nullable=True)
     last_updated_at = db.Column(db.DateTime, nullable=True, default=datetime.utcnow)
 
+    branch_id = db.Column(db.Integer, db.ForeignKey('branch.branch_id'), nullable=True)
+
     customer = db.relationship('Customer', backref=db.backref('designs', lazy=True))
     designer = db.relationship('Estimator', backref=db.backref('designs', lazy=True))
+    branch = db.relationship('Branch', backref=db.backref('designs', lazy=True))
 
 class UserType(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -167,9 +176,11 @@ class EWP(db.Model):
     imported_stellar = db.Column(db.Date, nullable=True)
     last_updated_by = db.Column(db.String(150), nullable=True)
     last_updated_at = db.Column(db.DateTime, nullable=True, default=datetime.utcnow)
+    branch_id = db.Column(db.Integer, db.ForeignKey('branch.branch_id'), nullable=True)
 
     customer = db.relationship('Customer', backref=db.backref('ewps', lazy=True))
     sales_rep = db.relationship('User', backref=db.backref('ewps', lazy=True))
+    branch = db.relationship('Branch', backref=db.backref('ewps', lazy=True))
 
 class UserSecurity(db.Model):
     __tablename__ = 'user_security'
@@ -231,10 +242,12 @@ class Project(db.Model):
     created_at = db.Column(db.DateTime, default=datetime.utcnow, nullable=False)
     last_updated_by = db.Column(db.String(150), nullable=True)  # Tracks user who last updated
     last_updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow, nullable=False)
+    branch_id = db.Column(db.Integer, db.ForeignKey('branch.branch_id'), nullable=True)
 
     # Relationships
     sales_rep = db.relationship('SalesRep', backref=db.backref('projects', lazy=True))  # SalesRep relation
     customer = db.relationship('Customer', backref=db.backref('projects', lazy=True))
+    branch = db.relationship('Branch', backref=db.backref('projects', lazy=True))
 
     def __repr__(self):
         return f"<Project id={self.id} contractor={self.contractor}>"

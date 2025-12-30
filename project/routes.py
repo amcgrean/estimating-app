@@ -83,52 +83,59 @@ def index():
     end_date = datetime(previous_year, this_month, last_day_of_month)
 
 
+    # Branch filtering logic - default to user's branch
+    branch_id = request.args.get('branch_id', current_user.user_branch_id, type=int)
+    # If branch_id is 0 or 'all', we might show all, but per user request, we default to their branch.
+    
+    def apply_branch_filter(query, model):
+        if branch_id and branch_id != 0:
+            # Show branch-specific data OR data with no branch (legacy)
+            return query.filter((model.branch_id == branch_id) | (model.branch_id == None))
+        return query
+
     # Open bids count (incomplete)
-    open_bids_count = Bid.query.filter(Bid.status == 'Incomplete').count()
+    open_bids_count = apply_branch_filter(Bid.query, Bid).filter(Bid.status == 'Incomplete').count()
 
     # Bids YTD
-    bids_ytd = Bid.query.filter(Bid.log_date >= datetime(current_year, 1, 1)).count()
-    bids_mtd = Bid.query.filter(Bid.log_date >= datetime(current_year, datetime.now().month, 1)).count()
+    bids_ytd = apply_branch_filter(Bid.query, Bid).filter(Bid.log_date >= datetime(current_year, 1, 1)).count()
+    bids_mtd = apply_branch_filter(Bid.query, Bid).filter(Bid.log_date >= datetime(current_year, datetime.now().month, 1)).count()
 
     # Previous YTD bids
-    prev_bids_ytd = Bid.query.filter(Bid.log_date.between(datetime(previous_year, 1, 1), datetime(previous_year, 12, 31))).count()
-    prev_bids_mtd = Bid.query.filter(Bid.log_date.between(start_date, end_date)).count()
+    prev_bids_ytd = apply_branch_filter(Bid.query, Bid).filter(Bid.log_date.between(datetime(previous_year, 1, 1), datetime(previous_year, 12, 31))).count()
+    prev_bids_mtd = apply_branch_filter(Bid.query, Bid).filter(Bid.log_date.between(start_date, end_date)).count()
 
     # Average completion time (in days)
     try:
         # SQLite
-        avg_completion_time = db.session.query(func.avg(func.julianday(Bid.completion_date) - func.julianday(Bid.log_date))).filter(Bid.status == 'Complete').scalar() or 0
+        avg_completion_time = db.session.query(func.avg(func.julianday(Bid.completion_date) - func.julianday(Bid.log_date))).filter(Bid.status == 'Complete')
+        avg_completion_time = apply_branch_filter(avg_completion_time, Bid).scalar() or 0
     except Exception:
         db.session.rollback()
-        # Postgres/Generic: Subtracting dates gives an interval or number of days
-        # In Postgres, timestamp - timestamp = interval. We can extract days.
-        avg_completion_time = db.session.query(func.avg(func.extract('epoch', Bid.completion_date - Bid.log_date))).filter(Bid.status == 'Complete').scalar() or 0
-        avg_completion_time = avg_completion_time / 86400  # Convert seconds to days
+        # Postgres/Generic
+        avg_completion_time = db.session.query(func.avg(func.extract('epoch', Bid.completion_date - Bid.log_date))).filter(Bid.status == 'Complete')
+        avg_completion_time = apply_branch_filter(avg_completion_time, Bid).scalar() or 0
+        avg_completion_time = avg_completion_time / 86400 
     
     avg_completion_time = round(avg_completion_time)
 
     # Open designs count (active)
-    open_designs_count = Design.query.filter(Design.status == 'Active').count()
+    open_designs_count = apply_branch_filter(Design.query, Design).filter(Design.status == 'Active').count()
 
     # Designs YTD
-    designs_ytd = Design.query.filter(Design.log_date >= datetime(current_year, 1, 1)).count()
-    designs_mtd = Design.query.filter(Design.log_date >= datetime(current_year, datetime.now().month, 1)).count()
-
-
-
+    designs_ytd = apply_branch_filter(Design.query, Design).filter(Design.log_date >= datetime(current_year, 1, 1)).count()
+    designs_mtd = apply_branch_filter(Design.query, Design).filter(Design.log_date >= datetime(current_year, datetime.now().month, 1)).count()
 
     # Previous YTD designs
-    prev_designs_ytd = Design.query.filter(Design.log_date.between(datetime(previous_year, 1, 1), datetime(previous_year, 12, 31))).count()
-    prev_designs_mtd = Design.query.filter(
-        Design.log_date.between(start_date, end_date)
-        ).count()
+    prev_designs_ytd = apply_branch_filter(Design.query, Design).filter(Design.log_date.between(datetime(previous_year, 1, 1), datetime(previous_year, 12, 31))).count()
+    prev_designs_mtd = apply_branch_filter(Design.query, Design).filter(Design.log_date.between(start_date, end_date)).count()
+
     # Recently opened projects (filtered by current user)
-    recently_opened_projects = db.session.query(Bid).filter(
+    recently_opened_projects = apply_branch_filter(db.session.query(Bid), Bid).filter(
         Bid.last_updated_by == current_user.username
     ).order_by(Bid.last_updated_at.desc()).limit(5).all()
 
     # Recently created projects (filtered by current user)
-    recently_created_projects = db.session.query(Bid).filter(
+    recently_created_projects = apply_branch_filter(db.session.query(Bid), Bid).filter(
         Bid.customer_id == current_user.id
     ).order_by(Bid.log_date.desc()).limit(5).all()
 
@@ -136,12 +143,12 @@ def index():
     bids = []
     designs = []
     if search_query:
-        bids = Bid.query.join(Customer).filter(
+        bids = apply_branch_filter(Bid.query, Bid).join(Customer).filter(
             (Bid.project_name.ilike(f'%{search_query}%')) |
             (Customer.name.ilike(f'%{search_query}%'))
         ).all()
 
-        designs = Design.query.join(Customer).filter(
+        designs = apply_branch_filter(Design.query, Design).join(Customer).filter(
             (Design.plan_name.ilike(f'%{search_query}%')) |
             (Customer.name.ilike(f'%{search_query}%'))
         ).all()
@@ -172,8 +179,12 @@ def index():
 def add_bid():
     form = BidForm()
 
-    # Populate customer and estimator choices with a blank option for customers
-    form.customer_id.choices = [(0, 'Select a customer')] + [(customer.id, customer.name) for customer in Customer.query.all()]
+    # Populate customer and estimator choices with a branch filter
+    customer_query = Customer.query
+    if current_user.user_branch_id:
+        customer_query = customer_query.filter((Customer.branch_id == current_user.user_branch_id) | (Customer.branch_id == None))
+    
+    form.customer_id.choices = [(0, 'Select a customer')] + [(customer.id, customer.name) for customer in customer_query.all()]
     form.estimator_id.choices = [(0, 'No Estimator')] + [(estimator.estimatorID, estimator.estimatorName) for estimator in Estimator.query.all()]
 
     # Set default value for due_date to 14 days from today
@@ -202,7 +213,8 @@ def add_bid():
             due_date=due_date,
             notes=notes,
             last_updated_by=last_updated_by,
-            last_updated_at=last_updated_at
+            last_updated_at=last_updated_at,
+            branch_id=current_user.user_branch_id
         )
         db.session.add(new_bid)
         try:
@@ -277,7 +289,11 @@ def manage_customers():
             if existing_customer:
                 flash('Customer code already exists!', 'danger')
             else:
-                new_customer = Customer(customerCode=customer_code, name=customer_name)
+                new_customer = Customer(
+                    customerCode=customer_code, 
+                    name=customer_name,
+                    branch_id=current_user.user_branch_id
+                )
                 db.session.add(new_customer)
                 db.session.commit()
                 flash('Customer added successfully!', 'success')
@@ -285,7 +301,10 @@ def manage_customers():
             flash('Please enter both customer code and name', 'danger')
         return redirect(url_for('main.manage_customers'))
 
-    customers = Customer.query.order_by(Customer.customerCode).all()
+    customers = Customer.query
+    if current_user.user_branch_id:
+        customers = customers.filter((Customer.branch_id == current_user.user_branch_id) | (Customer.branch_id == None))
+    customers = customers.order_by(Customer.customerCode).all()
     return render_template('manage_customers.html', add_customer_form=add_customer_form, search_form=search_form, customers=customers)
 
 
@@ -621,6 +640,11 @@ def open_bids():
     # Base query for bids
     query = db.session.query(Bid).join(Customer).join(Estimator, isouter=True)
 
+    # Branch filtering
+    branch_id = request.args.get('branch_id', current_user.user_branch_id, type=int)
+    if branch_id and branch_id != 0:
+        query = query.filter((Bid.branch_id == branch_id) | (Bid.branch_id == None))
+
     # Apply status filter
     if status_filter != 'all':
         query = query.filter(Bid.status == status_filter)
@@ -718,7 +742,13 @@ def completed_bids():
     if sort_direction == 'desc':
         sort_column_attr = sort_column_attr.desc()
 
+    # Base query for bids
     query = db.session.query(Bid).join(Customer).join(Estimator, isouter=True)
+
+    # Branch filtering
+    branch_id = request.args.get('branch_id', current_user.user_branch_id, type=int)
+    if branch_id and branch_id != 0:
+        query = query.filter((Bid.branch_id == branch_id) | (Bid.branch_id == None))
 
     if status_filter != 'all':
         query = query.filter(Bid.status == status_filter)
@@ -782,7 +812,11 @@ def debug_bids():
 
 @main.route('/add_design', methods=['GET', 'POST'])
 def add_design():
-    customers = Customer.query.all()
+    customer_query = Customer.query
+    if current_user.user_branch_id:
+        customer_query = customer_query.filter((Customer.branch_id == current_user.user_branch_id) | (Customer.branch_id == None))
+    customers = customer_query.all()
+    
     designers = Estimator.query.filter_by(type='designer').all()
     if request.method == 'POST':
         plan_name = request.form['plan_name']
@@ -794,7 +828,18 @@ def add_design():
         status = request.form['status']
         plan_description = request.form['plan_description']
         notes = request.form['notes']
-        new_design = Design(plan_name=plan_name, customer_id=customer_id, project_address=project_address, contractor=contractor, preliminary_set_date=preliminary_set_date, designer_id=designer_id, status=status, plan_description=plan_description, notes=notes)
+        new_design = Design(
+            plan_name=plan_name, 
+            customer_id=customer_id, 
+            project_address=project_address, 
+            contractor=contractor, 
+            preliminary_set_date=preliminary_set_date, 
+            designer_id=designer_id, 
+            status=status, 
+            plan_description=plan_description, 
+            notes=notes,
+            branch_id=current_user.user_branch_id
+        )
         db.session.add(new_design)
         db.session.commit()
         flash('Design added successfully!')
@@ -840,6 +885,11 @@ def open_designs():
 
     # Base query for designs
     query = db.session.query(Design).join(Customer).join(Estimator, isouter=True)
+
+    # Branch filtering
+    branch_id = request.args.get('branch_id', current_user.user_branch_id, type=int)
+    if branch_id and branch_id != 0:
+        query = query.filter((Design.branch_id == branch_id) | (Design.branch_id == None))
 
     # Apply status filter
     query = query.filter(Design.status == status_filter)
@@ -1021,6 +1071,7 @@ def bid_request():
                 include_doors=form.include_doors.data,
                 include_windows=form.include_windows.data,
                 include_trim=form.include_trim.data,
+                branch_id=current_user.user_branch_id
             )
             db.session.add(project)
             db.session.flush()  # Get project.id for related forms
@@ -1173,7 +1224,14 @@ def projects():
         sort_column_attr = sort_column_attr.desc()
 
     # Base query for projects
-    query = Project.query.order_by(sort_column_attr)
+    query = Project.query
+
+    # Branch filtering
+    branch_id = request.args.get('branch_id', current_user.user_branch_id, type=int)
+    if branch_id and branch_id != 0:
+        query = query.filter((Project.branch_id == branch_id) | (Project.branch_id == None))
+
+    query = query.order_by(sort_column_attr)
 
     # Apply pagination
     pagination = query.paginate(page=page, per_page=per_page)
@@ -1574,6 +1632,11 @@ def view_layouts():
     # Build query with filters
     query = EWP.query.join(Customer).join(User, isouter=True)
 
+    # Branch filtering
+    branch_id = request.args.get('branch_id', current_user.user_branch_id, type=int)
+    if branch_id and branch_id != 0:
+        query = query.filter((EWP.branch_id == branch_id) | (EWP.branch_id == None))
+
     if sales_rep:
         query = query.filter(User.username.ilike(f"%{sales_rep}%"))
     if customer:
@@ -1611,8 +1674,14 @@ def create_layout():
     form = LayoutForm()
 
     # Populate the sales reps and customers
-    form.sales_rep_id.choices = [(rep.id, rep.username) for rep in User.query.join(UserType).filter(UserType.name == 'Sales Rep').all()]
-    form.customer_id.choices = [(customer.id, customer.name) for customer in Customer.query.all()]
+    sales_rep_query = User.query.join(UserType).filter(UserType.name == 'Sales Rep')
+    if current_user.user_branch_id:
+        sales_rep_query = sales_rep_query.filter(User.user_branch_id == current_user.user_branch_id)
+    form.sales_rep_id.choices = [(rep.id, rep.username) for rep in sales_rep_query.all()]
+    customer_query = Customer.query
+    if current_user.user_branch_id:
+        customer_query = customer_query.filter((Customer.branch_id == current_user.user_branch_id) | (Customer.branch_id == None))
+    form.customer_id.choices = [(customer.id, customer.name) for customer in customer_query.all()]
 
     if form.validate_on_submit():
         new_ewp = EWP(
@@ -1626,7 +1695,8 @@ def create_layout():
             assigned_designer=form.assigned_designer.data,
             layout_finalized=form.layout_finalized.data,
             agility_quote=form.agility_quote.data,
-            imported_stellar=form.imported_stellar.data
+            imported_stellar=form.imported_stellar.data,
+            branch_id=current_user.user_branch_id
         )
 
         form.save_instance(new_ewp)  # This will save the instance and log the activity
