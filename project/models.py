@@ -102,6 +102,7 @@ class User(db.Model, UserMixin):
     updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
     is_active = db.Column(db.Boolean, default=True)
     is_admin = db.Column(db.Boolean, default=False)
+    is_estimator = db.Column(db.Boolean, default=False)
     login_count = db.Column(db.Integer, default=0)
 
     usertype = db.relationship('UserType', backref=db.backref('users', lazy=True))

@@ -53,6 +53,7 @@ class RegistrationForm(BaseForm):
     usertype_id = SelectField('User Type', validators=[DataRequired()])
     estimatorID = SelectField('Estimator', coerce=int, choices=[], validators=[Optional()])
     user_branch_id = SelectField('Branch', coerce=int, choices=[], validators=[DataRequired()])
+    is_estimator = BooleanField('Is Estimator')
     submit = SubmitField('Register')
 
     def __init__(self, *args, **kwargs):
@@ -69,6 +70,7 @@ class UserForm(BaseForm):
     usertype_id = SelectField('User Type', validators=[DataRequired()], coerce=int)
     estimatorID = SelectField('Estimator', coerce=int, choices=[], validators=[Optional()])
     user_branch_id = SelectField('Branch', coerce=int, choices=[], validators=[DataRequired()])
+    is_estimator = BooleanField('Is Estimator')
     submit = SubmitField('Submit')
 
     def __init__(self, *args, **kwargs):
@@ -83,6 +85,7 @@ class UpdateUserForm(BaseForm):
     usertype_id = SelectField('User Type', coerce=int, choices=[], validators=[DataRequired()])
     estimatorID = SelectField('Estimator', coerce=int, choices=[], validators=[Optional()])
     user_branch_id = SelectField('Branch', coerce=int, choices=[], validators=[DataRequired()])
+    is_estimator = BooleanField('Is Estimator')
     password = PasswordField('New Password (leave blank to keep current password)', validators=[Optional()])
     submit = SubmitField('Update')
 

@@ -19,9 +19,9 @@
             {{ form.usertype_id.label }}<br>
             {{ form.usertype_id(class="form-control") }}
         </div>
-        <div class="mb-3">
-            {{ form.estimatorID.label }}<br>
-            {{ form.estimatorID(class="form-control") }}
+        <div class="form-check mb-3">
+            {{ form.is_estimator(class="form-check-input") }}
+            {{ form.is_estimator.label(class="form-check-label") }}
         </div>
         <div class="mb-3">
             {{ form.user_branch_id.label }}<br>

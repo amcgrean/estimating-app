@@ -18,6 +18,7 @@
                 <th>Email</th>
                 <th>Type</th>
                 <th>Branch</th>
+                <th>Estimator?</th>
                 <th>Actions</th>
             </tr>
         </thead>
@@ -29,9 +30,12 @@
                 <td>{{ user.email }}</td>
                 <td>{{ user.usertype.name }}</td>
                 <td>{{ user.branch.branch_name if user.branch else 'N/A' }}</td>
+                <td>{% if user.is_estimator %}<span class="badge badge-success">Yes</span>{% else %}<span
+                        class="badge badge-secondary">No</span>{% endif %}</td>
                 <td>
                     <a href="{{ url_for('main.edit_user', user_id=user.id) }}" class="btn btn-sm btn-warning">Edit</a>
-                    <form action="{{ url_for('main.delete_user', user_id=user.id) }}" method="POST" style="display:inline;">
+                    <form action="{{ url_for('main.delete_user', user_id=user.id) }}" method="POST"
+                        style="display:inline;">
                         <button type="submit" class="btn btn-sm btn-danger">Delete</button>
                     </form>
                 </td>
@@ -42,10 +46,10 @@
     <a href="{{ url_for('main.user_type') }}" class="btn btn-secondary mt-3">Manage User Types</a>
     <a href="{{ url_for('main.index') }}" class="btn btn-secondary mt-3">Back to Home</a>
 
- <form action="{{ url_for('main.upload_users') }}" method="post" enctype="multipart/form-data">
-    <input type="file" name="file" accept=".csv">
-    <input type="submit" value="Upload">
-</form>
+    <form action="{{ url_for('main.upload_users') }}" method="post" enctype="multipart/form-data">
+        <input type="file" name="file" accept=".csv">
+        <input type="submit" value="Upload">
+    </form>
 
 </div>
 {% endblock %}
@@ -54,11 +58,11 @@
 <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
 <script src="https://cdn.datatables.net/1.10.20/js/jquery.dataTables.min.js"></script>
 <script>
-$(document).ready(function() {
-    $('#usersTable').DataTable({
-        responsive: true,
-        "pageLength": 10
+    $(document).ready(function () {
+        $('#usersTable').DataTable({
+            responsive: true,
+            "pageLength": 10
+        });
     });
-});
 </script>
 {% endblock %}

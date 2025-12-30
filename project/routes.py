@@ -180,17 +180,20 @@ def index():
 def add_bid():
     form = BidForm()
 
-    # Populate customer and estimator choices with a branch filter
+    # Determine the branch_id for populating choices
+    selected_branch_id = form.branch_id.data or request.args.get('branch_id', current_user.user_branch_id, type=int)
+
+    # Populate Customer choices based on branch
     customer_query = Customer.query
-    if current_user.user_branch_id:
-        customer_query = customer_query.filter((Customer.branch_id == current_user.user_branch_id) | (Customer.branch_id == None))
+    if selected_branch_id and selected_branch_id != 0:
+        customer_query = customer_query.filter((Customer.branch_id == selected_branch_id) | (Customer.branch_id == None))
     
     form.customer_id.choices = [(0, 'Select a customer')] + [(customer.id, customer.name) for customer in customer_query.all()]
-    form.estimator_id.choices = [(0, 'No Estimator')] + [(estimator.estimatorID, estimator.estimatorName) for estimator in Estimator.query.all()]
+    form.estimator_id.choices = get_branch_estimators(selected_branch_id)
     form.branch_id.choices = [(b.branch_id, b.branch_name) for b in Branch.query.all()]
     
     if not form.branch_id.data:
-        form.branch_id.data = request.args.get('branch_id', current_user.user_branch_id, type=int)
+        form.branch_id.data = selected_branch_id
 
     # Set default value for due_date to 14 days from today
     if not form.due_date.data:
@@ -318,19 +321,23 @@ def manage_customers():
 @main.route('/manage_bid/<int:bid_id>', methods=['GET', 'POST'])
 def manage_bid(bid_id):
     bid = Bid.query.get_or_404(bid_id)
-    customers = Customer.query.all()
-    estimators = Estimator.query.all()
     form = BidForm(obj=bid)
-    form.customer_id.choices = [(customer.id, customer.name) for customer in customers]
-    #form.estimator_id.choices = [(estimator.estimatorID, estimator.estimatorName) for estimator in estimators]
-    form.estimator_id.choices = [(0, 'No Estimator')] + [(estimator.estimatorID, estimator.estimatorName) for estimator in Estimator.query.all()]
+
+    # Populate customer and estimator choices with a branch filter
+    customer_query = Customer.query
+    if bid.branch_id:
+        customer_query = customer_query.filter((Customer.branch_id == bid.branch_id) | (Customer.branch_id == None))
+    
+    form.customer_id.choices = [(customer.id, customer.name) for customer in customer_query.all()]
+    form.estimator_id.choices = get_branch_estimators(bid.branch_id)
+    form.branch_id.choices = [(b.branch_id, b.branch_name) for b in Branch.query.all()]
 
     if form.validate_on_submit():
         form.populate_obj(bid)
         db.session.commit()
-        flash('Bid updated successfully!')
+        flash('Bid updated successfully!', 'success')
         return redirect(url_for('main.open_bids'))
-    return render_template('manage_bid.html', bid=bid, customers=customers, estimators=estimators, form=form)
+    return render_template('manage_bid.html', bid=bid, form=form)
 
 @main.route('/delete_bid/<int:bid_id>', methods=['POST'])
 def delete_bid(bid_id):
@@ -836,10 +843,14 @@ def completed_bids():
         bids_by_estimator[estimator_name] += 1
 
     branches = Branch.query.all()
+    # Fetch distinct plan types and statuses for the filter dropdowns
+    plan_types = [pt[0] for pt in db.session.query(Bid.plan_type).distinct().all()]
+    statuses = ['all', 'Complete']
+
     return render_template('open_bids.html',
                            bids_by_plan_type=bids_by_plan_type,
                            total_bids_by_plan_type=total_bids_by_plan_type,
-                           total_open_bids=total_open_bids,
+                           total_open_bids=total_completed_bids, # Renamed for clarity in completed bids context
                            bids_by_estimator=dict(bids_by_estimator),
                            sort_column=sort_column,
                            sort_direction=sort_direction,
@@ -863,43 +874,42 @@ def debug_bids():
 
 @main.route('/add_design', methods=['GET', 'POST'])
 def add_design():
-    customer_query = Customer.query
-    if current_user.user_branch_id:
-        customer_query = customer_query.filter((Customer.branch_id == current_user.user_branch_id) | (Customer.branch_id == None))
-    customers = customer_query.all()
-    
-    designers = Estimator.query.filter_by(type='designer').all()
-    branches = Branch.query.all()
-    
-    if request.method == 'POST':
-        plan_name = request.form['plan_name']
-        customer_id = request.form['customer_id']
-        project_address = request.form['project_address']
-        contractor = request.form['contractor']
-        preliminary_set_date = datetime.strptime(request.form['preliminary_set_date'], '%Y-%m-%d')
-        designer_id = request.form['designer_id']
-        status = request.form['status']
-        plan_description = request.form['plan_description']
-        notes = request.form['notes']
-        branch_id = request.form.get('branch_id') or request.args.get('branch_id') or current_user.user_branch_id
+    form = DesignForm()
 
+    # Determine the branch_id for populating choices
+    selected_branch_id = form.branch_id.data or request.args.get('branch_id', current_user.user_branch_id, type=int)
+
+    # Populate Customer choices based on branch
+    customer_query = Customer.query
+    if selected_branch_id and selected_branch_id != 0:
+        customer_query = customer_query.filter((Customer.branch_id == selected_branch_id) | (Customer.branch_id == None))
+    
+    form.customer_id.choices = [(0, 'Select a customer')] + [(customer.id, customer.name) for customer in customer_query.all()]
+    # Populate designer choices based on branch
+    form.designer_id.choices = get_branch_estimators(selected_branch_id, estimator_type='designer')
+    form.branch_id.choices = [(b.branch_id, b.branch_name) for b in Branch.query.all()]
+    
+    if not form.branch_id.data:
+        form.branch_id.data = selected_branch_id
+
+    if form.validate_on_submit():
         new_design = Design(
-            plan_name=plan_name, 
-            customer_id=customer_id, 
-            project_address=project_address, 
-            contractor=contractor, 
-            preliminary_set_date=preliminary_set_date, 
-            designer_id=designer_id, 
-            status=status, 
-            plan_description=plan_description, 
-            notes=notes,
-            branch_id=branch_id
+            plan_name=form.plan_name.data, 
+            customer_id=form.customer_id.data if form.customer_id.data != 0 else None, 
+            project_address=form.project_address.data, 
+            contractor=form.contractor.data, 
+            preliminary_set_date=form.preliminary_set_date.data, 
+            designer_id=form.designer_id.data if form.designer_id.data != 0 else None, 
+            status=form.status.data, 
+            plan_description=form.plan_description.data, 
+            notes=form.notes.data,
+            branch_id=form.branch_id.data
         )
         db.session.add(new_design)
         db.session.commit()
-        flash('Design added successfully!')
+        flash('Design added successfully!', 'success')
         return redirect(url_for('main.index'))
-    return render_template('add_design.html', customers=customers, designers=designers, branches=branches)
+    return render_template('add_design.html', form=form)
 
 @main.route('/open_designs', methods=['GET'])
 def open_designs():
@@ -971,6 +981,15 @@ def open_designs():
 def manage_design(design_id):
     design = Design.query.get_or_404(design_id)
     form = DesignForm(obj=design)  # Create an instance of your form and pass the design object
+
+    # Populate customer and designer choices with a branch filter
+    customer_query = Customer.query
+    if design.branch_id:
+        customer_query = customer_query.filter((Customer.branch_id == design.branch_id) | (Customer.branch_id == None))
+    
+    form.customer_id.choices = [(customer.id, customer.name) for customer in customer_query.all()]
+    form.designer_id.choices = get_branch_estimators(design.branch_id, estimator_type='designer')
+    form.branch_id.choices = [(b.branch_id, b.branch_name) for b in Branch.query.all()]
 
     if form.validate_on_submit():
         form.populate_obj(design)
@@ -1106,9 +1125,20 @@ def bid_request():
     window_form = WindowForm()
     trim_form = TrimForm()
 
+    # Determine current branch
+    selected_branch_id = form.branch_id.data or request.args.get('branch_id', current_user.user_branch_id, type=int)
+
+    # Filter Sales Reps and Customers by branch
+    form.sales_rep.choices = get_branch_sales_reps(selected_branch_id)
+    
+    customer_query = Customer.query
+    if selected_branch_id and selected_branch_id != 0:
+        customer_query = customer_query.filter((Customer.branch_id == selected_branch_id) | (Customer.branch_id == None))
+    form.customer_id.choices = [(0, 'Select Customer')] + [(c.id, c.name) for c in customer_query.all()]
+    
     form.branch_id.choices = [(b.branch_id, b.branch_name) for b in Branch.query.all()]
     if not form.branch_id.data:
-        form.branch_id.data = current_user.user_branch_id
+        form.branch_id.data = selected_branch_id
 
     if form.validate_on_submit():
         try:
@@ -1372,11 +1402,28 @@ def register():
             username=form.username.data,
             email=form.email.data,
             usertype_id=form.usertype_id.data,
-            estimatorID=form.estimatorID.data if form.estimatorID.data else None,
-            user_branch_id=form.user_branch_id.data
+            user_branch_id=form.user_branch_id.data,
+            is_estimator=form.is_estimator.data
         )
         user.set_password(form.password.data)
         db.session.add(user)
+        db.session.flush()
+
+        # Sync with Estimator table
+        if user.is_estimator:
+            existing_estimator = Estimator.query.filter_by(estimatorUsername=user.username).first()
+            if not existing_estimator:
+                new_estimator = Estimator(
+                    estimatorName=user.username,
+                    estimatorUsername=user.username,
+                    type='Residential'
+                )
+                db.session.add(new_estimator)
+                db.session.flush()
+                user.estimatorID = new_estimator.estimatorID
+            else:
+                user.estimatorID = existing_estimator.estimatorID
+
         db.session.commit()
         flash('User registered successfully', 'success')
         return redirect(url_for('main.manage_users'))
@@ -1404,28 +1451,71 @@ def get_estimators():
     estimator_list = [{'estimatorID': e.estimatorID, 'name': e.estimatorName} for e in estimators]
     return jsonify(estimator_list)
 
+def get_branch_estimators(branch_id, estimator_type=None):
+    """Helper to get estimators for a specific branch, optionally filtered by type."""
+    query = db.session.query(Estimator).join(
+        User, User.username == Estimator.estimatorUsername
+    ).filter(User.is_active == True)
+
+    if branch_id and branch_id != 0:
+        query = query.filter(User.user_branch_id == branch_id)
+    
+    if estimator_type:
+        query = query.filter(Estimator.type == estimator_type)
+
+    estimators = query.all()
+    
+    return [(0, 'No Estimator')] + [(e.estimatorID, e.estimatorName) for e in estimators]
+
+def get_branch_sales_reps(branch_id):
+    """Helper to get sales reps for a specific branch."""
+    query = db.session.query(SalesRep).join(
+        User, User.sales_rep_id == SalesRep.id
+    ).filter(User.is_active == True)
+
+    if branch_id and branch_id != 0:
+        query = query.filter(User.user_branch_id == branch_id)
+    
+    reps = query.all()
+    return [('', 'Select Sales Rep')] + [(rep.id, rep.name) for rep in reps]
+
 @main.route('/edit_user/<int:user_id>', methods=['GET', 'POST'])
 def edit_user(user_id):
     user = User.query.get_or_404(user_id)
     form = UpdateUserForm(obj=user)
     form.usertype_id.choices = [(ut.id, ut.name) for ut in UserType.query.all()]
-    form.estimatorID.choices = [(0, 'None')] + [(e.estimatorID, e.estimatorName) for e in Estimator.query.all()]  # Add None option
     form.user_branch_id.choices = [(b.branch_id, b.branch_name) for b in Branch.query.all()]  # Populate branches
 
     if form.validate_on_submit():
         user.username = form.username.data
         user.email = form.email.data
         user.usertype_id = form.usertype_id.data
-        user.estimatorID = form.estimatorID.data if form.estimatorID.data != 0 else None  # Handle 'None' selection
-        user.user_branch_id = form.user_branch_id.data  # Handle branch selection
+        user.user_branch_id = form.user_branch_id.data
+        user.is_estimator = form.is_estimator.data
+
+        # Sync with Estimator table if marked as estimator
+        if user.is_estimator:
+            existing_estimator = Estimator.query.filter_by(estimatorUsername=user.username).first()
+            if not existing_estimator:
+                new_estimator = Estimator(
+                    estimatorName=user.username, # Default name to username
+                    estimatorUsername=user.username,
+                    type='Residential' # Default type
+                )
+                db.session.add(new_estimator)
+                db.session.flush() # Get the ID
+                user.estimatorID = new_estimator.estimatorID
+            else:
+                user.estimatorID = existing_estimator.estimatorID
 
         if form.password.data:
-            user.set_password(form.password.data)  # Use the set_password method
+            user.set_password(form.password.data)
 
         db.session.commit()
         flash('User updated successfully', 'success')
         return redirect(url_for('main.manage_users'))
     return render_template('edit_user.html', form=form, user=user)
+
 
 @main.route('/reset_password/<int:user_id>', methods=['POST'])
 def reset_password(user_id):
@@ -1450,10 +1540,27 @@ def add_user():
             username=form.username.data,
             email=form.email.data,
             usertype_id=form.usertype_id.data,
-            estimatorID=form.estimatorID.data if form.estimatorID.data else None
+            user_branch_id=form.user_branch_id.data,
+            is_estimator=form.is_estimator.data
         )
         user.set_password(form.password.data)
         db.session.add(user)
+        db.session.flush()
+
+        # Sync with Estimator table
+        if user.is_estimator:
+            existing_estimator = Estimator.query.filter_by(estimatorUsername=user.username).first()
+            if not existing_estimator:
+                new_estimator = Estimator(
+                    estimatorName=user.username,
+                    estimatorUsername=user.username,
+                    type='Residential'
+                )
+                db.session.add(new_estimator)
+                db.session.flush()
+                user.estimatorID = new_estimator.estimatorID
+            else:
+                user.estimatorID = existing_estimator.estimatorID
         try:
             db.session.commit()
             flash('User created successfully!', 'success')
@@ -1740,20 +1847,20 @@ def view_layouts():
 def create_layout():
     form = LayoutForm()
 
+    # Determine the branch_id for populating choices
+    selected_branch_id = form.branch_id.data or request.args.get('branch_id', current_user.user_branch_id, type=int)
+
     # Populate the sales reps and customers
-    sales_rep_query = User.query.join(UserType).filter(UserType.name == 'Sales Rep')
-    if current_user.user_branch_id:
-        sales_rep_query = sales_rep_query.filter(User.user_branch_id == current_user.user_branch_id)
-    form.sales_rep_id.choices = [(rep.id, rep.username) for rep in sales_rep_query.all()]
+    form.sales_rep_id.choices = get_branch_sales_reps(selected_branch_id)
     
     customer_query = Customer.query
-    if current_user.user_branch_id:
-        customer_query = customer_query.filter((Customer.branch_id == current_user.user_branch_id) | (Customer.branch_id == None))
+    if selected_branch_id and selected_branch_id != 0:
+        customer_query = customer_query.filter((Customer.branch_id == selected_branch_id) | (Customer.branch_id == None))
     form.customer_id.choices = [(customer.id, customer.name) for customer in customer_query.all()]
     
     form.branch_id.choices = [(b.branch_id, b.branch_name) for b in Branch.query.all()]
     if not form.branch_id.data:
-        form.branch_id.data = current_user.user_branch_id
+        form.branch_id.data = selected_branch_id
 
     if form.validate_on_submit():
         new_ewp = EWP(
