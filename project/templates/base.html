@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -14,24 +15,29 @@
 
     {% block styles %}{% endblock %}
 </head>
+
 <body>
     <nav class="navbar navbar-expand-lg navbar-light bg-light">
         <a class="navbar-brand" href="{{ url_for('main.index') }}">
-            <img src="{{ url_for('static', filename='beisser_logo_full_color_RGB.png') }}" alt="Beisser.io Logo" height="30">
+            <img src="{{ url_for('static', filename='beisser_logo_full_color_RGB.png') }}" alt="Beisser.io Logo"
+                height="30">
         </a>
-        <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+        <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNav"
+            aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
             <span class="navbar-toggler-icon"></span>
         </button>
         <div class="collapse navbar-collapse" id="navbarNav">
             <ul class="navbar-nav">
                 <!-- Home Link -->
                 <li class="nav-item active">
-                    <a class="nav-link" href="{{ url_for('main.index') }}">Home <span class="sr-only">(current)</span></a>
+                    <a class="nav-link" href="{{ url_for('main.index') }}">Home <span
+                            class="sr-only">(current)</span></a>
                 </li>
 
                 <!-- Estimating Dropdown -->
                 <li class="nav-item dropdown">
-                    <a class="nav-link dropdown-toggle" href="#" id="estimatingDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                    <a class="nav-link dropdown-toggle" href="#" id="estimatingDropdown" role="button"
+                        data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
                         Estimating
                     </a>
                     <div class="dropdown-menu" aria-labelledby="estimatingDropdown">
@@ -45,7 +51,8 @@
 
                 <!-- Design Dropdown -->
                 <li class="nav-item dropdown">
-                    <a class="nav-link dropdown-toggle" href="#" id="designDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                    <a class="nav-link dropdown-toggle" href="#" id="designDropdown" role="button"
+                        data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
                         Design
                     </a>
                     <div class="dropdown-menu" aria-labelledby="designDropdown">
@@ -56,14 +63,17 @@
 
                 <!-- Admin Dropdown -->
                 <li class="nav-item dropdown">
-                    <a class="nav-link dropdown-toggle" href="#" id="adminDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                    <a class="nav-link dropdown-toggle" href="#" id="adminDropdown" role="button" data-toggle="dropdown"
+                        aria-haspopup="true" aria-expanded="false">
                         Admin
                     </a>
                     <div class="dropdown-menu" aria-labelledby="adminDropdown">
                         <a class="dropdown-item" href="{{ url_for('main.manage_users') }}">Manage Users</a>
                         <a class="dropdown-item" href="{{ url_for('main.manage_customers') }}">Manage Customers</a>
-                        <a class="dropdown-item" href="{{ url_for('main.upload_historical_bids') }}">Upload Historical Bids</a>
-                        <a class="dropdown-item" href="{{ url_for('main.upload_historical_designs') }}">Upload Historical Designs</a>
+                        <a class="dropdown-item" href="{{ url_for('main.upload_historical_bids') }}">Upload Historical
+                            Bids</a>
+                        <a class="dropdown-item" href="{{ url_for('main.upload_historical_designs') }}">Upload
+                            Historical Designs</a>
                         <a class="dropdown-item" href="{{ url_for('main.download_customers') }}">Download Customers</a>
                         <a class="dropdown-item" href="{{ url_for('main.user_security') }}">Manage User Security</a>
                         <a class="dropdown-item" href="{{ url_for('main.manage_sales_reps') }}">Manage Sales Reps</a>
@@ -72,7 +82,8 @@
 
                 <!-- EWP Dropdown -->
                 <li class="nav-item dropdown">
-                    <a class="nav-link dropdown-toggle" href="#" id="ewpDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                    <a class="nav-link dropdown-toggle" href="#" id="ewpDropdown" role="button" data-toggle="dropdown"
+                        aria-haspopup="true" aria-expanded="false">
                         EWP
                     </a>
                     <div class="dropdown-menu" aria-labelledby="ewpDropdown">
@@ -84,7 +95,8 @@
 
                 <!-- Service Dropdown -->
                 <li class="nav-item dropdown">
-                    <a class="nav-link dropdown-toggle" href="#" id="serviceDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                    <a class="nav-link dropdown-toggle" href="#" id="serviceDropdown" role="button"
+                        data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
                         Service
                     </a>
                     <div class="dropdown-menu" aria-labelledby="serviceDropdown">
@@ -119,18 +131,18 @@
 
     <div class="container">
         {% with messages = get_flashed_messages(with_categories=true) %}
-            {% if messages %}
-                <div class="alert alert-dismissible fade show" role="alert">
-                    {% for category, message in messages %}
-                        <div class="alert alert-{{ category }}">
-                            {{ message }}
-                        </div>
-                    {% endfor %}
-                    <button type="button" class="close" data-dismiss="alert" aria-label="Close">
-                        <span aria-hidden="true">&times;</span>
-                    </button>
-                </div>
-            {% endif %}
+        {% if messages %}
+        <div class="alert alert-dismissible fade show" role="alert">
+            {% for category, message in messages %}
+            <div class="alert alert-{{ category }}">
+                {{ message }}
+            </div>
+            {% endfor %}
+            <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                <span aria-hidden="true">&times;</span>
+            </button>
+        </div>
+        {% endif %}
         {% endwith %}
     </div>
 
@@ -148,17 +160,12 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.13/js/select2.min.js"></script>
 
     <script>
-        $(function() {
+        $(function () {
             $("#start_date, #end_date").datepicker();
-        });
-        $(document).ready(function() {
-            $('#usersTable').DataTable({
-                responsive: true,
-                "pageLength": 10
-            });
         });
     </script>
 
     {% block scripts %}{% endblock %}
 </body>
+
 </html>
