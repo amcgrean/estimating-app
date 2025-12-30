@@ -95,7 +95,16 @@ def index():
     prev_bids_mtd = Bid.query.filter(Bid.log_date.between(start_date, end_date)).count()
 
     # Average completion time (in days)
-    avg_completion_time = db.session.query(func.avg(func.julianday(Bid.completion_date) - func.julianday(Bid.log_date))).filter(Bid.status == 'Complete').scalar() or 0
+    try:
+        # SQLite
+        avg_completion_time = db.session.query(func.avg(func.julianday(Bid.completion_date) - func.julianday(Bid.log_date))).filter(Bid.status == 'Complete').scalar() or 0
+    except Exception:
+        db.session.rollback()
+        # Postgres/Generic: Subtracting dates gives an interval or number of days
+        # In Postgres, timestamp - timestamp = interval. We can extract days.
+        avg_completion_time = db.session.query(func.avg(func.extract('epoch', Bid.completion_date - Bid.log_date))).filter(Bid.status == 'Complete').scalar() or 0
+        avg_completion_time = avg_completion_time / 86400  # Convert seconds to days
+    
     avg_completion_time = round(avg_completion_time)
 
     # Open designs count (active)
@@ -103,7 +112,7 @@ def index():
 
     # Designs YTD
     designs_ytd = Design.query.filter(Design.log_date >= datetime(current_year, 1, 1)).count()
-    designs_mtd = Bid.query.filter(Design.log_date >= datetime(current_year, datetime.now().month, 1)).count()
+    designs_mtd = Design.query.filter(Design.log_date >= datetime(current_year, datetime.now().month, 1)).count()
 
 
 
