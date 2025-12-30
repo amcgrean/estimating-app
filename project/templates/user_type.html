@@ -5,7 +5,7 @@
 {% block content %}
 <div class="container mt-3">
     <h2>User Types</h2>
-    <form action="{{ url_for('main.add_user_type') }}" method="POST" class="mb-3">
+    <form action="{{ url_for('admin.add_user_type') }}" method="POST" class="mb-3">
         {{ form.hidden_tag() }}
         <div class="mb-3">
             {{ form.name.label }}<br>
@@ -29,7 +29,7 @@
                 <td>{{ usertype.id }}</td>
                 <td>{{ usertype.name }}</td>
                 <td>
-                    <form action="{{ url_for('main.delete_user_type', usertype_id=usertype.id) }}" method="POST" style="display:inline;">
+                    <form action="{{ url_for('admin.delete_user_type', usertype_id=usertype.id) }}" method="POST" style="display:inline;">
                         <button type="submit" class="btn btn-sm btn-danger">Delete</button>
                     </form>
                 </td>
@@ -37,6 +37,6 @@
             {% endfor %}
         </tbody>
     </table>
-    <a href="{{ url_for('main.manage_users') }}" class="btn btn-secondary mt-3">Back to Manage Users</a>
+    <a href="{{ url_for('admin.manage_users') }}" class="btn btn-secondary mt-3">Back to Manage Users</a>
 </div>
 {% endblock %}

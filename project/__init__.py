@@ -63,7 +63,7 @@ def create_app():
     bcrypt.init_app(app)
 
     # Flask-Login configuration
-    login_manager.login_view = "main.login"
+    login_manager.login_view = "auth.login"
     login_manager.login_message = "Please log in to access this page."
     login_manager.login_message_category = "info"
 
@@ -78,8 +78,14 @@ def create_app():
             return None
 
     # Register blueprint
-    from .routes import main as main_blueprint  # noqa: E402
+    # Register blueprints
+    from .blueprints.main.routes import main as main_blueprint
+    from .blueprints.auth.routes import auth as auth_blueprint
+    from .blueprints.admin.routes import admin as admin_blueprint
+    
     app.register_blueprint(main_blueprint)
+    app.register_blueprint(auth_blueprint)
+    app.register_blueprint(admin_blueprint)
 
     # Logging (stdout is safest on serverless)
     if not app.debug:

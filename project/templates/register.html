@@ -1,43 +1,89 @@
 {% extends "base.html" %}
 
-{% block title %}Register{% endblock %}
+{% block title %}Register | Beisser.io{% endblock %}
 
 {% block content %}
-<div class="container mt-3">
-    <h1>Register</h1>
-    <form method="POST" action="{{ url_for('main.register') }}">
-        {{ form.hidden_tag() }}
-        <div class="form-group">
-            {{ form.username.label }}<br>
-            {{ form.username(class="form-control") }}
+<div class="row justify-content-center py-5">
+    <div class="col-lg-8">
+        <div class="premium-card p-5">
+            <div class="text-center mb-5">
+                <h1 class="display-5 font-weight-bold" style="font-family: 'Outfit', sans-serif;">Join Beisser.io</h1>
+                <p class="text-muted">Create a new account to start managing project bids and designs.</p>
+            </div>
+
+            <form method="POST" action="{{ url_for('auth.register') }}">
+                {{ form.hidden_tag() }}
+
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="form-group mb-4">
+                            <label class="font-weight-600 small text-uppercase tracking-wider">Username</label>
+                            {{ form.username(class="input-modern", placeholder="johndoe") }}
+                            {% if form.username.errors %}<small class="text-danger">{{ form.username.errors[0]
+                                }}</small>{% endif %}
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="form-group mb-4">
+                            <label class="font-weight-600 small text-uppercase tracking-wider">Email Address</label>
+                            {{ form.email(class="input-modern", placeholder="john@beisser.io") }}
+                            {% if form.email.errors %}<small class="text-danger">{{ form.email.errors[0] }}</small>{%
+                            endif %}
+                        </div>
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="form-group mb-4">
+                            <label class="font-weight-600 small text-uppercase tracking-wider">Password</label>
+                            {{ form.password(class="input-modern", placeholder="••••••••") }}
+                            {% if form.password.errors %}<small class="text-danger">{{ form.password.errors[0]
+                                }}</small>{% endif %}
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="form-group mb-4">
+                            <label class="font-weight-600 small text-uppercase tracking-wider">Confirm Password</label>
+                            {{ form.confirm(class="input-modern", placeholder="••••••••") }}
+                        </div>
+                    </div>
+                </div>
+
+                <hr class="my-5">
+
+                <div class="row">
+                    <div class="col-md-4">
+                        <div class="form-group mb-4">
+                            <label class="font-weight-600 small text-uppercase tracking-wider">User Type</label>
+                            {{ form.usertype(class="input-modern") }}
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="form-group mb-4">
+                            <label class="font-weight-600 small text-uppercase tracking-wider">Estimator ID
+                                (Optional)</label>
+                            {{ form.estimatorID(class="input-modern") }}
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="form-group mb-4">
+                            <label class="font-weight-600 small text-uppercase tracking-wider">Default Branch</label>
+                            {{ form.user_branch_id(class="input-modern") }}
+                        </div>
+                    </div>
+                </div>
+
+                <div class="d-flex align-items-center justify-content-between mt-5">
+                    <a href="{{ url_for('auth.login') }}" class="btn text-muted font-weight-600">
+                        <i class="fas fa-arrow-left mr-2"></i> Back to Login
+                    </a>
+                    <button type="submit" class="btn-premium px-5 py-3">
+                        <i class="fas fa-user-plus mr-2"></i> Create Account
+                    </button>
+                </div>
+            </form>
         </div>
-        <div class="form-group">
-            {{ form.email.label }}<br>
-            {{ form.email(class="form-control") }}
-        </div>
-        <div class="form-group">
-            {{ form.password.label }}<br>
-            {{ form.password(class="form-control") }}
-        </div>
-        <div class="form-group">
-            {{ form.confirm.label }}<br>
-            {{ form.confirm(class="form-control") }}
-        </div>
-        <div class="form-group">
-            {{ form.usertype.label }}<br>
-            {{ form.usertype(class="form-control") }}
-        </div>
-        <div class="form-group">
-            {{ form.estimatorID.label }}<br>
-            {{ form.estimatorID(class="form-control") }}
-        </div>
-        <div class="form-group">
-            {{ form.user_branch_id.label }}<br>
-            {{ form.user_branch_id(class="form-control") }}
-        </div>
-        <div class="form-group">
-            {{ form.submit(class="btn btn-primary") }}
-        </div>
-    </form>
+    </div>
 </div>
 {% endblock %}

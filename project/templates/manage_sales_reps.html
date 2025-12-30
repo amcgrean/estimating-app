@@ -34,7 +34,7 @@
                 <td>{{ sales_rep.name }}</td>
                 <td>{{ sales_rep.username }}</td>
                 <td>
-                    <form method="POST" action="{{ url_for('main.manage_sales_reps') }}">
+                    <form method="POST" action="{{ url_for('admin.manage_sales_reps') }}">
                         <input type="hidden" name="sales_rep_id" value="{{ sales_rep.id }}">
                         <button type="submit" name="remove_sales_rep" class="btn btn-danger btn-sm">
                             Remove
@@ -47,7 +47,7 @@
     </table>
 
     <h3>Add New Sales Rep</h3>
-    <form method="POST" action="{{ url_for('main.manage_sales_reps') }}">
+    <form method="POST" action="{{ url_for('admin.manage_sales_reps') }}">
         <div class="form-group">
             <label for="user_id">Select User</label>
             <select id="user_id" name="user_id" class="form-control" required>

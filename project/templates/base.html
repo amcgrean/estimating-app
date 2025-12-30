@@ -6,32 +6,114 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{% block title %}Beisser.io{% endblock %}</title>
 
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Outfit:wght@400;600;700&display=swap"
+        rel="stylesheet">
+
     <!-- CSS Libraries -->
     <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="//code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">
     <link rel="stylesheet" href="https://cdn.datatables.net/1.10.20/css/jquery.dataTables.min.css">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.13/css/select2.min.css" rel="stylesheet">
+
+    <!-- Custom Modern Styles -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/main.css') }}">
+
+    <style>
+        /* Modern Navbar Styling */
+        .navbar-custom {
+            background: #0f172a;
+            /* Deep Slate */
+            padding: 0.75rem 1.5rem;
+            box-shadow: var(--shadow-md);
+        }
+
+        .navbar-custom .navbar-brand img {
+            filter: brightness(0) invert(1);
+            /* Logo to White */
+        }
+
+        .navbar-custom .nav-link {
+            color: rgba(255, 255, 255, 0.7) !important;
+            font-weight: 500;
+            transition: color 0.2s ease;
+        }
+
+        .navbar-custom .nav-link:hover,
+        .navbar-custom .nav-item.active .nav-link {
+            color: #fff !important;
+        }
+
+        .navbar-custom .dropdown-menu {
+            border: none;
+            box-shadow: var(--shadow-lg);
+            border-radius: var(--radius-md);
+            padding: var(--space-sm);
+        }
+
+        .navbar-custom .dropdown-item {
+            border-radius: var(--radius-sm);
+            padding: 0.5rem 1rem;
+            font-weight: 500;
+            transition: background 0.2s ease;
+        }
+
+        .navbar-custom .dropdown-item:hover {
+            background: var(--surface-muted);
+            color: var(--primary);
+        }
+
+        /* Search Bar Modernization */
+        .search-container {
+            position: relative;
+            max-width: 300px;
+        }
+
+        .search-container input {
+            background: rgba(255, 255, 255, 0.1);
+            border: none;
+            color: #fff;
+            padding-left: 2.5rem;
+            border-radius: var(--radius-full);
+            transition: all 0.3s ease;
+        }
+
+        .search-container input:focus {
+            background: rgba(255, 255, 255, 0.2);
+            box-shadow: none;
+            color: #fff;
+        }
+
+        .search-container i {
+            position: absolute;
+            left: 1rem;
+            top: 50%;
+            transform: translateY(-50%);
+            color: rgba(255, 255, 255, 0.5);
+        }
+    </style>
 
     {% block styles %}{% endblock %}
 </head>
 
 <body>
-    <nav class="navbar navbar-expand-lg navbar-light bg-light">
+    <nav class="navbar navbar-expand-lg navbar-dark navbar-custom sticky-top">
         <a class="navbar-brand" href="{{ url_for('main.index') }}">
             <img src="{{ url_for('static', filename='beisser_logo_full_color_RGB.png') }}" alt="Beisser.io Logo"
-                height="30">
+                height="32">
         </a>
-        <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNav"
+        <button class="navbar-toggler border-0" type="button" data-toggle="collapse" data-target="#navbarNav"
             aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
-            <span class="navbar-toggler-icon"></span>
+            <i class="fas fa-bars text-white"></i>
         </button>
         <div class="collapse navbar-collapse" id="navbarNav">
-            <ul class="navbar-nav">
-                <!-- Home Link -->
-                <li class="nav-item active">
-                    <a class="nav-link" href="{{ url_for('main.index') }}">Home <span
-                            class="sr-only">(current)</span></a>
+            <ul class="navbar-nav align-items-center">
+                <li class="nav-item">
+                    <a class="nav-link" href="{{ url_for('main.index') }}">Dashboard</a>
                 </li>
 
                 <!-- Estimating Dropdown -->
@@ -43,7 +125,8 @@
                     <div class="dropdown-menu" aria-labelledby="estimatingDropdown">
                         <a class="dropdown-item" href="{{ url_for('main.open_bids') }}">Open Bids</a>
                         <a class="dropdown-item" href="{{ url_for('main.add_bid') }}">Add New Bid</a>
-                        <a href="{{ url_for('main.completed_bids') }}" class="btn btn-info">Completed Bids</a>
+                        <div class="dropdown-divider"></div>
+                        <a class="dropdown-item" href="{{ url_for('main.completed_bids') }}">Completed Bids</a>
                         <a class="dropdown-item" href="{{ url_for('main.bid_request') }}">Bid Request Form</a>
                         <a class="dropdown-item" href="{{ url_for('main.projects') }}">Projects</a>
                     </div>
@@ -61,7 +144,6 @@
                     </div>
                 </li>
 
-                <!-- Admin Dropdown -->
                 {% if current_user.is_admin %}
                 <li class="nav-item dropdown">
                     <a class="nav-link dropdown-toggle" href="#" id="adminDropdown" role="button" data-toggle="dropdown"
@@ -69,20 +151,20 @@
                         Admin
                     </a>
                     <div class="dropdown-menu" aria-labelledby="adminDropdown">
-                        <a class="dropdown-item" href="{{ url_for('main.manage_users') }}">Manage Users</a>
-                        <a class="dropdown-item" href="{{ url_for('main.manage_customers') }}">Manage Customers</a>
-                        <a class="dropdown-item" href="{{ url_for('main.upload_historical_bids') }}">Upload Historical
+                        <a class="dropdown-item" href="{{ url_for('admin.manage_users') }}">Manage Users</a>
+                        <a class="dropdown-item" href="{{ url_for('admin.manage_customers') }}">Manage Customers</a>
+                        <div class="dropdown-divider"></div>
+                        <a class="dropdown-item" href="{{ url_for('admin.upload_historical_bids') }}">Upload Historical
                             Bids</a>
-                        <a class="dropdown-item" href="{{ url_for('main.upload_historical_designs') }}">Upload
+                        <a class="dropdown-item" href="{{ url_for('admin.upload_historical_designs') }}">Upload
                             Historical Designs</a>
-                        <a class="dropdown-item" href="{{ url_for('main.download_customers') }}">Download Customers</a>
-                        <a class="dropdown-item" href="{{ url_for('main.user_security') }}">Manage User Security</a>
-                        <a class="dropdown-item" href="{{ url_for('main.manage_sales_reps') }}">Manage Sales Reps</a>
+                        <a class="dropdown-item" href="{{ url_for('admin.download_customers') }}">Download Customers</a>
+                        <a class="dropdown-item" href="{{ url_for('admin.user_security') }}">Manage User Security</a>
+                        <a class="dropdown-item" href="{{ url_for('admin.manage_sales_reps') }}">Manage Sales Reps</a>
                     </div>
                 </li>
                 {% endif %}
 
-                <!-- EWP Dropdown -->
                 <li class="nav-item dropdown">
                     <a class="nav-link dropdown-toggle" href="#" id="ewpDropdown" role="button" data-toggle="dropdown"
                         aria-haspopup="true" aria-expanded="false">
@@ -95,34 +177,31 @@
                     </div>
                 </li>
 
-                <!-- Service Dropdown -->
                 <li class="nav-item dropdown">
                     <a class="nav-link dropdown-toggle" href="#" id="serviceDropdown" role="button"
                         data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                        Service
+                        Support
                     </a>
                     <div class="dropdown-menu" aria-labelledby="serviceDropdown">
                         <a class="dropdown-item" href="{{ url_for('main.submit_issue') }}">Submit Issue</a>
                         <a class="dropdown-item" href="{{ url_for('main.view_issues') }}">View Issues</a>
                     </div>
                 </li>
-
-                <!-- Additional Dropdown (Optional) -->
             </ul>
 
             <!-- Search Bar -->
-            <form method="GET" action="{{ url_for('main.index') }}" class="form-inline ml-auto">
-                <div class="input-group mr-2">
+            <form method="GET" action="{{ url_for('main.index') }}" class="form-inline ml-auto mr-3 d-none d-lg-block">
+                <div class="search-container">
+                    <i class="fas fa-search"></i>
                     <input type="text" name="search" class="form-control" placeholder="Search bids...">
-                    <div class="input-group-append">
-                        <button type="submit" class="btn btn-outline-secondary">Search</button>
-                    </div>
                 </div>
             </form>
 
             <ul class="navbar-nav">
                 <li class="nav-item">
-                    <a class="nav-link text-danger" href="{{ url_for('main.logout') }}">
+                    <a class="btn-premium"
+                        style="background: rgba(239, 68, 68, 0.15); color: #ef4444; border: 1px solid rgba(239, 68, 68, 0.3);"
+                        href="{{ url_for('auth.logout') }}">
                         <i class="fas fa-sign-out-alt"></i> Logout
                     </a>
                 </li>
@@ -131,27 +210,31 @@
     </nav>
 
 
-    <div class="container">
+    <div class="container mt-4">
         {% with messages = get_flashed_messages(with_categories=true) %}
         {% if messages %}
-        <div class="alert alert-dismissible fade show" role="alert">
+        <div class="container p-0">
             {% for category, message in messages %}
-            <div class="alert alert-{{ category }}">
+            {% set alert_type = category if category != 'message' else 'info' %}
+            <div class="alert alert-{{ alert_type }} alert-dismissible fade show premium-card" role="alert"
+                style="padding: 1rem 1.5rem; margin-bottom: 1rem; border-left: 4px solid var(--{{ alert_type }});">
                 {{ message }}
+                <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
             </div>
             {% endfor %}
-            <button type="button" class="close" data-dismiss="alert" aria-label="Close">
-                <span aria-hidden="true">&times;</span>
-            </button>
         </div>
         {% endif %}
         {% endwith %}
-    </div>
 
-    <div class="container mt-3">
         {% block content %}
         {% endblock %}
     </div>
+
+    <footer class="mt-5 pb-4 text-center text-muted small">
+        &copy; {{ now.year if now else '2023' }} Beisser Lumber Company. All rights reserved.
+    </footer>
 
     <!-- JS Libraries -->
     <script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
@@ -163,7 +246,9 @@
 
     <script>
         $(function () {
-            $("#start_date, #end_date").datepicker();
+            if ($("#start_date, #end_date").length) {
+                $("#start_date, #end_date").datepicker();
+            }
         });
     </script>
 

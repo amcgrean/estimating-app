@@ -6,7 +6,7 @@
 {% block content %}
 <div class="container mt-3">
     <h2>User List</h2>
-    <a href="{{ url_for('main.add_user') }}" class="btn btn-primary mb-3">Add New User</a>
+    <a href="{{ url_for('admin.add_user') }}" class="btn btn-primary mb-3">Add New User</a>
     <table class="table" id="usersTable">
         <thead>
             <tr>
@@ -30,8 +30,8 @@
                 <td>{% if user.is_estimator %}<span class="badge badge-success">Yes</span>{% else %}<span
                         class="badge badge-secondary">No</span>{% endif %}</td>
                 <td>
-                    <a href="{{ url_for('main.edit_user', user_id=user.id) }}" class="btn btn-sm btn-warning">Edit</a>
-                    <form action="{{ url_for('main.delete_user', user_id=user.id) }}" method="POST"
+                    <a href="{{ url_for('admin.edit_user', user_id=user.id) }}" class="btn btn-sm btn-warning">Edit</a>
+                    <form action="{{ url_for('admin.delete_user', user_id=user.id) }}" method="POST"
                         style="display:inline;">
                         <button type="submit" class="btn btn-sm btn-danger">Delete</button>
                     </form>
@@ -40,10 +40,10 @@
             {% endfor %}
         </tbody>
     </table>
-    <a href="{{ url_for('main.user_type') }}" class="btn btn-secondary mt-3">Manage User Types</a>
+    <a href="{{ url_for('admin.user_type') }}" class="btn btn-secondary mt-3">Manage User Types</a>
     <a href="{{ url_for('main.index') }}" class="btn btn-secondary mt-3">Back to Home</a>
 
-    <form action="{{ url_for('main.upload_users') }}" method="post" enctype="multipart/form-data">
+    <form action="{{ url_for('admin.upload_users') }}" method="post" enctype="multipart/form-data">
         <input type="file" name="file" accept=".csv">
         <input type="submit" value="Upload">
     </form>

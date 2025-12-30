@@ -5,7 +5,7 @@
 {% block content %}
 <div class="container mt-3">
     <h2>Add New Customer</h2>
-    <form action="{{ url_for('main.manage_customers') }}" method="POST" class="mb-3">
+    <form action="{{ url_for('admin.manage_customers') }}" method="POST" class="mb-3">
         {{ add_customer_form.hidden_tag() }}
         <div class="form-group">
             {{ add_customer_form.customerCode.label }}
@@ -19,7 +19,7 @@
     </form>
 
     <h2>Customer List</h2>
-    <form method="GET" action="{{ url_for('main.manage_customers') }}" class="form-inline mb-3">
+    <form method="GET" action="{{ url_for('admin.manage_customers') }}" class="form-inline mb-3">
         {{ search_form.hidden_tag() }}
         <label for="branch_id" class="mr-2">Branch</label>
         <select name="branch_id" id="branch_id" class="form-control mr-3" onchange="this.form.submit()">
@@ -55,7 +55,7 @@
     </table>
 
     <h2>Upload Customers</h2>
-    <form action="{{ url_for('main.upload_customers') }}" method="post" enctype="multipart/form-data" class="mb-3">
+    <form action="{{ url_for('admin.upload_customers') }}" method="post" enctype="multipart/form-data" class="mb-3">
         <div class="form-group">
             <label for="file">Upload CSV File of Customers</label>
             <input type="file" name="file" id="file" required class="form-control-file">

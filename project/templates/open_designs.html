@@ -1,79 +1,133 @@
 {% extends "base.html" %}
 
-{% block title %}Open Designs{% endblock %}
+{% block title %}Open Designs | Beisser.io{% endblock %}
+
+{% block styles %}
+<style>
+    .filter-panel {
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: var(--radius-lg);
+        padding: var(--space-lg);
+        margin-bottom: var(--space-xl);
+        box-shadow: var(--shadow-sm);
+    }
+
+    .table-card {
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: var(--radius-lg);
+        overflow: hidden;
+        box-shadow: var(--shadow-sm);
+    }
+
+    .table thead th {
+        background: var(--surface-muted);
+        color: var(--text-muted);
+        text-transform: uppercase;
+        font-size: 0.75rem;
+        font-weight: 700;
+        letter-spacing: 0.05em;
+        padding: 1rem;
+    }
+
+    .table td {
+        padding: 1rem;
+        vertical-align: middle;
+        font-size: 0.9rem;
+    }
+</style>
+{% endblock %}
 
 {% block content %}
-<div class="container mt-3">
-    <div class="d-flex justify-content-between align-items-center mb-3">
-        <h2>Open Designs</h2>
-        <a href="{{ url_for('main.add_design', branch_id=current_branch_id) }}" class="btn btn-success">Create New</a>
+<div class="d-flex justify-content-between align-items-end mb-4">
+    <div>
+        <h2 class="display-5 font-weight-bold" style="font-family: 'Outfit', sans-serif;">Open Designs</h2>
+        <p class="text-muted small">Manage architectural layouts and design project specifications.</p>
     </div>
-    <form method="GET" action="{{ url_for('main.open_designs') }}" class="form-inline mb-3">
-        <label for="branch_id" class="mr-2">Branch</label>
-        <select name="branch_id" id="branch_id" class="form-control mr-2">
-            <option value="0" {% if current_branch_id==0 %}selected{% endif %}>All</option>
-            {% for branch in branches %}
-            <option value="{{ branch.branch_id }}" {% if current_branch_id==branch.branch_id %}selected{% endif %}>{{
-                branch.branch_name }}</option>
-            {% endfor %}
-        </select>
-        <label for="status" class="mr-2">Status</label>
-        <select name="status" id="status" class="form-control mr-2">
-            {% for status in statuses %}
-            <option value="{{ status }}" {% if status==current_status %}selected{% endif %}>{{ status }}</option>
-            {% endfor %}
-        </select>
-        <label for="start_date" class="mr-2">Start Date</label>
-        <input type="text" name="start_date" id="start_date" class="form-control mr-2" placeholder="MM/DD/YY">
-        <label for="end_date" class="mr-2">End Date</label>
-        <input type="text" name="end_date" id="end_date" class="form-control mr-2" placeholder="MM/DD/YY">
-        <button type="submit" class="btn btn-primary">Filter</button>
+    <a href="{{ url_for('main.add_design', branch_id=current_branch_id) }}" class="btn-premium">
+        <i class="fas fa-plus mr-2"></i> Create Design
+    </a>
+</div>
+
+<div class="filter-panel">
+    <form method="GET" action="{{ url_for('main.open_designs') }}" class="form-row align-items-end">
+        <div class="col-md-3">
+            <label class="font-weight-600 small text-uppercase tracking-wider">Branch</label>
+            <select name="branch_id" id="branch_id" class="input-modern">
+                <option value="0" {% if current_branch_id==0 %}selected{% endif %}>All Branches</option>
+                {% for branch in branches %}
+                <option value="{{ branch.branch_id }}" {% if current_branch_id==branch.branch_id %}selected{% endif %}>
+                    {{ branch.branch_name }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class="col-md-3">
+            <label class="font-weight-600 small text-uppercase tracking-wider">Status</label>
+            <select name="status" id="status" class="input-modern">
+                {% for status in statuses %}
+                <option value="{{ status }}" {% if status==current_status %}selected{% endif %}>{{ status }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class="col-md-2">
+            <label class="font-weight-600 small text-uppercase tracking-wider">Start Date</label>
+            <input type="text" name="start_date" id="start_date" class="input-modern" placeholder="MM/DD/YY">
+        </div>
+        <div class="col-md-2">
+            <label class="font-weight-600 small text-uppercase tracking-wider">End Date</label>
+            <input type="text" name="end_date" id="end_date" class="input-modern" placeholder="MM/DD/YY">
+        </div>
+        <div class="col-md-2">
+            <button type="submit" class="btn-premium w-100 justify-content-center">
+                <i class="fas fa-filter mr-2"></i> Filter
+            </button>
+        </div>
     </form>
-    <table class="table table-striped">
-        <thead>
-            <tr>
-                <th><a
-                        href="{{ url_for('main.open_designs', sort='planNumber', direction='asc' if sort_column != 'planNumber' or sort_direction == 'desc' else 'desc', status=current_status, branch_id=current_branch_id) }}">Plan
-                        Number</a></th>
-                <th><a
-                        href="{{ url_for('main.open_designs', sort='plan_name', direction='asc' if sort_column != 'plan_name' or sort_direction == 'desc' else 'desc', status=current_status, branch_id=current_branch_id) }}">Plan
-                        Name</a></th>
-                <th><a
-                        href="{{ url_for('main.open_designs', sort='customer_name', direction='asc' if sort_column != 'customer_name' or sort_direction == 'desc' else 'desc', status=current_status, branch_id=current_branch_id) }}">Customer
-                        Name</a></th>
-                <th><a
-                        href="{{ url_for('main.open_designs', sort='project_address', direction='asc' if sort_column != 'project_address' or sort_direction == 'desc' else 'desc', status=current_status, branch_id=current_branch_id) }}">Project
-                        Address</a></th>
-                <th><a
-                        href="{{ url_for('main.open_designs', sort='designer', direction='asc' if sort_column != 'designer' or sort_direction == 'desc' else 'desc', status=current_status, branch_id=current_branch_id) }}">Designer</a>
-                </th>
-                <th><a
-                        href="{{ url_for('main.open_designs', sort='status', direction='asc' if sort_column != 'status' or sort_direction == 'desc' else 'desc', status=current_status, branch_id=current_branch_id) }}">Status</a>
-                </th>
-                <th><a
-                        href="{{ url_for('main.open_designs', sort='log_date', direction='asc' if sort_column != 'log_date' or sort_direction == 'desc' else 'desc', status=current_status, branch_id=current_branch_id) }}">Log
-                        Date</a></th>
-                <th><a
-                        href="{{ url_for('main.open_designs', sort='notes', direction='asc' if sort_column != 'notes' or sort_direction == 'desc' else 'desc', status=current_status, branch_id=current_branch_id) }}">Notes</a>
-                </th>
-            </tr>
-        </thead>
-        <tbody>
-            {% for design in designs %}
-            <tr>
-                <td>{{ design.planNumber }}</td>
-                <td><a href="{{ url_for('main.manage_design', design_id=design.id) }}">{{ design.plan_name }}</a></td>
-                <td><a href="{{ url_for('main.view_customer_bids', customer_id=design.customer_id) }}">{{
-                        design.customer.name }}</a></td>
-                <td><a href="{{ url_for('main.manage_design', design_id=design.id) }}">{{ design.project_address }}</a>
-                </td>
-                <td>{{ design.designer.estimatorName if design.designer else 'N/A' }}</td>
-                <td>{{ design.status }}</td>
-                <td>{{ design.log_date.strftime('%m/%d/%y') }}</td>
-                <td>{{ design.notes }}</td>
-            </tr>
-            {% endfor %}
-        </tbody>
-    </table>
+</div>
+
+<div class="table-card">
+    <div class="table-responsive">
+        <table class="table mb-0">
+            <thead>
+                <tr>
+                    <th>Plan #</th>
+                    <th>Plan Name</th>
+                    <th>Customer</th>
+                    <th>Address</th>
+                    <th>Designer</th>
+                    <th>Status</th>
+                    <th>Log Date</th>
+                    <th>Notes</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for design in designs %}
+                <tr>
+                    <td class="font-weight-600">{{ design.planNumber }}</td>
+                    <td><a href="{{ url_for('main.manage_design', design_id=design.id) }}"
+                            class="font-weight-600 text-primary">{{ design.plan_name }}</a></td>
+                    <td><a href="{{ url_for('main.view_customer_bids', customer_id=design.customer_id) }}"
+                            class="text-dark">{{ design.customer.name }}</a></td>
+                    <td class="small">{{ design.project_address }}</td>
+                    <td><span class="badge-premium badge-active"
+                            style="background: var(--surface-muted); color: var(--text-main);">{{
+                            design.designer.estimatorName if design.designer else 'N/A' }}</span></td>
+                    <td>
+                        {% if design.status == 'Incomplete' %}
+                        <span class="badge-premium badge-incomplete">Incomplete</span>
+                        {% elif design.status == 'Complete' %}
+                        <span class="badge-premium badge-complete">Complete</span>
+                        {% else %}
+                        <span class="badge-premium badge-active">{{ design.status }}</span>
+                        {% endif %}
+                    </td>
+                    <td class="text-muted">{{ design.log_date.strftime('%m/%d/%y') }}</td>
+                    <td class="text-muted small">{{ design.notes if design.notes else '-' }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
 </div>
 {% endblock %}

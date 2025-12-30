@@ -1,11 +1,22 @@
-# PA Bid Request - Deployment Guide
+# Beisser Bid Tracker - Modernized Platform
 
-This guide explains how to deploy the application to GitHub and Vercel.
+A high-fidelity, Blueprint-based Flask application for managing bids, designs, and projects across multiple branches.
+
+## 🚀 Key Features
+- **Modern UI**: High-fidelity design system with Inter & Outfit typography.
+- **Blueprint Architecture**: Modular structure (Auth, Admin, Main) for scalability.
+- **Multi-Branch Support**: Strict data isolation and branch-aware dashboards.
+- **Automated Testing**: Essential test suites for reliability.
 
 ## 1. Prepare for GitHub
 - Ensure your changes are committed.
-- Ensure `instance/bids.db` and `.env` are listed in `.gitignore` (they should be already).
-- Push your code to a GitHub repository.
+- Ensure `instance/bids.db` and `.env` are listed in `.gitignore`.
+- Push to GitHub.
+
+## 🛠️ Development & Testing
+- **Setup**: `pip install -r requirements.txt`
+- **Run Locally**: `python run.py`
+- **Run Tests**: `python -m pytest`
 
 ## 2. Deploy to Vercel
 - Import your GitHub repository in the [Vercel Dashboard](https://vercel.com).

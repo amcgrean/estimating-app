@@ -5,7 +5,7 @@
 {% block content %}
 <div class="container mt-3">
     <h2>Upload Historical Bids</h2>
-    <form action="{{ url_for('main.upload_historical_bids') }}" method="post" enctype="multipart/form-data" class="mb-3">
+    <form action="{{ url_for('admin.upload_historical_bids') }}" method="post" enctype="multipart/form-data" class="mb-3">
         {{ form.hidden_tag() }}
         <div class="form-group">
             {{ form.file.label }}
