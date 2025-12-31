@@ -11,14 +11,6 @@
 
     <!-- Filters Form -->
     <form method="GET" action="{{ url_for('main.projects') }}" class="form-inline mb-3">
-        <label for="branch_id" class="mr-2">Branch</label>
-        <select name="branch_id" id="branch_id" class="form-control mr-2">
-            <option value="0" {% if current_branch_id==0 %}selected{% endif %}>All</option>
-            {% for branch in branches %}
-            <option value="{{ branch.branch_id }}" {% if current_branch_id==branch.branch_id %}selected{% endif %}>{{
-                branch.branch_name }}</option>
-            {% endfor %}
-        </select>
         <label for="sort" class="mr-2">Sort By</label>
         <select name="sort" id="sort" class="form-control mr-2">
             <option value="created_at" {% if sort_column=='created_at' %}selected{% endif %}>Created At</option>
@@ -37,7 +29,7 @@
     </form>
 
     <!-- Projects Table -->
-    <table class="table table-bordered table-hover">
+    <table class="table-premium table-hover mt-4">
         <thead>
             <tr>
                 <th>Address</th>

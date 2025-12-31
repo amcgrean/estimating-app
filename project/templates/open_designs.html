@@ -52,17 +52,7 @@
 
 <div class="filter-panel">
     <form method="GET" action="{{ url_for('main.open_designs') }}" class="form-row align-items-end">
-        <div class="col-md-3">
-            <label class="font-weight-600 small text-uppercase tracking-wider">Branch</label>
-            <select name="branch_id" id="branch_id" class="input-modern">
-                <option value="0" {% if current_branch_id==0 %}selected{% endif %}>All Branches</option>
-                {% for branch in branches %}
-                <option value="{{ branch.branch_id }}" {% if current_branch_id==branch.branch_id %}selected{% endif %}>
-                    {{ branch.branch_name }}</option>
-                {% endfor %}
-            </select>
-        </div>
-        <div class="col-md-3">
+        <div class="col-md-4">
             <label class="font-weight-600 small text-uppercase tracking-wider">Status</label>
             <select name="status" id="status" class="input-modern">
                 {% for status in statuses %}
@@ -70,13 +60,13 @@
                 {% endfor %}
             </select>
         </div>
-        <div class="col-md-2">
+        <div class="col-md-3">
             <label class="font-weight-600 small text-uppercase tracking-wider">Start Date</label>
-            <input type="text" name="start_date" id="start_date" class="input-modern" placeholder="MM/DD/YY">
+            <input type="date" name="start_date" id="start_date" class="input-modern" value="{{ start_date }}">
         </div>
-        <div class="col-md-2">
+        <div class="col-md-3">
             <label class="font-weight-600 small text-uppercase tracking-wider">End Date</label>
-            <input type="text" name="end_date" id="end_date" class="input-modern" placeholder="MM/DD/YY">
+            <input type="date" name="end_date" id="end_date" class="input-modern" value="{{ end_date }}">
         </div>
         <div class="col-md-2">
             <button type="submit" class="btn-premium w-100 justify-content-center">
@@ -88,7 +78,7 @@
 
 <div class="table-card">
     <div class="table-responsive">
-        <table class="table mb-0">
+        <table class="table-premium mb-0">
             <thead>
                 <tr>
                     <th>Plan #</th>

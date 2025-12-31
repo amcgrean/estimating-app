@@ -11,3 +11,4 @@ instance/
 *.sqlite
 *.db
 *.DS_Store
+*.csv

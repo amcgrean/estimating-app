@@ -3,44 +3,211 @@
 {% block title %}Add New Bid{% endblock %}
 
 {% block content %}
-<div class="container mt-3">
-    <h2>Add New Bid</h2>
-    <form action="{{ url_for('main.add_bid') }}" method="POST">
+<div class="row mb-4">
+    <div class="col-md-8">
+        <h2 class="display-5 font-weight-bold" style="font-family: 'Outfit', sans-serif;">Add New Bid</h2>
+        <p class="text-muted small">Enter the details below to log a new bid request.</p>
+    </div>
+    <div class="col-md-4 text-right">
+        <a href="{{ url_for('main.index') }}" class="btn btn-outline-secondary px-4 font-weight-600"
+            style="border-radius: var(--radius-md);">
+            <i class="fas fa-arrow-left mr-2"></i> Back to Dashboard
+        </a>
+    </div>
+</div>
+
+<div class="premium-card shadow-lg border-0" style="border-radius: var(--radius-lg);">
+    <form action="{{ url_for('main.add_bid') }}" method="POST" enctype="multipart/form-data" class="p-2">
         {{ form.hidden_tag() }}
-        <div class="form-group">
-            {{ form.plan_type.label }}
-            {{ form.plan_type(class="form-control") }}
+
+        <!-- Display Flash Messages explicitly if not caught by base template -->
+        {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+        {% for category, message in messages %}
+        <div class="alert alert-{{ category }}">{{ message }}</div>
+        {% endfor %}
+        {% endif %}
+        {% endwith %}
+
+        <!-- Display Form Errors -->
+        {% if form.errors %}
+        <div class="alert alert-danger">
+            Whoops! There were some errors with your submission:
+            <ul>
+                {% for field, errors in form.errors.items() %}
+                {% for error in errors %}
+                <li>{{ form[field].label.text if form[field].label else field }}: {{ error }}</li>
+                {% endfor %}
+                {% endfor %}
+            </ul>
         </div>
-        <div class="form-group">
-            {{ form.branch_id.label }}
-            {{ form.branch_id(class="form-control") }}
+        {% endif %}
+
+        <div class="row">
+            <!-- Left Column: Classification & Assignment -->
+            <div class="col-lg-6 pr-lg-4 border-right">
+                <h5 class="mb-4 text-primary d-flex align-items-center" style="font-size: 1rem; letter-spacing: 0.5px;">
+                    <i class="fas fa-tags mr-2 small"></i> BASIC INFORMATION
+                </h5>
+
+                <div class="form-group mb-4">
+                    <label class="font-weight-600 small text-uppercase tracking-wider mb-2">{{
+                        form.project_name.label.text }}</label>
+                    {{ form.project_name(class="input-modern", placeholder="e.g. Smith Residence - Framing") }}
+                </div>
+
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="form-group mb-4">
+                            <label class="font-weight-600 small text-uppercase tracking-wider mb-2">{{
+                                form.plan_type.label.text }}</label>
+                            {{ form.plan_type(class="input-modern") }}
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="form-group mb-4">
+                            <label class="font-weight-600 small text-uppercase tracking-wider mb-2">{{
+                                form.status.label.text }}</label>
+                            {{ form.status(class="input-modern") }}
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-group mb-4">
+                    <label class="font-weight-600 small text-uppercase tracking-wider mb-2">{{ form.branch_id.label.text
+                        }}</label>
+                    {{ form.branch_id(class="input-modern") }}
+                </div>
+
+                <!-- File Uploads -->
+                <h5 class="mb-3 mt-4 text-primary d-flex align-items-center"
+                    style="font-size: 1rem; letter-spacing: 0.5px;">
+                    <i class="fas fa-paperclip mr-2 small"></i> ATTACHMENTS
+                </h5>
+                <div class="p-3 bg-light rounded border mb-4">
+                    <div class="form-group mb-3">
+                        <label class="font-weight-600 small text-uppercase tracking-wider mb-1">{{
+                            form.plan_file.label.text }}</label>
+                        {{ form.plan_file(class="form-control-file") }}
+                        <small class="form-text text-muted">Upload architectural plans (PDF only)</small>
+                    </div>
+                    <div class="form-group mb-0">
+                        <label class="font-weight-600 small text-uppercase tracking-wider mb-1">{{
+                            form.email_file.label.text }}</label>
+                        {{ form.email_file(class="form-control-file") }}
+                        <small class="form-text text-muted">Upload request email or other docs</small>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right Column: Details & Dates -->
+            <div class="col-lg-6 pl-lg-4">
+                <h5 class="mb-4 text-primary d-flex align-items-center" style="font-size: 1rem; letter-spacing: 0.5px;">
+                    <i class="fas fa-user-tie mr-2 small"></i> CUSTOMER & TIMELINE
+                </h5>
+
+                <div class="form-group mb-4">
+                    <label class="font-weight-600 small text-uppercase tracking-wider mb-2">{{
+                        form.customer_id.label.text }}</label>
+                    {{ form.customer_id(class="input-modern select2-enable") }}
+                </div>
+
+                <div class="form-group mb-4">
+                    <label class="font-weight-600 small text-uppercase tracking-wider mb-2">{{
+                        form.estimator_id.label.text }}</label>
+                    {{ form.estimator_id(class="input-modern") }}
+                </div>
+
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="form-group mb-4">
+                            <label class="font-weight-600 small text-uppercase tracking-wider mb-2">{{
+                                form.bid_date.label.text }} <span
+                                    class="text-muted font-weight-normal">(Optional)</span></label>
+                            {{ form.bid_date(class="input-modern", type="date") }}
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="form-group mb-4">
+                            <label class="font-weight-600 small text-uppercase tracking-wider mb-2">{{
+                                form.due_date.label.text }}</label>
+                            {{ form.due_date(class="input-modern", type="date") }}
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Specs Toggle -->
+                <div class="form-group mt-2">
+                    <div class="custom-control custom-switch">
+                        {{ form.include_specs(class="custom-control-input", id="includeSpecsToggle") }}
+                        <label class="custom-control-label font-weight-bold ml-2 pt-1" for="includeSpecsToggle">Include
+                            Detailed Specifications</label>
+                    </div>
+                    <small class="form-text text-muted ml-5">Enable to add specific notes for Framing, Siding,
+                        etc.</small>
+                </div>
+            </div>
+
+            <!-- Full Width Section: Module Notes (Hidden by default) -->
+            <div class="col-12 mt-3 pt-3 border-top" id="specs-section" style="display: none;">
+                <h5 class="mb-4 text-primary d-flex align-items-center" style="font-size: 1rem; letter-spacing: 0.5px;">
+                    <i class="fas fa-list-alt mr-2 small"></i> MODULE SPECIFICATIONS
+                </h5>
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label class="font-weight-600 small text-uppercase tracking-wider mb-1">{{
+                            form.framing_notes.label.text }}</label>
+                        {{ form.framing_notes(class="input-modern", rows="2") }}
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label class="font-weight-600 small text-uppercase tracking-wider mb-1">{{
+                            form.siding_notes.label.text }}</label>
+                        {{ form.siding_notes(class="input-modern", rows="2") }}
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label class="font-weight-600 small text-uppercase tracking-wider mb-1">{{
+                            form.shingle_notes.label.text }}</label>
+                        {{ form.shingle_notes(class="input-modern", rows="2") }}
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label class="font-weight-600 small text-uppercase tracking-wider mb-1">{{
+                            form.deck_notes.label.text }}</label>
+                        {{ form.deck_notes(class="input-modern", rows="2") }}
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label class="font-weight-600 small text-uppercase tracking-wider mb-1">{{
+                            form.trim_notes.label.text }}</label>
+                        {{ form.trim_notes(class="input-modern", rows="2") }}
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label class="font-weight-600 small text-uppercase tracking-wider mb-1">{{
+                            form.window_notes.label.text }}</label>
+                        {{ form.window_notes(class="input-modern", rows="2") }}
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label class="font-weight-600 small text-uppercase tracking-wider mb-1">{{
+                            form.door_notes.label.text }}</label>
+                        {{ form.door_notes(class="input-modern", rows="2") }}
+                    </div>
+                </div>
+            </div>
+
+            <!-- General Notes -->
+            <div class="col-12 mt-4 pt-4 border-top">
+                <div class="form-group mb-4">
+                    <label class="font-weight-600 small text-uppercase tracking-wider mb-2">{{ form.notes.label.text
+                        }}</label>
+                    {{ form.notes(class="input-modern", rows="3", placeholder="Any additional project details...") }}
+                </div>
+
+                <div class="d-flex justify-content-end gap-3 mt-4">
+                    <a href="{{ url_for('main.index') }}" class="btn btn-outline-secondary px-4 py-3">Cancel</a>
+                    <button type="submit" class="btn-premium px-5 py-3">
+                        <i class="fas fa-check-circle mr-2"></i> {{ form.submit.label.text }}
+                    </button>
+                </div>
+            </div>
         </div>
-        <div class="form-group">
-            {{ form.customer_id.label }}
-            {{ form.customer_id(class="form-control") }}
-        </div>
-        <div class="form-group">
-            {{ form.estimator_id.label }}
-            {{ form.estimator_id(class="form-control") }}
-        </div>
-        <div class="form-group">
-            {{ form.status.label }}
-            {{ form.status(class="form-control") }}
-        </div>
-        <div class="form-group">
-            {{ form.project_name.label }}
-            {{ form.project_name(class="form-control") }}
-        </div>
-        <div class="form-group">
-            {{ form.due_date.label }}
-            {{ form.due_date(class="form-control") }}
-        </div>
-        <div class="form-group">
-            {{ form.notes.label }}
-            {{ form.notes(class="form-control", rows="4") }}
-        </div>
-        <button type="submit" class="btn btn-primary">{{ form.submit.label }}</button>
-        <a href="{{ url_for('main.index') }}" class="btn btn-secondary">Back</a>
     </form>
 </div>
 {% endblock %}
@@ -53,5 +220,25 @@
         url.searchParams.set('branch_id', branchId);
         window.location.href = url.toString();
     };
+
+    // Toggle Specs Section
+    const specsToggle = document.getElementById('includeSpecsToggle');
+    const specsSection = document.getElementById('specs-section');
+
+    function toggleSpecs() {
+        if (specsToggle.checked) {
+            specsSection.style.display = 'block';
+            // Optional: Scroll to section
+            // specsSection.scrollIntoView({ behavior: 'smooth' });
+        } else {
+            specsSection.style.display = 'none';
+        }
+    }
+
+    if (specsToggle) {
+        specsToggle.addEventListener('change', toggleSpecs);
+        // Run on load in case of form validation failure (re-rendering)
+        toggleSpecs();
+    }
 </script>
 {% endblock %}

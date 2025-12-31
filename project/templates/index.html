@@ -92,6 +92,22 @@
         <h1 class="h3 font-weight-bold mb-0" style="font-family: 'Outfit', sans-serif;">Dashboard</h1>
     </div>
     <div class="col-md-6 d-flex justify-content-end align-items-center">
+        <!-- Dashboard Search -->
+        <form action="{{ url_for('main.index') }}" method="GET" class="mr-3 flex-grow-1 d-none d-md-block"
+            style="max-width: 300px;">
+            <div class="input-group">
+                <input type="text" name="search" class="form-control form-control-sm border-0 shadow-none bg-light"
+                    placeholder="Search bids & designs..." value="{{ search_query or '' }}"
+                    style="border-radius: var(--radius-pill) 0 0 var(--radius-pill); padding-left: 1.25rem;">
+                <div class="input-group-append">
+                    <button class="btn btn-sm btn-light border-0" type="submit"
+                        style="border-radius: 0 var(--radius-pill) var(--radius-pill) 0; padding-right: 1rem;">
+                        <i class="fas fa-search text-muted"></i>
+                    </button>
+                </div>
+            </div>
+        </form>
+
         <!-- Compact Quick Actions -->
         <div class="dropdown mr-4">
             <button class="btn-premium dropdown-toggle py-2 px-3" type="button" id="quickActionsMenu"
@@ -121,21 +137,6 @@
             </div>
         </div>
 
-        <form method="GET" action="{{ url_for('main.index') }}" class="form-inline bg-white p-1 rounded-lg border">
-            <select name="branch_id" id="branch_id"
-                class="form-control branch-selector border-0 shadow-none py-1 h-auto" style="font-size: 0.85rem;"
-                onchange="this.form.submit()">
-                <option value="0" {% if current_branch_id==0 %}selected{% endif %}>All Branches</option>
-                {% for branch in branches %}
-                <option value="{{ branch.branch_id }}" {% if current_branch_id==branch.branch_id %}selected{% endif %}>
-                    {{ branch.branch_name }}
-                </option>
-                {% endfor %}
-            </select>
-            {% if search_query %}
-            <input type="hidden" name="search" value="{{ search_query }}">
-            {% endif %}
-        </form>
     </div>
 </div>
 
@@ -146,7 +147,10 @@
         <a href="{{ url_for('main.open_bids', branch_id=current_branch_id) }}"
             class="text-decoration-none h-100 d-block">
             <div class="premium-card stats-card h-100 py-3"
-                style="border-left: 4px solid var(--primary); min-height: 90px;">
+                style="border-left: 4px solid var(--primary); min-height: 90px; position: relative; overflow: hidden;">
+                <div
+                    style="position: absolute; bottom: 0; left: 0; height: 4px; width: 65%; background: var(--primary); opacity: 0.3;">
+                </div>
                 <div class="d-flex justify-content-between align-items-start mb-1">
                     <span class="label mb-0">Open Bids</span>
                     <i class="fas fa-folder-open text-primary small"></i>
@@ -161,7 +165,10 @@
     <!-- Bids YTD -->
     <div class="col-xl col-md-4 col-sm-6 px-2 mb-3">
         <div class="premium-card stats-card h-100 py-3"
-            style="border-left: 4px solid var(--success); min-height: 90px;">
+            style="border-left: 4px solid var(--success); min-height: 90px; position: relative; overflow: hidden;">
+            <div
+                style="position: absolute; bottom: 0; left: 0; height: 4px; width: 85%; background: var(--success); opacity: 0.3;">
+            </div>
             <div class="d-flex justify-content-between align-items-start mb-1">
                 <span class="label mb-0">Bids YTD</span>
                 <i class="fas fa-chart-line text-success small"></i>
@@ -172,7 +179,11 @@
     </div>
     <!-- Prev Bids YTD -->
     <div class="col-xl col-md-4 col-sm-6 px-2 mb-3">
-        <div class="premium-card stats-card h-100 py-3" style="border-left: 4px solid var(--accent); min-height: 90px;">
+        <div class="premium-card stats-card h-100 py-3"
+            style="border-left: 4px solid var(--accent); min-height: 90px; position: relative; overflow: hidden;">
+            <div
+                style="position: absolute; bottom: 0; left: 0; height: 4px; width: 45%; background: var(--accent); opacity: 0.3;">
+            </div>
             <div class="d-flex justify-content-between align-items-start mb-1">
                 <span class="label mb-0">Prev. Bids YTD</span>
                 <i class="fas fa-history text-warning small"></i>
@@ -228,9 +239,24 @@
     <div class="col-12">
         {% if search_query %}
         <div class="premium-card mb-4 py-3">
-            <h5 class="mb-3 px-3">Search Results for "{{ search_query }}"</h5>
+            <h5 class="mb-3 px-3 d-flex justify-content-between align-items-center">
+                <span>Search Results for "<mark class="p-0 bg-warning text-dark">{{ search_query }}</mark>"</span>
+                <span class="badge badge-light px-3 py-2" style="border-radius: var(--radius-pill);">{{ (bids|length) +
+                    (designs|length) }} results</span>
+            </h5>
+            {% if not bids and not designs %}
+            <div class="text-center py-5">
+                <div class="mb-3"><i class="fas fa-search-minus fa-3x text-muted opacity-50"></i></div>
+                <h5 class="text-muted">No matches found</h5>
+                <p class="small text-muted mb-4">Try adjusting your keywords or branch filter.</p>
+                <div class="d-flex justify-content-center gap-2">
+                    <a href="{{ url_for('main.add_bid') }}" class="btn btn-sm btn-primary">Quick Add Bid</a>
+                    <a href="{{ url_for('main.index') }}" class="btn btn-sm btn-outline-secondary">Clear Search</a>
+                </div>
+            </div>
+            {% else %}
             <div class="table-responsive">
-                <table class="table mb-0 table-sm">
+                <table class="table-premium mb-0 table-sm">
                     <thead>
                         <tr>
                             <th>Type</th>
@@ -274,6 +300,7 @@
                     </tbody>
                 </table>
             </div>
+            {% endif %}
         </div>
         {% endif %}
 

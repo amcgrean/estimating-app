@@ -5,7 +5,7 @@
 {% block content %}
 <div class="container mt-3">
     <h2>EWP Layouts</h2>
-    <table class="table table-bordered">
+    <table class="table-premium mt-4">
         <thead>
             <tr>
                 <th>Plan #</th>
@@ -26,7 +26,8 @@
             <tr>
                 <td>{{ ewp.plan_number }}</td>
                 <td>{{ ewp.sales_rep.username if ewp.sales_rep else 'N/A' }}</td>
-                <td><a href="{{ url_for('main.view_customer_projects', customer_id=ewp.customer.id) }}">{{ ewp.customer.name }}</a></td>
+                <td><a href="{{ url_for('main.view_customer_projects', customer_id=ewp.customer.id) }}">{{
+                        ewp.customer.name }}</a></td>
                 <td><a href="{{ url_for('main.edit_layout', layout_id=ewp.id) }}">{{ ewp.address }}</a></td>
                 <td>{{ ewp.notes }}</td>
                 <td>{{ ewp.login_date }}</td>

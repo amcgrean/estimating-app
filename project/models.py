@@ -24,11 +24,27 @@ class Bid(db.Model):
     customer_id = db.Column(db.Integer, db.ForeignKey('customer.id'), nullable=False)
     project_name = db.Column(db.String(100), nullable=False)
     estimator_id = db.Column(db.Integer, db.ForeignKey('estimator.estimatorID', name='fk_estimator_id'), nullable=True)
-    status = db.Column(db.String(50), default='incomplete')
+    status = db.Column(db.String(50), default='Incomplete')
     log_date = db.Column(db.DateTime, default=datetime.utcnow)
     due_date = db.Column(db.DateTime, default=datetime.utcnow() + timedelta(weeks=2))
-    completion_date = db.Column(db.DateTime, nullable=True)  # New column
-    notes = db.Column(db.Text, nullable=True)  # New column
+    completion_date = db.Column(db.DateTime, nullable=True)
+    
+    # New Fields for Enhancements
+    bid_date = db.Column(db.DateTime, nullable=True)
+    include_specs = db.Column(db.Boolean, default=False)
+    framing_notes = db.Column(db.Text, nullable=True)
+    siding_notes = db.Column(db.Text, nullable=True)
+    deck_notes = db.Column(db.Text, nullable=True)
+    trim_notes = db.Column(db.Text, nullable=True)
+    window_notes = db.Column(db.Text, nullable=True)
+    door_notes = db.Column(db.Text, nullable=True)
+    shingle_notes = db.Column(db.Text, nullable=True)
+    
+    # File Upload Paths (S3 Keys)
+    plan_filename = db.Column(db.String(255), nullable=True)
+    email_filename = db.Column(db.String(255), nullable=True)
+
+    notes = db.Column(db.Text, nullable=True)
     last_updated_by = db.Column(db.String(150), nullable=True)
     last_updated_at = db.Column(db.DateTime, nullable=True, default=datetime.utcnow)
 
@@ -42,10 +58,11 @@ class Bid(db.Model):
     def before_update(mapper, connection, target):
         if target.status == 'Complete':
             target.completion_date = datetime.utcnow()
-        if current_user.is_authenticated:
+        # Check if current_user is available (might be None in scripts)
+        if current_user and current_user.is_authenticated:
             target.last_updated_by = current_user.username
         else:
-            target.last_updated_by = 'Anonymous'
+            target.last_updated_by = 'System/Script'
         target.last_updated_at = datetime.utcnow()
 
 db.event.listen(Bid, 'before_update', Bid.before_update)
@@ -58,6 +75,7 @@ class Customer(db.Model):
     branch_id = db.Column(db.Integer, db.ForeignKey('branch.branch_id'), nullable=True)
     
     branch = db.relationship('Branch', backref=db.backref('customers', lazy=True))
+    sales_agent = db.Column(db.String(150), nullable=True)
 
 class Design(db.Model):  # New table
     id = db.Column(db.Integer, primary_key=True)

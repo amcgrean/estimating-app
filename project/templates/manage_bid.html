@@ -54,12 +54,102 @@
                         </div>
                     </div>
 
-                    <div class="form-group">
-                        <label class="font-weight-600 small text-uppercase tracking-wider">Due Date</label>
-                        {{ form.due_date(class="input-modern") }}
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label class="font-weight-600 small text-uppercase tracking-wider">Bid Date <span
+                                        class="text-muted font-weight-normal">(Optional)</span></label>
+                                {{ form.bid_date(class="input-modern", type="date") }}
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label class="font-weight-600 small text-uppercase tracking-wider">Due Date</label>
+                                {{ form.due_date(class="input-modern", type="date") }}
+                            </div>
+                        </div>
                     </div>
 
-                    <div class="form-group">
+                    <!-- Attachments Display -->
+                    <div class="mt-4 mb-4">
+                        <label class="font-weight-600 small text-uppercase tracking-wider mb-3">Attachments</label>
+                        <div class="d-flex flex-wrap gap-3">
+                            {% if bid.plan_filename %}
+                            <a href="{{ url_for('main.download_bid_file', bid_id=bid.id, file_type='plan') }}"
+                                target="_blank" class="btn btn-outline-primary btn-sm">
+                                <i class="fas fa-file-pdf mr-2"></i> Download Plan
+                            </a>
+                            {% else %}
+                            <span class="text-muted small border rounded px-3 py-2">No Plan Attached</span>
+                            {% endif %}
+
+                            {% if bid.email_filename %}
+                            <a href="{{ url_for('main.download_bid_file', bid_id=bid.id, file_type='email') }}"
+                                target="_blank" class="btn btn-outline-secondary btn-sm">
+                                <i class="fas fa-envelope mr-2"></i> Download Email/Doc
+                            </a>
+                            {% else %}
+                            <span class="text-muted small border rounded px-3 py-2">No Email Attached</span>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <!-- Specs Toggle -->
+                    <div class="form-group mt-2">
+                        <div class="custom-control custom-switch">
+                            {{ form.include_specs(class="custom-control-input", id="includeSpecsToggle") }}
+                            <label class="custom-control-label font-weight-bold ml-2 pt-1"
+                                for="includeSpecsToggle">Include
+                                Detailed Specifications</label>
+                        </div>
+                    </div>
+
+                    <!-- Full Width Section: Module Notes (Hidden by default) -->
+                    <div class="col-12 mt-3 pt-3 border-top" id="specs-section" style="display: none;">
+                        <h5 class="mb-4 text-primary d-flex align-items-center"
+                            style="font-size: 1rem; letter-spacing: 0.5px;">
+                            <i class="fas fa-list-alt mr-2 small"></i> MODULE SPECIFICATIONS
+                        </h5>
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label class="font-weight-600 small text-uppercase tracking-wider mb-1">{{
+                                    form.framing_notes.label.text }}</label>
+                                {{ form.framing_notes(class="input-modern", rows="2") }}
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="font-weight-600 small text-uppercase tracking-wider mb-1">{{
+                                    form.siding_notes.label.text }}</label>
+                                {{ form.siding_notes(class="input-modern", rows="2") }}
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="font-weight-600 small text-uppercase tracking-wider mb-1">{{
+                                    form.shingle_notes.label.text }}</label>
+                                {{ form.shingle_notes(class="input-modern", rows="2") }}
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="font-weight-600 small text-uppercase tracking-wider mb-1">{{
+                                    form.deck_notes.label.text }}</label>
+                                {{ form.deck_notes(class="input-modern", rows="2") }}
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="font-weight-600 small text-uppercase tracking-wider mb-1">{{
+                                    form.trim_notes.label.text }}</label>
+                                {{ form.trim_notes(class="input-modern", rows="2") }}
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="font-weight-600 small text-uppercase tracking-wider mb-1">{{
+                                    form.window_notes.label.text }}</label>
+                                {{ form.window_notes(class="input-modern", rows="2") }}
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="font-weight-600 small text-uppercase tracking-wider mb-1">{{
+                                    form.door_notes.label.text }}</label>
+                                {{ form.door_notes(class="input-modern", rows="2") }}
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="form-group mt-4">
                         <label class="font-weight-600 small text-uppercase tracking-wider">Notes</label>
                         {{ form.notes(class="input-modern", rows="4") }}
                     </div>
@@ -85,4 +175,26 @@
     </div>
 </div>
 </div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    // Toggle Specs Section
+    const specsToggle = document.getElementById('includeSpecsToggle');
+    const specsSection = document.getElementById('specs-section');
+
+    function toggleSpecs() {
+        if (specsToggle.checked) {
+            specsSection.style.display = 'block';
+        } else {
+            specsSection.style.display = 'none';
+        }
+    }
+
+    if (specsToggle) {
+        specsToggle.addEventListener('change', toggleSpecs);
+        // Run on load to set initial state
+        toggleSpecs();
+    }
+</script>
 {% endblock %}

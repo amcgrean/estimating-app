@@ -61,6 +61,28 @@ def create_app():
     login_manager.init_app(app)
     mail.init_app(app)
     bcrypt.init_app(app)
+    
+    from flask_session import Session
+    Session(app)
+
+    from .models import Branch
+    @app.context_processor
+    def inject_branches():
+        from flask import session
+        from flask_login import current_user
+        
+        branches = Branch.query.all()
+        
+        # Default branch logic
+        current_branch_id = session.get('branch_id')
+        if current_branch_id is None and current_user.is_authenticated:
+            current_branch_id = current_user.user_branch_id
+            session['branch_id'] = current_branch_id
+        
+        return {
+            'all_branches': branches,
+            'current_branch_id': current_branch_id
+        }
 
     # Flask-Login configuration
     login_manager.login_view = "auth.login"

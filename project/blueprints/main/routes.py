@@ -32,11 +32,20 @@ import string
 import random
 from io import StringIO
 import logging
-from project.utils import safe_str_cmp  # Import the custom function
+from project.utils import safe_str_cmp, upload_file_to_s3, get_s3_url
 from flask_session import Session  # Import the Session object from Flask-Session
 
 # Create a Blueprint named 'main'
 main = Blueprint('main', __name__)
+
+@main.route('/set_branch/<int:branch_id>')
+@login_required
+def set_branch(branch_id):
+    from flask import session
+    session['branch_id'] = branch_id
+    # Redirect back to the referring page, or index if not available
+    next_page = request.referrer or url_for('main.index')
+    return redirect(next_page)
 
 @main.route('/')
 @login_required
@@ -53,9 +62,9 @@ def index():
     end_date = datetime(previous_year, this_month, last_day_of_month)
 
 
-    # Branch filtering logic - default to user's branch
-    branch_id = request.args.get('branch_id', current_user.user_branch_id, type=int)
-    # If branch_id is 0 or 'all', we might show all, but per user request, we default to their branch.
+    # Branch filtering logic - persistent in session
+    from flask import session
+    branch_id = session.get('branch_id')
     
     def apply_branch_filter(query, model):
         if branch_id and branch_id != 0:
@@ -462,7 +471,8 @@ def view_layouts():
     query = EWP.query.join(Customer).join(User, isouter=True)
 
     # Branch filtering
-    branch_id = request.args.get('branch_id', current_user.user_branch_id, type=int)
+    from flask import session
+    branch_id = session.get('branch_id')
     if branch_id and branch_id != 0:
         query = query.filter(EWP.branch_id == branch_id)
 
@@ -686,14 +696,22 @@ def add_bid():
     form = BidForm()
 
     # Determine the branch_id for populating choices
-    selected_branch_id = form.branch_id.data or request.args.get('branch_id', current_user.user_branch_id, type=int)
+    selected_branch_id = form.branch_id.data
+    if selected_branch_id is None:
+        selected_branch_id = request.args.get('branch_id', type=int)
+    
+    if selected_branch_id is None:
+         selected_branch_id = current_user.user_branch_id
+
+
 
     # Populate Customer choices based on branch
     customer_query = Customer.query
     if selected_branch_id and selected_branch_id != 0:
         customer_query = customer_query.filter((Customer.branch_id == selected_branch_id) | (Customer.branch_id == None))
     
-    form.customer_id.choices = [(0, 'Select a customer')] + [(customer.id, customer.name) for customer in customer_query.all()]
+    customers = customer_query.order_by(Customer.name).all()
+    form.customer_id.choices = [(0, 'Select a customer')] + [(customer.id, customer.name) for customer in customers]
     form.estimator_id.choices = get_branch_estimators(selected_branch_id)
     form.branch_id.choices = [(b.branch_id, b.branch_name) for b in Branch.query.all()]
     
@@ -717,6 +735,12 @@ def add_bid():
         last_updated_by = current_user.username
         last_updated_at = datetime.utcnow()
 
+        # Handle S3 Uploads
+
+        
+        plan_key = upload_file_to_s3(form.plan_file.data, 'plans')
+        email_key = upload_file_to_s3(form.email_file.data, 'emails')
+
         new_bid = Bid(
             plan_type=plan_type,
             customer_id=customer_id,
@@ -727,7 +751,19 @@ def add_bid():
             notes=notes,
             last_updated_by=last_updated_by,
             last_updated_at=last_updated_at,
-            branch_id=form.branch_id.data
+            branch_id=form.branch_id.data,
+            # New Enhancement Fields
+            bid_date=form.bid_date.data,
+            include_specs=form.include_specs.data,
+            framing_notes=form.framing_notes.data,
+            siding_notes=form.siding_notes.data,
+            shingle_notes=form.shingle_notes.data,
+            deck_notes=form.deck_notes.data,
+            trim_notes=form.trim_notes.data,
+            window_notes=form.window_notes.data,
+            door_notes=form.door_notes.data,
+            plan_filename=plan_key,
+            email_filename=email_key
         )
         db.session.add(new_bid)
         try:
@@ -736,10 +772,42 @@ def add_bid():
             return redirect(url_for('main.index'))
         except Exception as e:
             db.session.rollback()
+        except Exception as e:
+            db.session.rollback()
             flash(f'An error occurred: {str(e)}', 'danger')
             return redirect(url_for('main.add_bid'))
 
+    else:
+        if request.method == 'POST':
+            flash('Error validating form. Please check the fields.', 'danger')
+            current_app.logger.error(f"Add Bid Form Errors: {form.errors}")
+            # Specifically log choice validation issues
+            current_app.logger.error(f"Customer ID Choices: {form.customer_id.choices}")
+            current_app.logger.error(f"Submitted Customer ID: {form.customer_id.data}")
+
     return render_template('add_bid.html', form=form)
+
+
+@main.route('/bid/<int:bid_id>/download/<file_type>')
+@login_required
+def download_bid_file(bid_id, file_type):
+    bid = Bid.query.get_or_404(bid_id)
+    key = None
+    if file_type == 'plan':
+        key = bid.plan_filename
+    elif file_type == 'email':
+        key = bid.email_filename
+        
+    if not key:
+        flash('File not found.', 'danger')
+        return redirect(url_for('main.manage_bid', bid_id=bid_id))
+        
+    url = get_s3_url(key)
+    if not url:
+        flash('Error generating download link.', 'danger')
+        return redirect(url_for('main.manage_bid', bid_id=bid_id))
+        
+    return redirect(url)
 
 @main.route('/manage_bid/<int:bid_id>', methods=['GET', 'POST'])
 def manage_bid(bid_id):
@@ -764,10 +832,10 @@ def manage_bid(bid_id):
 
     # Populate customer and estimator choices with a branch filter
     customer_query = Customer.query
-    if bid.branch_id:
-        customer_query = customer_query.filter((Customer.branch_id == bid.branch_id) | (Customer.branch_id == None))
+    if bid.branch_id and bid.branch_id != 0:
+         customer_query = customer_query.filter((Customer.branch_id == bid.branch_id) | (Customer.branch_id == None))
     
-    form.customer_id.choices = [(customer.id, customer.name) for customer in customer_query.all()]
+    form.customer_id.choices = [(0, 'Select a customer')] + [(customer.id, customer.name) for customer in customer_query.all()]
     form.estimator_id.choices = get_branch_estimators(bid.branch_id)
     form.branch_id.choices = [(b.branch_id, b.branch_name) for b in Branch.query.all()]
 
@@ -831,12 +899,29 @@ def open_bids():
     status_filter = request.args.get('status', 'Incomplete')
 
     # Get date range filters from the query parameters
-    due_date_start = request.args.get('due_date_start')  # No default value, will be None if not provided
-    due_date_end = request.args.get('due_date_end')
+    due_date_start_str = request.args.get('due_date_start')
+    due_date_end_str = request.args.get('due_date_end')
+    due_date_start = None
+    due_date_end = None
+
+    if due_date_start_str:
+        try:
+            due_date_start = datetime.strptime(due_date_start_str, '%Y-%m-%d')
+        except ValueError:
+            due_date_start = None
+            
+    if due_date_end_str:
+        try:
+            due_date_end = datetime.strptime(due_date_end_str, '%Y-%m-%d')
+        except ValueError:
+            due_date_end = None
 
     # Get pagination parameters
     page = request.args.get('page', 1, type=int)
     per_page = request.args.get('per_page', 50, type=int)
+    
+    # Get search query
+    search_query = request.args.get('search', '').strip()
 
     # Handle quick filters
     quick_filter = request.args.get('quick_filter', '')
@@ -870,23 +955,38 @@ def open_bids():
     query = db.session.query(Bid).join(Customer).join(Estimator, isouter=True)
 
     # Branch filtering
-    branch_id = request.args.get('branch_id', current_user.user_branch_id, type=int)
+    from flask import session
+    branch_id = session.get('branch_id')
     if branch_id and branch_id != 0:
         query = query.filter(Bid.branch_id == branch_id)
 
-    # Apply status filter
-    if status_filter != 'all':
-        query = query.filter(Bid.status == status_filter)
+    # Apply Filters (Only if NO search query is active)
+    if search_query:
+        # Global Search Mode: Override other filters
+        search_filter = f"%{search_query}%"
+        query = query.filter(
+            db.or_(
+                Bid.project_name.ilike(search_filter),
+                Customer.name.ilike(search_filter),
+                Estimator.estimatorName.ilike(search_filter),
+                Bid.notes.ilike(search_filter)
+            )
+        )
+    else:
+        # Standard Filtering Mode
+        # Apply status filter
+        if status_filter != 'all':
+            query = query.filter(Bid.status == status_filter)
 
-    # Apply plan type filter if provided
-    if plan_type_filter != 'all':
-        query = query.filter(Bid.plan_type == plan_type_filter)
+        # Apply plan type filter if provided
+        if plan_type_filter != 'all':
+            query = query.filter(Bid.plan_type == plan_type_filter)
 
-    # Apply date range filters if provided
-    if due_date_start:
-        query = query.filter(Bid.due_date >= due_date_start)
-    if due_date_end:
-        query = query.filter(Bid.due_date <= due_date_end)
+        # Apply date range filters if provided
+        if due_date_start:
+            query = query.filter(Bid.due_date >= due_date_start)
+        if due_date_end:
+            query = query.filter(Bid.due_date <= due_date_end)
 
     # Apply sorting
     query = query.order_by(sort_column_attr)
@@ -915,8 +1015,8 @@ def open_bids():
     now = datetime.now()
     return render_template('open_bids.html', bids_by_plan_type=bids_by_plan_type, sort_column=sort_column, sort_direction=sort_direction,
                            plan_types=plan_types, statuses=statuses, current_status=status_filter, current_plan_type=plan_type_filter,
-                           due_date_start=due_date_start, due_date_end=due_date_end, pagination=pagination, total_bids_by_plan_type=total_bids_by_plan_type,
-                           branches=branches, current_branch_id=branch_id, now=now)
+                           due_date_start=due_date_start_str, due_date_end=due_date_end_str, pagination=pagination, total_bids_by_plan_type=total_bids_by_plan_type,
+                           branches=branches, current_branch_id=branch_id, now=now, search_query=search_query)
 
 @main.route('/print_open_bids')
 @login_required
@@ -942,14 +1042,16 @@ def print_open_bids():
 @main.route('/bids_calendar')
 @login_required
 def bids_calendar():
-    branch_id = request.args.get('branch_id', current_user.user_branch_id, type=int)
+    from flask import session
+    branch_id = session.get('branch_id')
     branches = Branch.query.all()
     return render_template('bids_calendar.html', branches=branches, current_branch_id=branch_id)
 
 @main.route('/api/bids_events')
 @login_required
 def api_bids_events():
-    branch_id = request.args.get('branch_id', type=int)
+    from flask import session
+    branch_id = session.get('branch_id')
     
     query = Bid.query.filter(Bid.status == 'Incomplete')
     if branch_id and branch_id != 0:
@@ -959,14 +1061,17 @@ def api_bids_events():
     events = []
     
     for bid in bids:
-        if bid.due_date:
+        # Prioritize Bid Date for calendar, fallback to Due Date
+        start_date = bid.bid_date if bid.bid_date else bid.due_date
+        
+        if start_date:
             # Color coding based on Plan Type
             color = '#00008b' if bid.plan_type == 'Residential' else '#6c757d'
             
             events.append({
                 'id': bid.id,
                 'title': f"{bid.customer.name if bid.customer else 'Unassigned'} - {bid.project_name}",
-                'start': bid.due_date.strftime('%Y-%m-%d'),
+                'start': start_date.strftime('%Y-%m-%d'),
                 'url': url_for('main.manage_bid', bid_id=bid.id),
                 'backgroundColor': color,
                 'borderColor': color,
@@ -1020,7 +1125,8 @@ def completed_bids():
     query = db.session.query(Bid).join(Customer).join(Estimator, isouter=True)
 
     # Branch filtering
-    branch_id = request.args.get('branch_id', current_user.user_branch_id, type=int)
+    from flask import session
+    branch_id = session.get('branch_id')
     if branch_id and branch_id != 0:
         query = query.filter(Bid.branch_id == branch_id)
 
@@ -1164,7 +1270,8 @@ def open_designs():
     query = db.session.query(Design).join(Customer).join(Estimator, isouter=True)
 
     # Branch filtering
-    branch_id = request.args.get('branch_id', current_user.user_branch_id, type=int)
+    from flask import session
+    branch_id = session.get('branch_id')
     if branch_id and branch_id != 0:
         query = query.filter(Design.branch_id == branch_id)
 
@@ -1173,11 +1280,17 @@ def open_designs():
 
     # Apply date filters if provided
     if start_date:
-        start_date = datetime.strptime(start_date, '%m/%d/%y')
-        query = query.filter(Design.log_date >= start_date)
+        try:
+            start_date_obj = datetime.strptime(start_date, '%Y-%m-%d')
+            query = query.filter(Design.log_date >= start_date_obj)
+        except ValueError:
+            pass
     if end_date:
-        end_date = datetime.strptime(end_date, '%m/%d/%y')
-        query = query.filter(Design.log_date <= end_date)
+        try:
+            end_date_obj = datetime.strptime(end_date, '%Y-%m-%d')
+            query = query.filter(Design.log_date <= end_date_obj)
+        except ValueError:
+            pass
 
     # Apply sorting
     open_designs = query.order_by(sort_column_attr).all()
@@ -1187,7 +1300,7 @@ def open_designs():
 
     branches = Branch.query.all()
     return render_template('open_designs.html', designs=open_designs, sort_column=sort_column, sort_direction=sort_direction, statuses=statuses, current_status=status_filter,
-                           branches=branches, current_branch_id=branch_id)
+                           branches=branches, current_branch_id=branch_id, start_date=start_date, end_date=end_date)
 
 @main.route('/manage_design/<int:design_id>', methods=['GET', 'POST'])
 def manage_design(design_id):
@@ -1224,7 +1337,8 @@ def bid_request():
     trim_form = TrimForm()
 
     # Determine current branch
-    selected_branch_id = form.branch_id.data or request.args.get('branch_id', current_user.user_branch_id, type=int)
+    from flask import session
+    selected_branch_id = form.branch_id.data or session.get('branch_id')
 
     # Filter Sales Reps and Customers by branch
     form.sales_rep.choices = get_branch_sales_reps(selected_branch_id)
@@ -1416,7 +1530,8 @@ def projects():
     query = Project.query
 
     # Branch filtering
-    branch_id = request.args.get('branch_id', current_user.user_branch_id, type=int)
+    from flask import session
+    branch_id = session.get('branch_id')
     if branch_id and branch_id != 0:
         query = query.filter(Project.branch_id == branch_id)
 

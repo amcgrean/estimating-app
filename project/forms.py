@@ -144,6 +144,9 @@ class DesignForm(BaseForm):
     plan_name = StringField('Plan Name', validators=[DataRequired()])
     project_address = StringField('Project Address', validators=[DataRequired()])
     contractor = StringField('Contractor')
+    customer_id = SelectField('Customer', coerce=int, validators=[Optional()])
+    designer_id = SelectField('Designer', coerce=int, validators=[Optional()])
+    preliminary_set_date = DateField('Preliminary Set Date', format='%Y-%m-%d', validators=[Optional()])
     status = SelectField('Status', choices=[
         ('Active', 'Active'),
         ('Bid Set', 'Bid Set'),
@@ -151,9 +154,13 @@ class DesignForm(BaseForm):
         ('Completed', 'Completed'),
         ('On Hold', 'On Hold')
     ])
+    plan_description = SelectField('Type', choices=[
+        ('New Design', 'New Design'),
+        ('Redesign', 'Redesign')
+    ])
     notes = TextAreaField('Notes')
     branch_id = SelectField('Branch', coerce=int, choices=[])
-    submit = SubmitField('Save Changes')
+    submit = SubmitField('Create Design')
 
 class LayoutForm(BaseForm):
     plan_number = StringField('Plan Number', validators=[DataRequired()])
@@ -177,6 +184,22 @@ class BidForm(BaseForm):
     status = SelectField('Status', choices=[('Incomplete', 'Incomplete'), ('Complete', 'Complete'), ('Hold', 'Hold')])
     project_name = StringField('Project Name', validators=[DataRequired()])
     due_date = DateField('Due Date', format='%Y-%m-%d', default=lambda: (datetime.utcnow() + timedelta(days=14)).date(), validators=[DataRequired()])
+    
+    # New Enhancement Fields
+    bid_date = DateField('Bid Date', format='%Y-%m-%d', validators=[Optional()])
+    include_specs = BooleanField('Include Specs')
+    
+    framing_notes = TextAreaField('Framing Notes')
+    siding_notes = TextAreaField('Siding Notes')
+    shingle_notes = TextAreaField('Shingle Notes')
+    deck_notes = TextAreaField('Deck Notes')
+    trim_notes = TextAreaField('Trim Notes')
+    window_notes = TextAreaField('Window Notes')
+    door_notes = TextAreaField('Door Notes')
+
+    plan_file = FileField('Plan PDF', validators=[Optional(), FileAllowed(['pdf'], 'PDFs only!')])
+    email_file = FileField('Email/Doc', validators=[Optional(), FileAllowed(['pdf', 'msg', 'eml', 'png', 'jpg', 'jpeg'], 'Documents or Images!')])
+
     notes = TextAreaField('Notes')
     branch_id = SelectField('Branch', coerce=int, choices=[])
     submit = SubmitField('Submit')
@@ -184,6 +207,8 @@ class BidForm(BaseForm):
 class CustomerForm(FlaskForm):
     customerCode = StringField('Customer Code', validators=[DataRequired()])
     name = StringField('Customer Name', validators=[DataRequired()])
+    sales_agent = StringField('Sales Agent', validators=[Optional()])
+    branch_id = SelectField('Branch', coerce=int, validators=[DataRequired()])
     submit = SubmitField('Add Customer')
 
 class SearchForm(FlaskForm):

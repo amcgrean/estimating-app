@@ -94,34 +94,29 @@
                 class="btn filter-btn {% if quick_filter == 'residential' %}btn-primary selected{% else %}btn-light{% endif %}">Residential</a>
             <a href="{{ url_for('main.open_bids', quick_filter='commercial') }}"
                 class="btn filter-btn {% if quick_filter == 'commercial' %}btn-primary selected{% else %}btn-light{% endif %}">Commercial</a>
-            <a href="{{ url_for('main.open_bids', quick_filter='all', branch_id=current_branch_id) }}"
+            <a href="{{ url_for('main.open_bids', quick_filter='all') }}"
                 class="btn filter-btn {% if quick_filter == 'all' %}btn-secondary selected{% else %}btn-light{% endif %}">Show
                 All</a>
         </div>
         <div class="search-bar-inline flex-grow-1 ml-lg-4">
             <div class="position-relative">
-                <i class="fas fa-search position-absolute text-muted"
-                    style="left: 1rem; top: 50%; transform: translateY(-50%);"></i>
-                <input type="search" id="search-input" placeholder="Search projects, customers, estimators..."
-                    class="input-modern" style="padding-left: 2.5rem;">
+                <form action="{{ url_for('main.open_bids') }}" method="GET">
+                    <button type="submit" class="btn p-0 border-0 bg-transparent position-absolute text-muted"
+                        style="left: 1rem; top: 50%; transform: translateY(-50%);">
+                        <i class="fas fa-search"></i>
+                    </button>
+                    <input type="search" name="search" id="search-input"
+                        placeholder="Search projects, customers, estimators..." class="input-modern"
+                        style="padding-left: 2.5rem;" value="{{ search_query }}">
+                </form>
             </div>
         </div>
     </div>
 
-    <form method="GET" action="{{ url_for('main.open_bids') }}" class="form-row align-items-end">
-        <div class="col-md-2">
-            <label class="font-weight-600 small text-uppercase tracking-wider">Branch</label>
-            <select name="branch_id" id="branch_id" class="input-modern">
-                <option value="0" {% if current_branch_id==0 %}selected{% endif %}>All Branches</option>
-                {% for branch in branches %}
-                <option value="{{ branch.branch_id }}" {% if current_branch_id==branch.branch_id %}selected{% endif %}>
-                    {{ branch.branch_name }}</option>
-                {% endfor %}
-            </select>
-        </div>
-        <div class="col-md-2">
+    <form method="GET" action="{{ url_for('main.open_bids') }}" class="d-flex gap-3 align-items-end">
+        <div>
             <label class="font-weight-600 small text-uppercase tracking-wider">Type</label>
-            <select name="plan_type" id="plan_type" class="input-modern">
+            <select name="plan_type" id="plan_type" class="input-modern" style="min-width: 150px;">
                 <option value="all" {% if current_plan_type=='all' %}selected{% endif %}>All Types</option>
                 <option value="Residential" {% if current_plan_type=='Residential' %}selected{% endif %}>Residential
                 </option>
@@ -129,12 +124,12 @@
                 </option>
             </select>
         </div>
-        <div class="col-md-2">
+        <div>
             <label class="font-weight-600 small text-uppercase tracking-wider">Status</label>
-            <select name="status" id="status" class="input-modern">
-                <option value="Incomplete" {% if current_status=='Incomplete' %}selected{% endif %}>Incomplete Only
-                </option>
+            <select name="status" id="status" class="input-modern" style="min-width: 150px;">
                 <option value="all" {% if current_status=='all' %}selected{% endif %}>All Statuses</option>
+                <option value="Incomplete" {% if current_status=='Incomplete' %}selected{% endif %}>Incomplete</option>
+                <option value="Complete" {% if current_status=='Complete' %}selected{% endif %}>Complete / Won</option>
             </select>
         </div>
         <div class="col-md-2">
@@ -152,167 +147,162 @@
             </button>
         </div>
     </form>
-</div>
 
-<div class="table-card">
-    <div class="table-responsive">
-        <table class="table mb-0">
-            <thead>
-                <tr>
-                    <th>Customer Name</th>
-                    <th>Project Name</th>
-                    <th>Notes</th>
-                    <th>Estimator</th>
-                    <th>Log Date</th>
-                    <th>Due Date</th>
-                </tr>
-            </thead>
-            <tbody id="bids-table-body">
-                {% if bids_by_plan_type %}
-                {% for plan_type, bids in bids_by_plan_type.items() %}
-                <tr class="plan-type-header">
-                    <td colspan="6">{{ plan_type }} <span class="badge badge-pill badge-secondary ml-2">{{
-                            total_bids_by_plan_type[plan_type] }}</span></td>
-                </tr>
-                {% for bid in bids %}
-                <tr>
-                    <td><a href="{{ url_for('main.manage_bid', bid_id=bid.id) }}"
-                            class="font-weight-600 text-primary">{{ bid.customer.name }}</a></td>
-                    <td><a href="{{ url_for('main.manage_bid', bid_id=bid.id) }}" class="text-dark">{{ bid.project_name
-                            }}</a></td>
-                    <td class="text-muted small">{{ bid.notes if bid.notes else '-' }}</td>
-                    <td><span class="badge-premium badge-active"
-                            style="background: var(--surface-muted); color: var(--text-main);">{{
-                            bid.estimator.estimatorName if bid.estimator else '-' }}</span></td>
-                    <td class="text-muted">{{ bid.log_date.strftime('%m/%d') }}</td>
-                    <td><span class="font-weight-600 {% if bid.due_date < now %}text-danger{% endif %}">{{
-                            bid.due_date.strftime('%m/%d') }}</span></td>
-                </tr>
-                {% endfor %}
-                {% endfor %}
-                {% else %}
-                <tr>
-                    <td colspan="6" class="text-center py-5 text-muted">No bids found matching your criteria.</td>
-                </tr>
-                {% endif %}
-            </tbody>
-        </table>
-    </div>
-</div>
-
-<div class="d-flex justify-content-between align-items-center mt-4">
-    <div class="small text-muted">
-        Showing <strong>{{ pagination.per_page if pagination.per_page < pagination.total else pagination.total
-                }}</strong> of <strong>{{ pagination.total }}</strong> bids
-    </div>
-    <nav aria-label="Page navigation">
-        <ul class="pagination mb-0">
-            <li class="page-item {% if not pagination.has_prev %}disabled{% endif %}">
-                <a class="page-link"
-                    href="{{ url_for('main.open_bids', page=pagination.prev_num, **request.args) }}">&laquo;</a>
-            </li>
-            {% for page_num in pagination.iter_pages() %}
-            <li class="page-item {% if page_num == pagination.page %}active{% endif %}">
-                <a class="page-link" href="{{ url_for('main.open_bids', page=page_num, **request.args) }}">{{ page_num
-                    }}</a>
-            </li>
-            {% endfor %}
-            <li class="page-item {% if not pagination.has_next %}disabled{% endif %}">
-                <a class="page-link"
-                    href="{{ url_for('main.open_bids', page=pagination.next_num, **request.args) }}">&raquo;</a>
-            </li>
-        </ul>
-    </nav>
-</div>
-
-<!-- Print Modal -->
-<div class="modal fade" id="printModal" tabindex="-1" role="dialog" aria-labelledby="printModalLabel"
-    aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered" role="document">
-        <div class="modal-content premium-card p-0 overflow-hidden">
-            <div class="modal-header border-0 p-4">
-                <h5 class="modal-title font-weight-bold" id="printModalLabel">Configure Report</h5>
-                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                    <span aria-hidden="true">&times;</span>
-                </button>
-            </div>
-            <form action="{{ url_for('main.print_open_bids') }}" method="get" target="_blank">
-                <div class="modal-body p-4 pt-0">
-                    <div class="form-group">
-                        <label class="font-weight-600 small text-uppercase tracking-wider">Plan Type</label>
-                        <div class="d-flex gap-3">
-                            <div class="custom-control custom-radio custom-control-inline">
-                                <input type="radio" id="residential" name="plan_type" value="Residential"
-                                    class="custom-control-input" checked>
-                                <label class="custom-control-label" for="residential">Residential</label>
-                            </div>
-                            <div class="custom-control custom-radio custom-control-inline">
-                                <input type="radio" id="commercial" name="plan_type" value="Commercial"
-                                    class="custom-control-input">
-                                <label class="custom-control-label" for="commercial">Commercial</label>
-                            </div>
-                            <div class="custom-control custom-radio custom-control-inline">
-                                <input type="radio" id="all_types" name="plan_type" value="all"
-                                    class="custom-control-input">
-                                <label class="custom-control-label" for="all_types">All</label>
-                            </div>
-                        </div>
-                    </div>
-                    <hr class="my-4">
-                    <label class="font-weight-600 small text-uppercase tracking-wider d-block mb-3">Columns to
-                        include</label>
-                    <div class="row">
-                        <div class="col-6">
-                            {% for col in [('customer', 'Customer'), ('project_name', 'Project'), ('notes', 'Notes')] %}
-                            <div class="custom-control custom-checkbox mb-2">
-                                <input type="checkbox" name="columns" value="{{ col[0] }}" id="col_{{ col[0] }}"
-                                    class="custom-control-input" checked>
-                                <label class="custom-control-label" for="col_{{ col[0] }}">{{ col[1] }}</label>
-                            </div>
-                            {% endfor %}
-                        </div>
-                        <div class="col-6">
-                            {% for col in [('estimator', 'Estimator'), ('log_date', 'Log Date'), ('due_date', 'Due
-                            Date')] %}
-                            <div class="custom-control custom-checkbox mb-2">
-                                <input type="checkbox" name="columns" value="{{ col[0] }}" id="col_{{ col[0] }}"
-                                    class="custom-control-input" checked>
-                                <label class="custom-control-label" for="col_{{ col[0] }}">{{ col[1] }}</label>
-                            </div>
-                            {% endfor %}
-                        </div>
-                    </div>
-                </div>
-                <div class="modal-footer border-0 p-4">
-                    <button type="submit" class="btn-premium w-100 justify-content-center">
-                        <i class="fas fa-file-pdf mr-2"></i> Generate Document
-                    </button>
-                </div>
-            </form>
+    <div class="table-card">
+        <div class="table-responsive">
+            <table class="table-premium mb-0">
+                <thead>
+                    <tr>
+                        <th>Customer Name</th>
+                        <th>Project Name</th>
+                        <th>Notes</th>
+                        <th>Estimator</th>
+                        <th>Log Date</th>
+                        <th>Due Date</th>
+                    </tr>
+                </thead>
+                <tbody id="bids-table-body">
+                    {% if bids_by_plan_type %}
+                    {% for plan_type, bids in bids_by_plan_type.items() %}
+                    <tr class="plan-type-header">
+                        <td colspan="6">{{ plan_type }} <span class="badge badge-pill badge-secondary ml-2">{{
+                                total_bids_by_plan_type[plan_type] }}</span></td>
+                    </tr>
+                    {% for bid in bids %}
+                    <tr>
+                        <td><a href="{{ url_for('main.manage_bid', bid_id=bid.id) }}"
+                                class="font-weight-600 text-primary">{{ bid.customer.name }}</a></td>
+                        <td><a href="{{ url_for('main.manage_bid', bid_id=bid.id) }}" class="text-dark">{{
+                                bid.project_name
+                                }}</a></td>
+                        <td class="text-muted small">{{ bid.notes if bid.notes else '-' }}</td>
+                        <td><span class="badge-premium badge-active"
+                                style="background: var(--surface-muted); color: var(--text-main);">{{
+                                bid.estimator.estimatorName if bid.estimator else '-' }}</span></td>
+                        <td class="text-muted">{{ bid.log_date.strftime('%m/%d') if bid.log_date else '-' }}</td>
+                        <td><span
+                                class="font-weight-600 {% if bid.due_date and bid.due_date < now %}text-danger{% endif %}">{{
+                                bid.due_date.strftime('%m/%d') if bid.due_date else '-' }}</span></td>
+                    </tr>
+                    {% endfor %}
+                    {% endfor %}
+                    {% else %}
+                    <tr>
+                        <td colspan="6" class="text-center py-5 text-muted">No bids found matching your criteria.</td>
+                    </tr>
+                    {% endif %}
+                </tbody>
+            </table>
         </div>
     </div>
-</div>
-{% endblock %}
 
-{% block scripts %}
-<script>
-    $(function () {
-        const searchInput = $('#search-input');
-        const tableRows = $('#bids-table-body tr:not(.plan-type-header)');
+    <div class="d-flex justify-content-between align-items-center mt-4">
+        <div class="small text-muted">
+            Showing <strong>{{ pagination.per_page if pagination.per_page < pagination.total else pagination.total
+                    }}</strong> of <strong>{{ pagination.total }}</strong> bids
+        </div>
+        <nav aria-label="Page navigation">
+            <ul class="pagination mb-0">
+                <li class="page-item {% if not pagination.has_prev %}disabled{% endif %}">
+                    <a class="page-link"
+                        href="{{ url_for('main.open_bids', page=pagination.prev_num, **request.args) }}">&laquo;</a>
+                </li>
+                {% for page_num in pagination.iter_pages() %}
+                <li class="page-item {% if page_num == pagination.page %}active{% endif %}">
+                    <a class="page-link" href="{{ url_for('main.open_bids', page=page_num, **request.args) }}">{{
+                        page_num
+                        }}</a>
+                </li>
+                {% endfor %}
+                <li class="page-item {% if not pagination.has_next %}disabled{% endif %}">
+                    <a class="page-link"
+                        href="{{ url_for('main.open_bids', page=pagination.next_num, **request.args) }}">&raquo;</a>
+                </li>
+            </ul>
+        </nav>
+    </div>
 
-        searchInput.on('input', function () {
-            const searchTerm = $(this).val().toLowerCase();
-            tableRows.each(function () {
-                const rowText = $(this).text().toLowerCase();
-                $(this).toggle(rowText.includes(searchTerm));
-            });
+    <!-- Print Modal -->
+    <div class="modal fade" id="printModal" tabindex="-1" role="dialog" aria-labelledby="printModalLabel"
+        aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered" role="document">
+            <div class="modal-content premium-card p-0 overflow-hidden">
+                <div class="modal-header border-0 p-4">
+                    <h5 class="modal-title font-weight-bold" id="printModalLabel">Configure Report</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <form action="{{ url_for('main.print_open_bids') }}" method="get" target="_blank">
+                    <div class="modal-body p-4 pt-0">
+                        <div class="form-group">
+                            <label class="font-weight-600 small text-uppercase tracking-wider">Plan Type</label>
+                            <div class="d-flex gap-3">
+                                <div class="custom-control custom-radio custom-control-inline">
+                                    <input type="radio" id="residential" name="plan_type" value="Residential"
+                                        class="custom-control-input" checked>
+                                    <label class="custom-control-label" for="residential">Residential</label>
+                                </div>
+                                <div class="custom-control custom-radio custom-control-inline">
+                                    <input type="radio" id="commercial" name="plan_type" value="Commercial"
+                                        class="custom-control-input">
+                                    <label class="custom-control-label" for="commercial">Commercial</label>
+                                </div>
+                                <div class="custom-control custom-radio custom-control-inline">
+                                    <input type="radio" id="all_types" name="plan_type" value="all"
+                                        class="custom-control-input">
+                                    <label class="custom-control-label" for="all_types">All</label>
+                                </div>
+                            </div>
+                        </div>
+                        <hr class="my-4">
+                        <label class="font-weight-600 small text-uppercase tracking-wider d-block mb-3">Columns to
+                            include</label>
+                        <div class="row">
+                            <div class="col-6">
+                                {% for col in [('customer', 'Customer'), ('project_name', 'Project'), ('notes',
+                                'Notes')] %}
+                                <div class="custom-control custom-checkbox mb-2">
+                                    <input type="checkbox" name="columns" value="{{ col[0] }}" id="col_{{ col[0] }}"
+                                        class="custom-control-input" checked>
+                                    <label class="custom-control-label" for="col_{{ col[0] }}">{{ col[1] }}</label>
+                                </div>
+                                {% endfor %}
+                            </div>
+                            <div class="col-6">
+                                {% for col in [('estimator', 'Estimator'), ('log_date', 'Log Date'), ('due_date', 'Due
+                                Date')] %}
+                                <div class="custom-control custom-checkbox mb-2">
+                                    <input type="checkbox" name="columns" value="{{ col[0] }}" id="col_{{ col[0] }}"
+                                        class="custom-control-input" checked>
+                                    <label class="custom-control-label" for="col_{{ col[0] }}">{{ col[1] }}</label>
+                                </div>
+                                {% endfor %}
+                            </div>
+                        </div>
+                    </div>
+                    <div class="modal-footer border-0 p-4">
+                        <button type="submit" class="btn-premium w-100 justify-content-center">
+                            <i class="fas fa-file-pdf mr-2"></i> Generate Document
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    {% endblock %}
 
-            // Handle plan type headers
-            $('.plan-type-header').each(function () {
-                const hasVisibleRows = $(this).nextUntil('.plan-type-header').filter(':visible').length > 0;
-                $(this).toggle(hasVisibleRows);
-            });
+    {% block scripts %}
+    <script>
+        // Client-side search removed in favor of server-side search
+        $(function () {
+            // Optional: Put cursor at end of input on load
+            const searchInput = $('#search-input');
+            if (searchInput.val()) {
+                const len = searchInput.val().length;
+                searchInput[0].setSelectionRange(len, len);
+                searchInput.focus();
+            }
         });
-    });
-</script>
-{% endblock %}
+    </script>
+    {% endblock %}

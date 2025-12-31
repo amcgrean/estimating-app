@@ -3,9 +3,10 @@
 A high-fidelity, Blueprint-based Flask application for managing bids, designs, and projects across multiple branches.
 
 ## 🚀 Key Features
-- **Modern UI**: High-fidelity design system with Inter & Outfit typography.
+- **Modern UI**: High-fidelity Beisser green branding (#006834) with Inter & Outfit typography.
 - **Blueprint Architecture**: Modular structure (Auth, Admin, Main) for scalability.
 - **Multi-Branch Support**: Strict data isolation and branch-aware dashboards.
+- **Premium UX**: Smooth transitions, custom scrollbars, and focus on readability.
 - **Automated Testing**: Essential test suites for reliability.
 
 ## 1. Prepare for GitHub
