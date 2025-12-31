@@ -52,7 +52,14 @@ def create_app():
     app.config["PDF_TEMPLATE"] = os.environ.get("PDF_TEMPLATE", "project/form.pdf")
     app.config["PDF_OUTPUT"] = os.environ.get("PDF_OUTPUT", "output.pdf")
 
-    app.config["SESSION_TYPE"] = "filesystem"
+    # Session Configuration
+    # Vercel (serverless) cannot use filesystem sessions.
+    # If on Vercel, we skip Flask-Session and use Flask's default client-side secure cookies.
+    is_vercel = os.environ.get("VERCEL") or os.environ.get("AWS_LAMBDA_FUNCTION_NAME")
+
+    if not is_vercel:
+        app.config["SESSION_TYPE"] = "filesystem"
+    
     app.config["PERMANENT_SESSION_LIFETIME"] = timedelta(minutes=30)
 
     # Initialize extensions
@@ -62,8 +69,9 @@ def create_app():
     mail.init_app(app)
     bcrypt.init_app(app)
     
-    from flask_session import Session
-    Session(app)
+    if not is_vercel:
+        from flask_session import Session
+        Session(app)
 
     from .models import Branch
     @app.context_processor
