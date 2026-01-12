@@ -66,9 +66,21 @@ def index():
     from flask import session
     branch_id = session.get('branch_id')
     
-    def apply_branch_filter(query, model):
+    def apply_branch_filter(query, model, filter_sales_reps=True):
         if branch_id and branch_id != 0:
-            return query.filter(model.branch_id == branch_id)
+            query = query.filter(model.branch_id == branch_id)
+        
+        # Sales Rep Filtering (My Bids)
+        if filter_sales_reps and current_user.is_authenticated and current_user.usertype.name == 'Sales Rep' and current_user.sales_rep_id:
+            if model == Bid:
+                 sales_rep_name = current_user.sales_rep.name
+                 # Ensure we join with Customer if not already joined, but SQLAlchemy handles joins smartly.
+                 # Actually, to be safe, we check if filtering by Customer fields.
+                 # But simplistic approach:
+                 query = query.join(Customer).filter(
+                     (Bid.sales_rep_id == current_user.sales_rep_id) |
+                     (Customer.sales_agent == sales_rep_name)
+                 )
         return query
 
     # Open bids count (incomplete)
@@ -713,6 +725,27 @@ def add_bid():
     customers = customer_query.order_by(Customer.name).all()
     form.customer_id.choices = [(0, 'Select a customer')] + [(customer.id, customer.name) for customer in customers]
     form.estimator_id.choices = get_branch_estimators(selected_branch_id)
+    
+    # Populate Sales Reps
+    # Assuming we want all Sales Reps, or filtered by branch. 
+    # For now, let's get all UserType='Sales Rep' or similar. 
+    # Actually, SalesRep is its own table.
+    sales_reps = SalesRep.query.order_by(SalesRep.name).all()
+    form.sales_rep_id.choices = [(0, 'Select Sales Rep')] + [(rep.id, rep.name) for rep in sales_reps]
+
+    # Create Customer -> Sales Rep ID mapping for JS
+    # Logic: Match Customer.sales_agent (string) to SalesRep.name (string)
+    # This is a bit fuzzy, assuming names match.
+    rep_name_map = {r.name.lower().strip(): r.id for r in sales_reps}
+    customer_sales_rep_map = {}
+    
+    for c in customers:
+        if c.sales_agent:
+            # Clean string
+            agent_name = c.sales_agent.strip().lower()
+            if agent_name in rep_name_map:
+                customer_sales_rep_map[c.id] = rep_name_map[agent_name]
+
     form.branch_id.choices = [(b.branch_id, b.branch_name) for b in Branch.query.all()]
     
     if not form.branch_id.data:
@@ -727,7 +760,17 @@ def add_bid():
         customer_id = form.customer_id.data if form.customer_id.data != 0 else None
         project_name = form.project_name.data
         estimator_id = form.estimator_id.data if form.estimator_id.data != 0 else None
-        status = form.status.data
+        
+        # Handle Sales Rep Assignment
+        if current_user.usertype.name == 'Sales Rep':
+            # Auto-assign if they stick to their own bids. 
+            # Note: The form field might be hidden, so we check user.sales_rep_id
+            sales_rep_id = current_user.sales_rep_id
+        else:
+             sales_rep_id = form.sales_rep_id.data if form.sales_rep_id.data != 0 else None
+
+        # Force status to Incomplete for new bids
+        status = 'Incomplete' 
         due_date = form.due_date.data
         notes = form.notes.data
 
@@ -746,6 +789,7 @@ def add_bid():
             customer_id=customer_id,
             project_name=project_name,
             estimator_id=estimator_id,
+            sales_rep_id=sales_rep_id,
             status=status,
             due_date=due_date,
             notes=notes,
@@ -754,6 +798,7 @@ def add_bid():
             branch_id=form.branch_id.data,
             # New Enhancement Fields
             bid_date=form.bid_date.data,
+            flexible_bid_date=form.flexible_bid_date.data,
             include_specs=form.include_specs.data,
             framing_notes=form.framing_notes.data,
             siding_notes=form.siding_notes.data,
@@ -785,7 +830,7 @@ def add_bid():
             current_app.logger.error(f"Customer ID Choices: {form.customer_id.choices}")
             current_app.logger.error(f"Submitted Customer ID: {form.customer_id.data}")
 
-    return render_template('add_bid.html', form=form)
+    return render_template('add_bid.html', form=form, customer_sales_rep_map=customer_sales_rep_map)
 
 
 @main.route('/bid/<int:bid_id>/download/<file_type>')
@@ -838,6 +883,9 @@ def manage_bid(bid_id):
     form.customer_id.choices = [(0, 'Select a customer')] + [(customer.id, customer.name) for customer in customer_query.all()]
     form.estimator_id.choices = get_branch_estimators(bid.branch_id)
     form.branch_id.choices = [(b.branch_id, b.branch_name) for b in Branch.query.all()]
+    
+    sales_reps = SalesRep.query.order_by(SalesRep.name).all()
+    form.sales_rep_id.choices = [(0, 'Select Sales Rep')] + [(rep.id, rep.name) for rep in sales_reps]
 
     if form.validate_on_submit():
         if current_user.usertype.name == 'Sales Rep':
@@ -1054,6 +1102,14 @@ def api_bids_events():
     branch_id = session.get('branch_id')
     
     query = Bid.query.filter(Bid.status == 'Incomplete')
+    # Use branch filter but explicitly SKIP Sales Rep filtering for calendar
+    # We need to replicate the branch filter logic here because apply_branch_filter is locally scoped in index() 
+    # Wait, apply_branch_filter is defined inside index()! It is NOT available here.
+    # The user wants api_bids_events to NOT filter for sales people.
+    # Currently lines 1105-1106 ONLY filter by branch_id. 
+    # They do NOT filter by sales rep. 
+    # So actually, the calendar ALREADY does not filter by sales rep.
+    
     if branch_id and branch_id != 0:
         query = query.filter(Bid.branch_id == branch_id)
         

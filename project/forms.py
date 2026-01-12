@@ -180,6 +180,7 @@ class LayoutForm(BaseForm):
 class BidForm(BaseForm):
     plan_type = SelectField('Plan Type', choices=[('Residential', 'Residential'), ('Commercial', 'Commercial')], validators=[DataRequired()])
     customer_id = SelectField('Customer', coerce=int, validators=[DataRequired()])
+    sales_rep_id = SelectField('Sales Rep', coerce=int, validators=[Optional()])
     estimator_id = SelectField('Estimator', coerce=int)
     status = SelectField('Status', choices=[('Incomplete', 'Incomplete'), ('Complete', 'Complete'), ('Hold', 'Hold')])
     project_name = StringField('Project Name', validators=[DataRequired()])
@@ -187,6 +188,7 @@ class BidForm(BaseForm):
     
     # New Enhancement Fields
     bid_date = DateField('Bid Date', format='%Y-%m-%d', validators=[Optional()])
+    flexible_bid_date = BooleanField('Flexible Bid Date')
     include_specs = BooleanField('Include Specs')
     
     framing_notes = TextAreaField('Framing Notes')

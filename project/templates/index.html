@@ -84,6 +84,14 @@
         font-size: 0.9rem;
     }
 </style>
+    .fc-event {
+        cursor: pointer;
+    }
+    .fc-toolbar-title {
+        font-size: 1.25rem !important;
+    }
+</style>
+<link href='https://cdn.jsdelivr.net/npm/fullcalendar@5.10.1/main.min.css' rel='stylesheet' />
 {% endblock %}
 
 {% block content %}
@@ -234,6 +242,20 @@
     </div>
 </div>
 
+<!-- Coralville Calendar (Conditional) -->
+{% if current_branch_id == 3 %}
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="premium-card p-4">
+            <h5 class="mb-4 font-weight-bold">
+                <i class="fas fa-calendar-alt text-primary mr-2"></i> Bid Calendar (Coralville)
+            </h5>
+            <div id='calendar'></div>
+        </div>
+    </div>
+</div>
+{% endif %}
+
 <!-- Search Results & Tables -->
 <div class="row">
     <div class="col-12">
@@ -369,4 +391,44 @@
         </div>
     </div>
 </div>
+{% endblock %}
+
+{% block scripts %}
+{% if current_branch_id == 3 %}
+<script src='https://cdn.jsdelivr.net/npm/fullcalendar@5.10.1/main.min.js'></script>
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        var calendarEl = document.getElementById('calendar');
+        if (calendarEl) {
+            var calendar = new FullCalendar.Calendar(calendarEl, {
+                initialView: 'dayGridMonth',
+                headerToolbar: {
+                    left: 'prev,next today',
+                    center: 'title',
+                    right: 'dayGridMonth,timeGridWeek'
+                },
+                events: {
+                    url: "{{ url_for('main.api_bids_events') }}",
+                    extraParams: {
+                        branch_id: 3 
+                    }
+                },
+                eventClick: function (info) {
+                    if (info.event.url) {
+                        window.location.href = info.event.url;
+                        info.jsEvent.preventDefault();
+                    }
+                },
+                height: 600,
+                // Simple event styling
+                eventDidMount: function(info) {
+                    // Tooltip logic if needed
+                    $(info.el).attr('title', info.event.title);
+                }
+            });
+            calendar.render();
+        }
+    });
+</script>
+{% endif %}
 {% endblock %}

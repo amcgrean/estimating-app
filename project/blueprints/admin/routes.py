@@ -572,6 +572,67 @@ def manage_sales_reps():
         available_users=available_users
     )
 
+@admin.route('/upload_sales_reps_csv', methods=['POST'])
+@login_required
+def upload_sales_reps_csv():
+    if not current_user.is_admin:
+        flash('Access denied.', 'danger')
+        return redirect(url_for('main.index'))
+
+    if 'file' not in request.files:
+        flash('No file part', 'danger')
+        return redirect(url_for('admin.manage_sales_reps'))
+    
+    file = request.files['file']
+    if file.filename == '':
+        flash('No selected file', 'danger')
+        return redirect(url_for('admin.manage_sales_reps'))
+
+    if file:
+        try:
+            filename = secure_filename(file.filename)
+            raw_data = file.read()
+            result = chardet.detect(raw_data)
+            encoding = result['encoding'] or 'utf-8'
+
+            stream = io.StringIO(raw_data.decode(encoding), newline=None)
+            csv_input = csv.reader(stream)
+            try:
+                header = next(csv_input)  # Skip header
+            except StopIteration:
+                 flash("CSV file is empty", "danger")
+                 return redirect(url_for('admin.manage_sales_reps'))
+
+            added_count = 0
+            for row in csv_input:
+                if len(row) < 2:
+                    continue
+                
+                name = row[0].strip()
+                username = row[1].strip()
+                
+                if not name or not username:
+                    continue
+
+                existing_rep = SalesRep.query.filter_by(username=username).first()
+                if not existing_rep:
+                    new_rep = SalesRep(name=name, username=username)
+                    db.session.add(new_rep)
+                    added_count += 1
+            
+            db.session.commit()
+            if added_count > 0:
+                flash(f'Successfully imported {added_count} sales reps.', 'success')
+            else:
+                flash('No new sales reps added. Check if they already exist.', 'info')
+
+        except Exception as e:
+            db.session.rollback()
+            flash(f'Error processing file: {str(e)}', 'danger')
+            logger.error(f'Error uploading sales reps CSV: {e}')
+            
+    return redirect(url_for('admin.manage_sales_reps'))
+
 @admin.route('/user_type', methods=['GET', 'POST'])
 @login_required
 def user_type():

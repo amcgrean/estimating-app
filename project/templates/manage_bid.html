@@ -49,7 +49,26 @@
                         <div class="col-md-6">
                             <div class="form-group">
                                 <label class="font-weight-600 small text-uppercase tracking-wider">Status</label>
+                                {% if current_user.usertype.name == 'Sales Rep' %}
+                                <input type="text" class="input-modern" value="{{ bid.status }}" disabled>
+                                <!-- Hidden field to submit the value, though Reps usually can't save changes to this anyway -->
+                                {% else %}
                                 {{ form.status(class="input-modern") }}
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-12">
+                            <div class="form-group">
+                                <label class="font-weight-600 small text-uppercase tracking-wider">Sales Rep</label>
+                                {% if current_user.usertype.name == 'Sales Rep' %}
+                                <!-- Read-only for Sales Reps -->
+                                {{ form.sales_rep_id(class="input-modern", disabled=True) }}
+                                {% else %}
+                                {{ form.sales_rep_id(class="input-modern") }}
+                                {% endif %}
                             </div>
                         </div>
                     </div>
@@ -67,6 +86,16 @@
                                 <label class="font-weight-600 small text-uppercase tracking-wider">Due Date</label>
                                 {{ form.due_date(class="input-modern", type="date") }}
                             </div>
+                        </div>
+                    </div>
+
+                    <!-- Flexible Bid Date Toggle - Visible only when Bid Date is set -->
+                    <div class="form-group mb-4" id="flexible-date-container" style="display: none;">
+                        <div class="custom-control custom-checkbox">
+                            {{ form.flexible_bid_date(class="custom-control-input", id="flexibleBidDate") }}
+                            <label class="custom-control-label font-weight-600 text-muted" for="flexibleBidDate">
+                                {{ form.flexible_bid_date.label.text }}
+                            </label>
                         </div>
                     </div>
 
@@ -195,6 +224,27 @@
         specsToggle.addEventListener('change', toggleSpecs);
         // Run on load to set initial state
         toggleSpecs();
+    }
+
+    // Toggle Flexible Bid Date
+    const bidDateInput = document.getElementById('bid_date');
+    const flexibleDateContainer = document.getElementById('flexible-date-container');
+    const flexibleDateCheckbox = document.getElementById('flexibleBidDate');
+
+    function toggleFlexibleDate() {
+        if (bidDateInput.value) {
+            flexibleDateContainer.style.display = 'block';
+        } else {
+            flexibleDateContainer.style.display = 'none';
+            flexibleDateCheckbox.checked = false; // Reset if hidden
+        }
+    }
+
+    if (bidDateInput) {
+        bidDateInput.addEventListener('change', toggleFlexibleDate);
+        // Also listen for input event just in case
+        bidDateInput.addEventListener('input', toggleFlexibleDate);
+        toggleFlexibleDate(); // Run on load
     }
 </script>
 {% endblock %}

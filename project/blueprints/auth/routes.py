@@ -1,4 +1,4 @@
-from flask import Blueprint, render_template, request, redirect, url_for, flash, current_app
+from flask import Blueprint, render_template, request, redirect, url_for, flash, current_app, session
 from flask_login import login_user, login_required, logout_user, current_user
 from project import mail, db
 from project.models import User, UserType, LoginActivity, Branch
@@ -23,6 +23,11 @@ def login():
                 return redirect(url_for('auth.login'))
                 
             login_user(user)
+            
+            # Set default branch
+            if user.user_branch_id:
+                session['branch_id'] = user.user_branch_id
+
             
             # Log login activity
             activity = LoginActivity(user_id=user.id, logged_in=datetime.datetime.utcnow())

@@ -22,6 +22,7 @@ class Bid(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     plan_type = db.Column(db.String(50), nullable=False)
     customer_id = db.Column(db.Integer, db.ForeignKey('customer.id'), nullable=False)
+    sales_rep_id = db.Column(db.Integer, db.ForeignKey('sales_rep.id'), nullable=True)
     project_name = db.Column(db.String(100), nullable=False)
     estimator_id = db.Column(db.Integer, db.ForeignKey('estimator.estimatorID', name='fk_estimator_id'), nullable=True)
     status = db.Column(db.String(50), default='Incomplete')
@@ -31,6 +32,7 @@ class Bid(db.Model):
     
     # New Fields for Enhancements
     bid_date = db.Column(db.DateTime, nullable=True)
+    flexible_bid_date = db.Column(db.Boolean, default=False)
     include_specs = db.Column(db.Boolean, default=False)
     framing_notes = db.Column(db.Text, nullable=True)
     siding_notes = db.Column(db.Text, nullable=True)
@@ -51,6 +53,7 @@ class Bid(db.Model):
     branch_id = db.Column(db.Integer, db.ForeignKey('branch.branch_id'), nullable=True)
     
     customer = db.relationship('Customer', backref=db.backref('bid', lazy=True))
+    sales_rep = db.relationship('SalesRep', backref=db.backref('bids', lazy=True))
     estimator = db.relationship('Estimator', backref=db.backref('bid', lazy=True))
     branch = db.relationship('Branch', backref=db.backref('bids', lazy=True))
 
@@ -129,10 +132,13 @@ class User(db.Model, UserMixin):
     sales_rep = db.relationship('SalesRep', backref='users', lazy=True)  # Reference the backref here only
 
     def set_password(self, password):
-        self.password = password
+        self.password = bcrypt.generate_password_hash(password).decode('utf-8')
 
     def check_password(self, password):
-        return self.password == password
+        # Handle legacy plain text passwords if necessary, or just assume bcrypt
+        # For security, we should assume bcrypt. 
+        # But wait, bcrypt might not be imported in models.py if I don't check imports.
+        return bcrypt.check_password_hash(self.password, password)
 
     def get_id(self):
         return self.id

@@ -65,7 +65,8 @@
                         </div>
                     </div>
                     <div class="col-md-6">
-                        <div class="form-group mb-4">
+                        <!-- Status is typically Incomplete for new bids; hiding to simplify form -->
+                        <div class="form-group mb-4" style="display: none;">
                             <label class="font-weight-600 small text-uppercase tracking-wider mb-2">{{
                                 form.status.label.text }}</label>
                             {{ form.status(class="input-modern") }}
@@ -115,7 +116,25 @@
                 <div class="form-group mb-4">
                     <label class="font-weight-600 small text-uppercase tracking-wider mb-2">{{
                         form.estimator_id.label.text }}</label>
+                    {% if current_user.usertype.name == 'Sales Rep' %}
+                    <!-- Sales Reps cannot assign estimators -->
+                    <div class="form-control bg-light text-muted">No Estimator Assigned</div>
+                    <div style="display:none;">{{ form.estimator_id(class="input-modern") }}</div>
+                    {% else %}
                     {{ form.estimator_id(class="input-modern") }}
+                    {% endif %}
+                </div>
+
+                <div class="form-group mb-4">
+                    {% if current_user.usertype.name == 'Sales Rep' %}
+                    <!-- Sales Reps create bids for themselves automatically -->
+                    <input type="hidden" name="sales_rep_id" value="{{ current_user.sales_rep_id }}">
+                    {% else %}
+                    <!-- Estimators/Admins assign a Sales Rep -->
+                    <label class="font-weight-600 small text-uppercase tracking-wider mb-2">{{
+                        form.sales_rep_id.label.text }}</label>
+                    {{ form.sales_rep_id(class="input-modern") }}
+                    {% endif %}
                 </div>
 
                 <div class="row">
@@ -133,6 +152,16 @@
                                 form.due_date.label.text }}</label>
                             {{ form.due_date(class="input-modern", type="date") }}
                         </div>
+                    </div>
+                </div>
+
+                <!-- Flexible Bid Date Toggle - Visible only when Bid Date is set -->
+                <div class="form-group mb-4" id="flexible-date-container" style="display: none;">
+                    <div class="custom-control custom-checkbox">
+                        {{ form.flexible_bid_date(class="custom-control-input", id="flexibleBidDate") }}
+                        <label class="custom-control-label font-weight-600 text-muted" for="flexibleBidDate">
+                            {{ form.flexible_bid_date.label.text }}
+                        </label>
                     </div>
                 </div>
 
@@ -221,6 +250,24 @@
         window.location.href = url.toString();
     };
 
+    // Customer -> Sales Rep Auto-Selection
+    // Safe parsing of the map passed from backend
+    var customerSalesReps = {{ customer_sales_rep_map| tojson | safe if customer_sales_rep_map else '{}' }};
+
+    $('#customer_id').change(function () {
+        var customerId = $(this).val();
+        // Check if we have a mapped sales rep
+        if (customerSalesReps.hasOwnProperty(customerId)) {
+            var salesRepId = customerSalesReps[customerId];
+            var salesRepSelect = $('#sales_rep_id');
+
+            // Only update if the select exists (Estimator view) and the option exists
+            if (salesRepSelect.length && salesRepSelect.find('option[value="' + salesRepId + '"]').length) {
+                salesRepSelect.val(salesRepId).trigger('change');
+            }
+        }
+    });
+
     // Toggle Specs Section
     const specsToggle = document.getElementById('includeSpecsToggle');
     const specsSection = document.getElementById('specs-section');
@@ -239,6 +286,27 @@
         specsToggle.addEventListener('change', toggleSpecs);
         // Run on load in case of form validation failure (re-rendering)
         toggleSpecs();
+    }
+
+    // Toggle Flexible Bid Date
+    const bidDateInput = document.getElementById('bid_date');
+    const flexibleDateContainer = document.getElementById('flexible-date-container');
+    const flexibleDateCheckbox = document.getElementById('flexibleBidDate');
+
+    function toggleFlexibleDate() {
+        if (bidDateInput.value) {
+            flexibleDateContainer.style.display = 'block';
+        } else {
+            flexibleDateContainer.style.display = 'none';
+            flexibleDateCheckbox.checked = false; // Reset if hidden
+        }
+    }
+
+    if (bidDateInput) {
+        bidDateInput.addEventListener('change', toggleFlexibleDate);
+        // Also listen for input event just in case
+        bidDateInput.addEventListener('input', toggleFlexibleDate);
+        toggleFlexibleDate(); // Run on load
     }
 </script>
 {% endblock %}
