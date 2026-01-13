@@ -810,6 +810,30 @@ def add_bid():
             plan_filename=plan_key,
             email_filename=email_key
         )
+        
+        # Populate Detailed Specs using the nested forms
+        # We initialize empty models and let wtforms populate them from the form data
+        new_bid.framing = Framing()
+        form.framing.populate_obj(new_bid.framing)
+        
+        new_bid.siding = Siding()
+        form.siding.populate_obj(new_bid.siding)
+        
+        new_bid.shingle = Shingle()
+        form.shingle.populate_obj(new_bid.shingle)
+        
+        new_bid.deck = Deck()
+        form.deck.populate_obj(new_bid.deck)
+        
+        new_bid.trim = Trim()
+        form.trim.populate_obj(new_bid.trim)
+        
+        new_bid.window = Window()
+        form.window.populate_obj(new_bid.window)
+        
+        new_bid.door = Door()
+        form.door.populate_obj(new_bid.door)
+
         db.session.add(new_bid)
         try:
             db.session.commit()
@@ -899,15 +923,21 @@ def manage_bid(bid_id):
     return render_template('manage_bid.html', bid=bid, form=form)
 
 @main.route('/delete_bid/<int:bid_id>', methods=['POST'])
+@login_required
 def delete_bid(bid_id):
+    if current_user.usertype.name not in ['Estimator', 'Admin']:
+        flash('You do not have permission to delete bids.', 'danger')
+        return redirect(url_for('main.index'))
+
     try:
         bid = Bid.query.get_or_404(bid_id)
         db.session.delete(bid)
         db.session.commit()
-        flash('Bid deleted successfully!')
+        flash('Bid deleted successfully!', 'success')
         return redirect(url_for('main.index'))
     except Exception as e:
-        flash('Error deleting bid: {}'.format(e))
+        db.session.rollback()
+        flash('Error deleting bid: {}'.format(e), 'danger')
         return redirect(url_for('main.index'))
 
 @main.route('/update_bid/<int:bid_id>', methods=['POST'])

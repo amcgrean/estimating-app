@@ -182,136 +182,156 @@
                     <i class="fas fa-list-alt mr-2 small"></i> MODULE SPECIFICATIONS
                 </h5>
 
-                <!-- Tabs for Modules -->
-                <ul class="nav nav-tabs mb-3" id="specsTabs" role="tablist">
-                    <li class="nav-item">
-                        <a class="nav-link active" id="framing-tab" data-toggle="tab" href="#framing"
-                            role="tab">Framing</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" id="siding-tab" data-toggle="tab" href="#siding" role="tab">Siding</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" id="shingle-tab" data-toggle="tab" href="#shingle"
-                            role="tab">Shingle/Roof</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" id="window-tab" data-toggle="tab" href="#window" role="tab">Windows</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" id="door-tab" data-toggle="tab" href="#door" role="tab">Doors</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" id="deck-tab" data-toggle="tab" href="#deck" role="tab">Deck</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" id="trim-tab" data-toggle="tab" href="#trim" role="tab">Trim</a>
-                    </li>
-                </ul>
-
-                <div class="tab-content" id="specsTabContent">
-                    <!-- FRAMING -->
-                    <div class="tab-pane fade show active" id="framing" role="tabpanel">
-                        <div class="row">
-                            {% for field in form.framing %}
-                            {% if field.type != 'CSRFTokenField' and field.type != 'HiddenField' %}
-                            <div class="col-md-4 mb-3">
-                                <label class="font-weight-600 small text-uppercase tracking-wider mb-1">{{
-                                    field.label.text }}</label>
-                                {{ field(class="input-modern") }}
+                <!-- Grid Layout for Specs (No Tabs) -->
+                <div class="row">
+                    <!-- Column 1: Structurals & Deck -->
+                    <div class="col-lg-6">
+                        <!-- Framing Card -->
+                        <div class="card mb-4 shadow-sm">
+                            <div class="card-header bg-light py-2">
+                                <h6 class="mb-0 text-primary font-weight-bold"><i class="fas fa-hammer mr-2"></i>
+                                    Framing</h6>
                             </div>
-                            {% endif %}
-                            {% endfor %}
+                            <div class="card-body">
+                                <div class="row">
+                                    {% for field in form.framing %}
+                                    {% if field.type != 'CSRFTokenField' and field.type != 'HiddenField' %}
+                                    <div class="col-md-6 mb-3">
+                                        <label class="font-weight-600 small text-uppercase text-muted mb-1">{{
+                                            field.label.text }}</label>
+                                        {{ field(class="form-control form-control-sm") }}
+                                    </div>
+                                    {% endif %}
+                                    {% endfor %}
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Deck Card -->
+                        <div class="card mb-4 shadow-sm">
+                            <div class="card-header bg-light py-2">
+                                <h6 class="mb-0 text-success font-weight-bold"><i class="fas fa-umbrella mr-2"></i> Deck
+                                </h6>
+                            </div>
+                            <div class="card-body">
+                                <div class="row">
+                                    {% for field in form.deck %}
+                                    {% if field.type != 'CSRFTokenField' and field.type != 'HiddenField' %}
+                                    <div class="col-md-6 mb-3">
+                                        <label class="font-weight-600 small text-uppercase text-muted mb-1">{{
+                                            field.label.text }}</label>
+                                        {{ field(class="form-control form-control-sm") }}
+                                    </div>
+                                    {% endif %}
+                                    {% endfor %}
+                                </div>
+                            </div>
                         </div>
                     </div>
 
-                    <!-- SIDING -->
-                    <div class="tab-pane fade" id="siding" role="tabpanel">
-                        <div class="row">
-                            {% for field in form.siding %}
-                            {% if field.type != 'CSRFTokenField' and field.type != 'HiddenField' %}
-                            <div class="col-md-4 mb-3">
-                                <label class="font-weight-600 small text-uppercase tracking-wider mb-1">{{
-                                    field.label.text }}</label>
-                                {{ field(class="input-modern") }}
+                    <!-- Column 2: Exterior Handling -->
+                    <div class="col-lg-6">
+                        <!-- Siding Card -->
+                        <div class="card mb-4 shadow-sm">
+                            <div class="card-header bg-light py-2">
+                                <h6 class="mb-0 text-info font-weight-bold"><i class="fas fa-layer-group mr-2"></i>
+                                    Siding</h6>
                             </div>
-                            {% endif %}
-                            {% endfor %}
+                            <div class="card-body">
+                                <div class="row">
+                                    {% for field in form.siding %}
+                                    {% if field.type != 'CSRFTokenField' and field.type != 'HiddenField' %}
+                                    <div class="col-md-6 mb-3">
+                                        <label class="font-weight-600 small text-uppercase text-muted mb-1">{{
+                                            field.label.text }}</label>
+                                        {{ field(class="form-control form-control-sm") }}
+                                    </div>
+                                    {% endif %}
+                                    {% endfor %}
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Trim Card -->
+                        <div class="card mb-4 shadow-sm">
+                            <div class="card-header bg-light py-2">
+                                <h6 class="mb-0 text-warning font-weight-bold"><i
+                                        class="fas fa-ruler-combined mr-2"></i> Trim</h6>
+                            </div>
+                            <div class="card-body">
+                                <div class="row">
+                                    {% for field in form.trim %}
+                                    {% if field.type != 'CSRFTokenField' and field.type != 'HiddenField' %}
+                                    <div class="col-md-6 mb-3">
+                                        <label class="font-weight-600 small text-uppercase text-muted mb-1">{{
+                                            field.label.text }}</label>
+                                        {{ field(class="form-control form-control-sm") }}
+                                    </div>
+                                    {% endif %}
+                                    {% endfor %}
+                                </div>
+                            </div>
                         </div>
                     </div>
+                </div>
 
-                    <!-- SHINGLE -->
-                    <div class="tab-pane fade" id="shingle" role="tabpanel">
-                        <div class="row">
-                            {% for field in form.shingle %}
-                            {% if field.type != 'CSRFTokenField' and field.type != 'HiddenField' %}
-                            <div class="col-md-12 mb-3">
-                                <label class="font-weight-600 small text-uppercase tracking-wider mb-1">{{
-                                    field.label.text }}</label>
-                                {{ field(class="input-modern") }}
+                <!-- Row 2: Windows, Doors, Roof -->
+                <div class="row">
+                    <div class="col-lg-4">
+                        <div class="card mb-4 shadow-sm">
+                            <div class="card-header bg-light py-2">
+                                <h6 class="mb-0 text-dark font-weight-bold"><i class="fas fa-window-maximize mr-2"></i>
+                                    Windows</h6>
                             </div>
-                            {% endif %}
-                            {% endfor %}
+                            <div class="card-body">
+                                {% for field in form.window %}
+                                {% if field.type != 'CSRFTokenField' and field.type != 'HiddenField' %}
+                                <div class="form-group mb-2">
+                                    <label class="font-weight-600 small text-uppercase text-muted mb-1">{{
+                                        field.label.text }}</label>
+                                    {{ field(class="form-control form-control-sm") }}
+                                </div>
+                                {% endif %}
+                                {% endfor %}
+                            </div>
                         </div>
                     </div>
-
-                    <!-- WINDOW -->
-                    <div class="tab-pane fade" id="window" role="tabpanel">
-                        <div class="row">
-                            {% for field in form.window %}
-                            {% if field.type != 'CSRFTokenField' and field.type != 'HiddenField' %}
-                            <div class="col-md-12 mb-3">
-                                <label class="font-weight-600 small text-uppercase tracking-wider mb-1">{{
-                                    field.label.text }}</label>
-                                {{ field(class="input-modern") }}
+                    <div class="col-lg-4">
+                        <div class="card mb-4 shadow-sm">
+                            <div class="card-header bg-light py-2">
+                                <h6 class="mb-0 text-dark font-weight-bold"><i class="fas fa-door-open mr-2"></i> Doors
+                                </h6>
                             </div>
-                            {% endif %}
-                            {% endfor %}
+                            <div class="card-body">
+                                {% for field in form.door %}
+                                {% if field.type != 'CSRFTokenField' and field.type != 'HiddenField' %}
+                                <div class="form-group mb-2">
+                                    <label class="font-weight-600 small text-uppercase text-muted mb-1">{{
+                                        field.label.text }}</label>
+                                    {{ field(class="form-control form-control-sm") }}
+                                </div>
+                                {% endif %}
+                                {% endfor %}
+                            </div>
                         </div>
                     </div>
-
-                    <!-- DOOR -->
-                    <div class="tab-pane fade" id="door" role="tabpanel">
-                        <div class="row">
-                            {% for field in form.door %}
-                            {% if field.type != 'CSRFTokenField' and field.type != 'HiddenField' %}
-                            <div class="col-md-12 mb-3">
-                                <label class="font-weight-600 small text-uppercase tracking-wider mb-1">{{
-                                    field.label.text }}</label>
-                                {{ field(class="input-modern") }}
+                    <div class="col-lg-4">
+                        <div class="card mb-4 shadow-sm">
+                            <div class="card-header bg-light py-2">
+                                <h6 class="mb-0 text-secondary font-weight-bold"><i class="fas fa-home mr-2"></i>
+                                    Shingle/Roof</h6>
                             </div>
-                            {% endif %}
-                            {% endfor %}
-                        </div>
-                    </div>
-
-                    <!-- DECK -->
-                    <div class="tab-pane fade" id="deck" role="tabpanel">
-                        <div class="row">
-                            {% for field in form.deck %}
-                            {% if field.type != 'CSRFTokenField' and field.type != 'HiddenField' %}
-                            <div class="col-md-6 mb-3">
-                                <label class="font-weight-600 small text-uppercase tracking-wider mb-1">{{
-                                    field.label.text }}</label>
-                                {{ field(class="input-modern") }}
+                            <div class="card-body">
+                                {% for field in form.shingle %}
+                                {% if field.type != 'CSRFTokenField' and field.type != 'HiddenField' %}
+                                <div class="form-group mb-2">
+                                    <label class="font-weight-600 small text-uppercase text-muted mb-1">{{
+                                        field.label.text }}</label>
+                                    {{ field(class="form-control form-control-sm") }}
+                                </div>
+                                {% endif %}
+                                {% endfor %}
                             </div>
-                            {% endif %}
-                            {% endfor %}
-                        </div>
-                    </div>
-
-                    <!-- TRIM -->
-                    <div class="tab-pane fade" id="trim" role="tabpanel">
-                        <div class="row">
-                            {% for field in form.trim %}
-                            {% if field.type != 'CSRFTokenField' and field.type != 'HiddenField' %}
-                            <div class="col-md-4 mb-3">
-                                <label class="font-weight-600 small text-uppercase tracking-wider mb-1">{{
-                                    field.label.text }}</label>
-                                {{ field(class="input-modern") }}
-                            </div>
-                            {% endif %}
-                            {% endfor %}
                         </div>
                     </div>
                 </div>
