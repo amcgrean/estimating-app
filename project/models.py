@@ -65,6 +65,7 @@ class Bid(db.Model):
     sales_rep = db.relationship('SalesRep', backref=db.backref('bids', lazy=True))
     estimator = db.relationship('Estimator', backref=db.backref('bid', lazy=True))
     branch = db.relationship('Branch', backref=db.backref('bids', lazy=True))
+    files = db.relationship('BidFile', backref='bid', cascade="all, delete-orphan", lazy=True)
 
     @staticmethod
     def before_update(mapper, connection, target):
@@ -78,6 +79,18 @@ class Bid(db.Model):
         target.last_updated_at = datetime.utcnow()
 
 db.event.listen(Bid, 'before_update', Bid.before_update)
+
+
+class BidFile(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    bid_id = db.Column(db.Integer, db.ForeignKey('bid.id'), nullable=False)
+    file_key = db.Column(db.String(255), nullable=False) # S3 Key
+    filename = db.Column(db.String(255), nullable=False) # Original filename
+    file_type = db.Column(db.String(50), nullable=True) # e.g. 'plan', 'email', 'other'
+    uploaded_at = db.Column(db.DateTime, default=datetime.utcnow)
+
+    def __repr__(self):
+        return f'<BidFile {self.filename}>'
 
 
 class Customer(db.Model):
