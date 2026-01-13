@@ -41,6 +41,10 @@ from flask_session import Session  # Import the Session object from Flask-Sessio
 # Create a Blueprint named 'main'
 main = Blueprint('main', __name__)
 
+@main.context_processor
+def inject_s3_url():
+    return dict(get_s3_url=get_s3_url)
+
 @main.route('/set_branch/<int:branch_id>')
 @login_required
 def set_branch(branch_id):
