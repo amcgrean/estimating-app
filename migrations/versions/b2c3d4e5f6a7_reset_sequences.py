@@ -30,7 +30,7 @@ def upgrade():
             columns = [c['name'] for c in inspector.get_columns(table)]
             if 'id' in columns:
                 # Reset sequence safely
-                op.execute(sa.text(f"SELECT setval(pg_get_serial_sequence('{table}', 'id'), COALESCE((SELECT MAX(id) FROM {table}), 0) + 1, false);"))
+                op.execute(sa.text(f"SELECT setval(pg_get_serial_sequence('{table}', 'id'), COALESCE((SELECT MAX(id) FROM \"{table}\"), 0) + 1, false);"))
             else:
                 print(f"Skipping {table}: 'id' column not found.")
         else:
