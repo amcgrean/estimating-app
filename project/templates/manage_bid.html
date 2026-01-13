@@ -120,6 +120,23 @@
                             {% else %}
                             <span class="text-muted small border rounded px-3 py-2">No Email Attached</span>
                             {% endif %}
+
+                            <!-- List Additional Files -->
+                            {% for file in bid.files %}
+                            <a href="{{ get_s3_url(file.file_key) }}" target="_blank"
+                                class="btn btn-outline-info btn-sm">
+                                <i class="fas fa-file-alt mr-2"></i> {{ file.filename }}
+                            </a>
+                            {% endfor %}
+                        </div>
+
+                        <!-- Add New Files -->
+                        <div class="mt-4 pt-3 border-top">
+                            <label class="font-weight-600 small text-uppercase tracking-wider mb-2">Upload Additional
+                                Files</label>
+                            <input type="file" id="file_multi" class="form-control-file" multiple>
+                            <input type="hidden" name="bid_files_json" id="bid_files_json">
+                            <div id="multi-file-list" class="mt-2"></div>
                         </div>
                     </div>
 
@@ -246,5 +263,130 @@
         bidDateInput.addEventListener('input', toggleFlexibleDate);
         toggleFlexibleDate(); // Run on load
     }
+
+    // --- New Multiple File Upload Logic ---
+    (function () {
+        var uploadedFiles = []; // { key, filename, type }
+        var bidFilesJsonInput = document.getElementById('bid_files_json');
+        var multiFileInput = document.getElementById('file_multi');
+        var multiFileList = document.getElementById('multi-file-list');
+
+        function updateBidFilesJson() {
+            if (bidFilesJsonInput) {
+                bidFilesJsonInput.value = JSON.stringify(uploadedFiles);
+            }
+        }
+
+        if (multiFileInput) {
+            multiFileInput.addEventListener('change', function () {
+                var files = Array.from(this.files);
+                if (files.length === 0) return;
+
+                // Process each file
+                files.forEach(function (file) {
+                    uploadSingleFile(file);
+                });
+            });
+        }
+
+        function uploadSingleFile(file) {
+            // Create UI element for this file
+            var fileId = 'file-' + Math.random().toString(36).substr(2, 9);
+            var itemHtml = `
+                <div id="${fileId}" class="d-flex align-items-center justify-content-between p-2 mb-2 bg-white rounded border">
+                    <div class="text-truncate mr-3" style="max-width: 200px;">
+                        <i class="fas fa-file-pdf text-danger mr-2"></i><strong>${file.name}</strong>
+                    </div>
+                    <div class="flex-grow-1 mx-3">
+                        <div class="progress" style="height: 6px;">
+                            <div class="progress-bar bg-primary" role="progressbar" style="width: 0%"></div>
+                        </div>
+                    </div>
+                    <small class="status-text text-muted">Waiting...</small>
+                </div>
+            `;
+            multiFileList.insertAdjacentHTML('beforeend', itemHtml);
+
+            var row = document.getElementById(fileId);
+            var progressBar = row.querySelector('.progress-bar');
+            var statusText = row.querySelector('.status-text');
+
+            // Grab CSRF token
+            var csrfInput = document.querySelector('input[name="csrf_token"]');
+            var csrfToken = csrfInput ? csrfInput.value : '';
+
+            statusText.textContent = 'Signing...';
+
+            // 1. Get Presigned URL
+            fetch("{{ url_for('main.sign_s3') }}", {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': csrfToken
+                },
+                body: JSON.stringify({
+                    filename: file.name,
+                    file_type: file.type || 'application/octet-stream',
+                    folder: 'misc' // Use 'misc' or 'bids'
+                })
+            })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.error) throw new Error(data.error);
+
+                    // 2. Upload
+                    statusText.textContent = 'Uploading...';
+                    var formData = new FormData();
+                    for (var key in data.fields) {
+                        formData.append(key, data.fields[key]);
+                    }
+                    formData.append('file', file);
+
+                    var xhr = new XMLHttpRequest();
+                    xhr.open('POST', data.url);
+
+                    xhr.upload.onprogress = function (e) {
+                        if (e.lengthComputable) {
+                            var percent = Math.round((e.loaded / e.total) * 100);
+                            progressBar.style.width = percent + '%';
+                        }
+                    };
+
+                    xhr.onload = function () {
+                        if (xhr.status === 204 || xhr.status === 200) {
+                            statusText.textContent = 'Done';
+                            statusText.classList.add('text-success');
+                            statusText.classList.remove('text-muted');
+                            progressBar.classList.add('bg-success');
+                            progressBar.classList.remove('bg-primary');
+
+                            // Add to global list
+                            uploadedFiles.push({
+                                key: data.fields.key,
+                                filename: file.name,
+                                file_type: 'other'
+                            });
+                            updateBidFilesJson();
+                        } else {
+                            statusText.textContent = 'Failed';
+                            statusText.classList.add('text-danger');
+                            progressBar.classList.add('bg-danger');
+                        }
+                    };
+
+                    xhr.onerror = function () {
+                        statusText.textContent = 'Error';
+                        statusText.classList.add('text-danger');
+                    };
+
+                    xhr.send(formData);
+                })
+                .catch(err => {
+                    console.error(err);
+                    statusText.textContent = 'Error';
+                    statusText.classList.add('text-danger');
+                });
+        }
+    })();
 </script>
 {% endblock %}

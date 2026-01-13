@@ -117,6 +117,18 @@
                         </div>
                         <small id="status-email" class="text-success font-weight-bold d-none mt-1"></small>
                     </div>
+
+                    <div class="form-group mb-0 mt-3 border-top pt-3">
+                        <label class="font-weight-600 small text-uppercase tracking-wider mb-1">Additional Files
+                            (Multiple)</label>
+                        <input type="file" id="file_multi" class="form-control-file" multiple>
+                        <input type="hidden" name="bid_files_json" id="bid_files_json">
+                        <small class="form-text text-muted">Upload any other relevant PDFs or images.</small>
+
+                        <div id="multi-file-list" class="mt-2">
+                            <!-- JS will append progress bars here -->
+                        </div>
+                    </div>
                 </div>
             </div>
 
@@ -444,6 +456,16 @@
 
     // --- S3 Direct Upload Logic ---
     (function () {
+        // Shared state for multiple files
+        var uploadedFiles = []; // { key, filename, type }
+        var bidFilesJsonInput = document.getElementById('bid_files_json');
+
+        function updateBidFilesJson() {
+            if (bidFilesJsonInput) {
+                bidFilesJsonInput.value = JSON.stringify(uploadedFiles);
+            }
+        }
+
         function initS3Upload(fileId, keyId, progressId, barId, statusId, folder) {
             var fileInput = document.getElementById(fileId);
             var keyInput = document.getElementById(keyId);
@@ -519,7 +541,7 @@
                                 statusText.textContent = 'Upload Complete!';
                                 progressBar.classList.remove('progress-bar-animated');
 
-                                // IMPORTANT: Remove name attribute to prevent double upload to Flask
+                                // Remove name attribute to prevent double upload to Flask
                                 fileInput.removeAttribute('name');
                             } else {
                                 statusText.textContent = 'Upload Failed!';
@@ -548,9 +570,127 @@
             });
         }
 
-        // Init uploads
+        // Init legacy uploads
         initS3Upload('file_plan', 'plan_key', 'progress-container-plan', 'progress-bar-plan', 'status-plan', 'plans');
         initS3Upload('file_email', 'email_key', 'progress-container-email', 'progress-bar-email', 'status-email', 'emails');
+
+        // --- New Multiple File Upload Logic ---
+        var multiFileInput = document.getElementById('file_multi');
+        var multiFileList = document.getElementById('multi-file-list');
+
+        if (multiFileInput) {
+            multiFileInput.addEventListener('change', function () {
+                var files = Array.from(this.files);
+                if (files.length === 0) return;
+
+                // Process each file
+                files.forEach(function (file) {
+                    uploadSingleFile(file);
+                });
+
+                // Clear input so same files can be selected again if needed (or just reset)
+                // this.value = ''; 
+            });
+        }
+
+        function uploadSingleFile(file) {
+            // Create UI element for this file
+            var fileId = 'file-' + Math.random().toString(36).substr(2, 9);
+            var itemHtml = `
+                <div id="${fileId}" class="d-flex align-items-center justify-content-between p-2 mb-2 bg-white rounded border">
+                    <div class="text-truncate mr-3" style="max-width: 200px;">
+                        <i class="fas fa-file-pdf text-danger mr-2"></i><strong>${file.name}</strong>
+                    </div>
+                    <div class="flex-grow-1 mx-3">
+                        <div class="progress" style="height: 6px;">
+                            <div class="progress-bar bg-primary" role="progressbar" style="width: 0%"></div>
+                        </div>
+                    </div>
+                    <small class="status-text text-muted">Waiting...</small>
+                </div>
+            `;
+            multiFileList.insertAdjacentHTML('beforeend', itemHtml);
+
+            var row = document.getElementById(fileId);
+            var progressBar = row.querySelector('.progress-bar');
+            var statusText = row.querySelector('.status-text');
+
+            // Grab CSRF token
+            var csrfInput = document.querySelector('input[name="csrf_token"]');
+            var csrfToken = csrfInput ? csrfInput.value : '';
+
+            statusText.textContent = 'Signing...';
+
+            // 1. Get Presigned URL
+            fetch("{{ url_for('main.sign_s3') }}", {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': csrfToken
+                },
+                body: JSON.stringify({
+                    filename: file.name,
+                    file_type: file.type || 'application/octet-stream',
+                    folder: 'misc' // Use 'misc' or 'bids'
+                })
+            })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.error) throw new Error(data.error);
+
+                    // 2. Upload
+                    statusText.textContent = 'Uploading...';
+                    var formData = new FormData();
+                    for (var key in data.fields) {
+                        formData.append(key, data.fields[key]);
+                    }
+                    formData.append('file', file);
+
+                    var xhr = new XMLHttpRequest();
+                    xhr.open('POST', data.url);
+
+                    xhr.upload.onprogress = function (e) {
+                        if (e.lengthComputable) {
+                            var percent = Math.round((e.loaded / e.total) * 100);
+                            progressBar.style.width = percent + '%';
+                        }
+                    };
+
+                    xhr.onload = function () {
+                        if (xhr.status === 204 || xhr.status === 200) {
+                            statusText.textContent = 'Done';
+                            statusText.classList.add('text-success');
+                            statusText.classList.remove('text-muted');
+                            progressBar.classList.add('bg-success');
+                            progressBar.classList.remove('bg-primary');
+
+                            // Add to global list
+                            uploadedFiles.push({
+                                key: data.fields.key,
+                                filename: file.name,
+                                file_type: 'other'
+                            });
+                            updateBidFilesJson();
+                        } else {
+                            statusText.textContent = 'Failed';
+                            statusText.classList.add('text-danger');
+                            progressBar.classList.add('bg-danger');
+                        }
+                    };
+
+                    xhr.onerror = function () {
+                        statusText.textContent = 'Error';
+                        statusText.classList.add('text-danger');
+                    };
+
+                    xhr.send(formData);
+                })
+                .catch(err => {
+                    console.error(err);
+                    statusText.textContent = 'Error';
+                    statusText.classList.add('text-danger');
+                });
+        }
     })();
 
     function toggleFlexibleDate() {

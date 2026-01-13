@@ -4,9 +4,12 @@ from project import mail, db
 from project.models import (
     Bid, Customer, Estimator, Design, User, EWP, UserType, UserSecurity,
     Branch, SalesRep, LoginActivity, ITService, Project, Framing, Siding,
-    Shingle, Deck, Door, Window, Trim, BidActivity
+    Bid, Customer, Estimator, Design, User, EWP, UserType, UserSecurity,
+    Branch, SalesRep, LoginActivity, ITService, Project, Framing, Siding,
+    Shingle, Deck, Door, Window, Trim, BidActivity, BidFile
 )
 import csv
+import json
 from werkzeug.utils import secure_filename
 from datetime import datetime, timedelta,date
 import io
@@ -832,6 +835,23 @@ def add_bid():
             email_filename=email_key
         )
         
+        # Handle Multiple Files
+        bid_files_json = request.form.get('bid_files_json')
+        if bid_files_json:
+            try:
+                files_data = json.loads(bid_files_json)
+                for file_data in files_data:
+                    new_file = BidFile(
+                        file_key=file_data['key'],
+                        filename=file_data['filename'],
+                        file_type=file_data.get('file_type', 'other'),
+                        bid=new_bid # Link to the new bid
+                    )
+                    db.session.add(new_file)
+            except Exception as e:
+                current_app.logger.error(f"Error parsing bid_files_json: {e}")
+                # Don't fail the whole bid creation, but log it.
+        
         # Populate Detailed Specs using the nested forms
         # We initialize empty models and let wtforms populate them from the form data
         new_bid.framing = Framing()
@@ -937,6 +957,23 @@ def manage_bid(bid_id):
             return redirect(url_for('main.manage_bid', bid_id=bid.id))
 
         form.populate_obj(bid)
+        
+        # Handle New File Uploads
+        bid_files_json = request.form.get('bid_files_json')
+        if bid_files_json:
+            try:
+                files_data = json.loads(bid_files_json)
+                for file_data in files_data:
+                    new_file = BidFile(
+                        file_key=file_data['key'],
+                        filename=file_data['filename'],
+                        file_type=file_data.get('file_type', 'other'),
+                        bid=bid # Link to the existing bid
+                    )
+                    db.session.add(new_file)
+            except Exception as e:
+                current_app.logger.error(f"Error parsing bid_files_json in manage_bid: {e}")
+
         db.session.commit()
         flash('Bid updated successfully!', 'success')
         return redirect(url_for('main.open_bids'))
