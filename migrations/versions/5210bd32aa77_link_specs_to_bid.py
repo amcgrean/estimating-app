@@ -17,17 +17,16 @@ depends_on = None
 
 
 def upgrade():
-    # Helper list of tables to add bid_id to
+    conn = op.get_bind()
+    inspector = sa.inspect(conn)
     tables = ['framing', 'siding', 'shingle', 'deck', 'trim', 'window', 'door']
     
-    with op.batch_alter_table('bid') as batch_op:
-        # Just ensuring we are entering a batch context if needed, but we loop over tables
-        pass
-
     for table_name in tables:
-        with op.batch_alter_table(table_name) as batch_op:
-            batch_op.add_column(sa.Column('bid_id', sa.Integer(), nullable=True))
-            batch_op.create_foreign_key(f'fk_{table_name}_bid_id', 'bid', ['bid_id'], ['id'])
+        columns = [c['name'] for c in inspector.get_columns(table_name)]
+        if 'bid_id' not in columns:
+            with op.batch_alter_table(table_name) as batch_op:
+                batch_op.add_column(sa.Column('bid_id', sa.Integer(), nullable=True))
+                batch_op.create_foreign_key(f'fk_{table_name}_bid_id', 'bid', ['bid_id'], ['id'])
 
 
 def downgrade():

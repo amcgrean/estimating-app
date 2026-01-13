@@ -17,9 +17,13 @@ depends_on = None
 
 
 def upgrade():
-    with op.batch_alter_table('bid') as batch_op:
-        batch_op.add_column(sa.Column('sales_rep_id', sa.Integer(), nullable=True))
-        batch_op.create_foreign_key('fk_bid_sales_rep_id', 'sales_rep', ['sales_rep_id'], ['id'])
+    conn = op.get_bind()
+    inspector = sa.inspect(conn)
+    columns = [c['name'] for c in inspector.get_columns('bid')]
+    if 'sales_rep_id' not in columns:
+        with op.batch_alter_table('bid') as batch_op:
+            batch_op.add_column(sa.Column('sales_rep_id', sa.Integer(), nullable=True))
+            batch_op.create_foreign_key('fk_bid_sales_rep_id', 'sales_rep', ['sales_rep_id'], ['id'])
 
 
 def downgrade():
