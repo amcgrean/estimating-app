@@ -835,25 +835,25 @@ def add_bid():
         # Populate Detailed Specs using the nested forms
         # We initialize empty models and let wtforms populate them from the form data
         new_bid.framing = Framing()
-        form.framing.populate_obj(new_bid.framing)
+        form.framing.form.populate_obj(new_bid.framing)
         
         new_bid.siding = Siding()
-        form.siding.populate_obj(new_bid.siding)
+        form.siding.form.populate_obj(new_bid.siding)
         
         new_bid.shingle = Shingle()
-        form.shingle.populate_obj(new_bid.shingle)
+        form.shingle.form.populate_obj(new_bid.shingle)
         
         new_bid.deck = Deck()
-        form.deck.populate_obj(new_bid.deck)
+        form.deck.form.populate_obj(new_bid.deck)
         
         new_bid.trim = Trim()
-        form.trim.populate_obj(new_bid.trim)
+        form.trim.form.populate_obj(new_bid.trim)
         
         new_bid.window = Window()
-        form.window.populate_obj(new_bid.window)
+        form.window.form.populate_obj(new_bid.window)
         
         new_bid.door = Door()
-        form.door.populate_obj(new_bid.door)
+        form.door.form.populate_obj(new_bid.door)
 
         db.session.add(new_bid)
         try:
