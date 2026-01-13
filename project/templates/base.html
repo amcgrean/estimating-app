@@ -60,20 +60,7 @@
                         </a>
                     </li>
                     <li class="nav-item dropdown">
-                        <a class="nav-link dropdown-toggle {% if 'bids' in request.path %}active{% endif %}" href="#"
-                            id="bidDropdown" role="button" data-toggle="dropdown" aria-haspopup="true"
-                            aria-expanded="false">
-                            <i class="fas fa-file-invoice-dollar mr-1"></i> Bid Calendar
-                        </a>
-                        <div class="dropdown-menu border-0 shadow-lg" aria-labelledby="bidDropdown">
-                            <a class="dropdown-item py-2" href="{{ url_for('main.bids_calendar') }}">
-                                <i class="fas fa-calendar-alt mr-2 text-primary"></i> Calendar View
-                            </a>
-                        </div>
-                    </li>
-
-                    <li class="nav-item dropdown">
-                        <a class="nav-link dropdown-toggle {% if 'estimating' in request.path or request.endpoint in ['main.open_bids', 'main.add_bid', 'main.projects'] %}active{% endif %}"
+                        <a class="nav-link dropdown-toggle {% if 'estimating' in request.path or request.endpoint in ['main.open_bids', 'main.add_bid', 'main.projects', 'main.bids_calendar'] %}active{% endif %}"
                             href="#" id="estimatingDropdown" role="button" data-toggle="dropdown" aria-haspopup="true"
                             aria-expanded="false">
                             <i class="fas fa-calculator mr-1"></i> Estimating
@@ -84,6 +71,9 @@
                             </a>
                             <a class="dropdown-item py-2" href="{{ url_for('main.add_bid') }}">
                                 <i class="fas fa-plus-circle mr-2 text-primary"></i> Add New Bid
+                            </a>
+                            <a class="dropdown-item py-2" href="{{ url_for('main.bids_calendar') }}">
+                                <i class="fas fa-calendar-alt mr-2 text-primary"></i> Bid Calendar
                             </a>
 
                             <a class="dropdown-item py-2" href="{{ url_for('main.projects') }}">
@@ -212,7 +202,7 @@
         </div>
 
         <footer class="mt-5 pb-4 text-center text-muted small">
-            &copy; {{ now.year if now else '2023' }} Beisser Lumber Company. All rights reserved.
+            &copy; {{ now.year if now else '2026' }} Beisser Lumber Company. All rights reserved.
         </footer>
 
         <!-- JS Libraries -->
