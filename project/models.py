@@ -135,10 +135,15 @@ class User(db.Model, UserMixin):
         self.password = bcrypt.generate_password_hash(password).decode('utf-8')
 
     def check_password(self, password):
-        # Handle legacy plain text passwords if necessary, or just assume bcrypt
-        # For security, we should assume bcrypt. 
-        # But wait, bcrypt might not be imported in models.py if I don't check imports.
-        return bcrypt.check_password_hash(self.password, password)
+        try:
+            return bcrypt.check_password_hash(self.password, password)
+        except ValueError:
+            # Likely an "Invalid salt" error due to legacy/plain-text password in DB
+            # Fallback: check plain text
+            if self.password == password:
+                # Optional: You could auto-migrate the password here if you had access to db.session
+                return True
+            return False
 
     def get_id(self):
         return self.id
