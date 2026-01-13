@@ -177,46 +177,142 @@
                 </div>
             </div>
 
-            <!-- Full Width Section: Module Notes (Hidden by default) -->
             <div class="col-12 mt-3 pt-3 border-top" id="specs-section" style="display: none;">
                 <h5 class="mb-4 text-primary d-flex align-items-center" style="font-size: 1rem; letter-spacing: 0.5px;">
                     <i class="fas fa-list-alt mr-2 small"></i> MODULE SPECIFICATIONS
                 </h5>
-                <div class="row">
-                    <div class="col-md-6 mb-3">
-                        <label class="font-weight-600 small text-uppercase tracking-wider mb-1">{{
-                            form.framing_notes.label.text }}</label>
-                        {{ form.framing_notes(class="input-modern", rows="2") }}
+
+                <!-- Tabs for Modules -->
+                <ul class="nav nav-tabs mb-3" id="specsTabs" role="tablist">
+                    <li class="nav-item">
+                        <a class="nav-link active" id="framing-tab" data-toggle="tab" href="#framing"
+                            role="tab">Framing</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" id="siding-tab" data-toggle="tab" href="#siding" role="tab">Siding</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" id="shingle-tab" data-toggle="tab" href="#shingle"
+                            role="tab">Shingle/Roof</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" id="window-tab" data-toggle="tab" href="#window" role="tab">Windows</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" id="door-tab" data-toggle="tab" href="#door" role="tab">Doors</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" id="deck-tab" data-toggle="tab" href="#deck" role="tab">Deck</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" id="trim-tab" data-toggle="tab" href="#trim" role="tab">Trim</a>
+                    </li>
+                </ul>
+
+                <div class="tab-content" id="specsTabContent">
+                    <!-- FRAMING -->
+                    <div class="tab-pane fade show active" id="framing" role="tabpanel">
+                        <div class="row">
+                            {% for field in form.framing %}
+                            {% if field.type != 'CSRFTokenField' and field.type != 'HiddenField' %}
+                            <div class="col-md-4 mb-3">
+                                <label class="font-weight-600 small text-uppercase tracking-wider mb-1">{{
+                                    field.label.text }}</label>
+                                {{ field(class="input-modern") }}
+                            </div>
+                            {% endif %}
+                            {% endfor %}
+                        </div>
                     </div>
-                    <div class="col-md-6 mb-3">
-                        <label class="font-weight-600 small text-uppercase tracking-wider mb-1">{{
-                            form.siding_notes.label.text }}</label>
-                        {{ form.siding_notes(class="input-modern", rows="2") }}
+
+                    <!-- SIDING -->
+                    <div class="tab-pane fade" id="siding" role="tabpanel">
+                        <div class="row">
+                            {% for field in form.siding %}
+                            {% if field.type != 'CSRFTokenField' and field.type != 'HiddenField' %}
+                            <div class="col-md-4 mb-3">
+                                <label class="font-weight-600 small text-uppercase tracking-wider mb-1">{{
+                                    field.label.text }}</label>
+                                {{ field(class="input-modern") }}
+                            </div>
+                            {% endif %}
+                            {% endfor %}
+                        </div>
                     </div>
-                    <div class="col-md-6 mb-3">
-                        <label class="font-weight-600 small text-uppercase tracking-wider mb-1">{{
-                            form.shingle_notes.label.text }}</label>
-                        {{ form.shingle_notes(class="input-modern", rows="2") }}
+
+                    <!-- SHINGLE -->
+                    <div class="tab-pane fade" id="shingle" role="tabpanel">
+                        <div class="row">
+                            {% for field in form.shingle %}
+                            {% if field.type != 'CSRFTokenField' and field.type != 'HiddenField' %}
+                            <div class="col-md-12 mb-3">
+                                <label class="font-weight-600 small text-uppercase tracking-wider mb-1">{{
+                                    field.label.text }}</label>
+                                {{ field(class="input-modern") }}
+                            </div>
+                            {% endif %}
+                            {% endfor %}
+                        </div>
                     </div>
-                    <div class="col-md-6 mb-3">
-                        <label class="font-weight-600 small text-uppercase tracking-wider mb-1">{{
-                            form.deck_notes.label.text }}</label>
-                        {{ form.deck_notes(class="input-modern", rows="2") }}
+
+                    <!-- WINDOW -->
+                    <div class="tab-pane fade" id="window" role="tabpanel">
+                        <div class="row">
+                            {% for field in form.window %}
+                            {% if field.type != 'CSRFTokenField' and field.type != 'HiddenField' %}
+                            <div class="col-md-12 mb-3">
+                                <label class="font-weight-600 small text-uppercase tracking-wider mb-1">{{
+                                    field.label.text }}</label>
+                                {{ field(class="input-modern") }}
+                            </div>
+                            {% endif %}
+                            {% endfor %}
+                        </div>
                     </div>
-                    <div class="col-md-6 mb-3">
-                        <label class="font-weight-600 small text-uppercase tracking-wider mb-1">{{
-                            form.trim_notes.label.text }}</label>
-                        {{ form.trim_notes(class="input-modern", rows="2") }}
+
+                    <!-- DOOR -->
+                    <div class="tab-pane fade" id="door" role="tabpanel">
+                        <div class="row">
+                            {% for field in form.door %}
+                            {% if field.type != 'CSRFTokenField' and field.type != 'HiddenField' %}
+                            <div class="col-md-12 mb-3">
+                                <label class="font-weight-600 small text-uppercase tracking-wider mb-1">{{
+                                    field.label.text }}</label>
+                                {{ field(class="input-modern") }}
+                            </div>
+                            {% endif %}
+                            {% endfor %}
+                        </div>
                     </div>
-                    <div class="col-md-6 mb-3">
-                        <label class="font-weight-600 small text-uppercase tracking-wider mb-1">{{
-                            form.window_notes.label.text }}</label>
-                        {{ form.window_notes(class="input-modern", rows="2") }}
+
+                    <!-- DECK -->
+                    <div class="tab-pane fade" id="deck" role="tabpanel">
+                        <div class="row">
+                            {% for field in form.deck %}
+                            {% if field.type != 'CSRFTokenField' and field.type != 'HiddenField' %}
+                            <div class="col-md-6 mb-3">
+                                <label class="font-weight-600 small text-uppercase tracking-wider mb-1">{{
+                                    field.label.text }}</label>
+                                {{ field(class="input-modern") }}
+                            </div>
+                            {% endif %}
+                            {% endfor %}
+                        </div>
                     </div>
-                    <div class="col-md-6 mb-3">
-                        <label class="font-weight-600 small text-uppercase tracking-wider mb-1">{{
-                            form.door_notes.label.text }}</label>
-                        {{ form.door_notes(class="input-modern", rows="2") }}
+
+                    <!-- TRIM -->
+                    <div class="tab-pane fade" id="trim" role="tabpanel">
+                        <div class="row">
+                            {% for field in form.trim %}
+                            {% if field.type != 'CSRFTokenField' and field.type != 'HiddenField' %}
+                            <div class="col-md-4 mb-3">
+                                <label class="font-weight-600 small text-uppercase tracking-wider mb-1">{{
+                                    field.label.text }}</label>
+                                {{ field(class="input-modern") }}
+                            </div>
+                            {% endif %}
+                            {% endfor %}
+                        </div>
                     </div>
                 </div>
             </div>
