@@ -52,11 +52,24 @@
 
             <div class="collapse navbar-collapse" id="mainNavbar">
                 <ul class="navbar-nav mx-auto mb-2 mb-lg-0">
+                    {% if current_user.is_authenticated %}
                     <li class="nav-item">
                         <a class="nav-link {% if request.endpoint == 'main.index' %}active{% endif %}"
                             href="{{ url_for('main.index') }}">
                             <i class="fas fa-home mr-1"></i> Dashboard
                         </a>
+                    </li>
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle {% if 'bids' in request.path %}active{% endif %}" href="#"
+                            id="bidDropdown" role="button" data-toggle="dropdown" aria-haspopup="true"
+                            aria-expanded="false">
+                            <i class="fas fa-file-invoice-dollar mr-1"></i> Bid Calendar
+                        </a>
+                        <div class="dropdown-menu border-0 shadow-lg" aria-labelledby="bidDropdown">
+                            <a class="dropdown-item py-2" href="{{ url_for('main.bids_calendar') }}">
+                                <i class="fas fa-calendar-alt mr-2 text-primary"></i> Calendar View
+                            </a>
+                        </div>
                     </li>
 
                     <li class="nav-item dropdown">
@@ -135,29 +148,43 @@
                         </div>
                     </li>
                     {% endif %}
+                    {% endif %}
                 </ul>
 
                 <div class="d-flex align-items-center ml-lg-4">
-                    <!-- Branch Selector in Navbar -->
-                    <div class="navbar-branch-selector mr-4 d-none d-xl-block">
-                        <select class="form-control form-control-sm border-0 shadow-sm"
-                            style="border-radius: var(--radius-md); font-weight: 600; color: var(--primary);"
-                            onchange="window.location.href='/set_branch/' + this.value">
-                            <option value="0" {% if not current_branch_id or current_branch_id==0 %}selected{% endif %}>
-                                All Branches</option>
-                            {% for b in all_branches %}
-                            <option value="{{ b.branch_id }}" {% if current_branch_id==b.branch_id %}selected{% endif
-                                %}>{{ b.branch_name }}</option>
-                            {% endfor %}
-                        </select>
-                    </div>
-
-                    <a href="{{ url_for('auth.logout') }}"
-                        class="btn btn-sm btn-outline-light border-0 font-weight-bold">
-                        <i class="fas fa-sign-out-alt mr-1"></i> Logout
-                    </a>
+                    {% if current_user.is_authenticated %}
+                    <select class="form-control form-control-sm border-0 shadow-sm"
+                        style="border-radius: var(--radius-md); font-weight: 600; color: var(--primary);"
+                        onchange="window.location.href='/set_branch/' + this.value">
+                        <option value="0" {% if not current_branch_id or current_branch_id==0 %}selected{% endif %}>
+                            All Branches</option>
+                        {% for b in all_branches %}
+                        <option value="{{ b.branch_id }}" {% if current_branch_id==b.branch_id %}selected{% endif %}>{{
+                            b.branch_name }}</option>
+                        {% endfor %}
+                    </select>
                 </div>
+
+                <!-- User Dropdown (Replaces Logout Button) -->
+                <div class="dropdown">
+                    <button class="btn btn-link text-white dropdown-toggle font-weight-bold p-0 text-decoration-none"
+                        type="button" id="userDropdown" data-toggle="dropdown" aria-haspopup="true"
+                        aria-expanded="false">
+                        <i class="fas fa-user-circle mr-1"></i> {{ current_user.username }}
+                    </button>
+                    <div class="dropdown-menu dropdown-menu-right shadow-lg border-0" aria-labelledby="userDropdown">
+                        <a class="dropdown-item" href="{{ url_for('auth.user_settings') }}">
+                            <i class="fas fa-cog mr-2 text-muted"></i> Settings
+                        </a>
+                        <div class="dropdown-divider"></div>
+                        <a class="dropdown-item text-danger" href="{{ url_for('auth.logout') }}">
+                            <i class="fas fa-sign-out-alt mr-2"></i> Logout
+                        </a>
+                    </div>
+                </div>
+                {% endif %}
             </div>
+        </div>
         </div>
     </nav>
 
