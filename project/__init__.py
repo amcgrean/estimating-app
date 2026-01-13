@@ -42,7 +42,10 @@ def create_app():
     app.config["SQLALCHEMY_DATABASE_URI"] = db_url
     app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 
-    engine_opts = {}
+    engine_opts = {
+        "pool_pre_ping": True,
+        "pool_recycle": 300,
+    }
     if db_url.startswith("sqlite:"):
         engine_opts = {"connect_args": {"timeout": 30}}
     app.config["SQLALCHEMY_ENGINE_OPTIONS"] = engine_opts
