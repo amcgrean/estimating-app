@@ -69,3 +69,36 @@ def get_s3_url(key, expiration=3600):
     except Exception as e:
         print(f"S3 Presign Error: {e}")
         return None
+
+def create_presigned_post(object_name, file_type, folder='bids', expiration=3600):
+    """
+    Generate a presigned URL key and fields to upload a file to S3.
+    """
+    s3 = get_s3_client()
+    bucket_name = os.environ.get('AWS_BUCKET_NAME')
+    
+    # Ensure unique key
+    filename = secure_filename(object_name)
+    key = f"{folder}/{uuid.uuid4().hex}_{filename}"
+
+    try:
+        response = s3.generate_presigned_post(
+            Bucket=bucket_name,
+            Key=key,
+            Fields={
+                'acl': 'private',
+                'Content-Type': file_type
+            },
+            Conditions=[
+                {'acl': 'private'},
+                {'Content-Type': file_type},
+                ["content-length-range", 0, 524288000] # 500 MB limit
+            ],
+            ExpiresIn=expiration
+        )
+        # Return the key as well so we can save it to DB
+        # The response['fields']['key'] is the same as our 'key' variable
+        return response
+    except Exception as e:
+        current_app.logger.error(f"S3 Presign POST Error: {e}")
+        return None

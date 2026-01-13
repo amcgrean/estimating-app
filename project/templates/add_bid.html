@@ -89,14 +89,33 @@
                     <div class="form-group mb-3">
                         <label class="font-weight-600 small text-uppercase tracking-wider mb-1">{{
                             form.plan_file.label.text }}</label>
-                        {{ form.plan_file(class="form-control-file") }}
+                        {{ form.plan_file(class="form-control-file", id="file_plan") }}
+                        {{ form.plan_key(id="plan_key") }}
                         <small class="form-text text-muted">Upload architectural plans (PDF only)</small>
+
+                        <!-- Progress Bar for Plan -->
+                        <div id="progress-container-plan" class="progress mt-2 d-none" style="height: 10px;">
+                            <div id="progress-bar-plan"
+                                class="progress-bar bg-success progress-bar-striped progress-bar-animated"
+                                role="progressbar" style="width: 0%"></div>
+                        </div>
+                        <small id="status-plan" class="text-success font-weight-bold d-none mt-1"></small>
                     </div>
+
                     <div class="form-group mb-0">
                         <label class="font-weight-600 small text-uppercase tracking-wider mb-1">{{
                             form.email_file.label.text }}</label>
-                        {{ form.email_file(class="form-control-file") }}
+                        {{ form.email_file(class="form-control-file", id="file_email") }}
+                        {{ form.email_key(id="email_key") }}
                         <small class="form-text text-muted">Upload request email or other docs</small>
+
+                        <!-- Progress Bar for Email -->
+                        <div id="progress-container-email" class="progress mt-2 d-none" style="height: 10px;">
+                            <div id="progress-bar-email"
+                                class="progress-bar bg-success progress-bar-striped progress-bar-animated"
+                                role="progressbar" style="width: 0%"></div>
+                        </div>
+                        <small id="status-email" class="text-success font-weight-bold d-none mt-1"></small>
                     </div>
                 </div>
             </div>
@@ -407,22 +426,132 @@
     // Toggle Flexible Bid Date
     const bidDateInput = document.getElementById('bid_date');
     const flexibleDateContainer = document.getElementById('flexible-date-container');
-    const flexibleDateCheckbox = document.getElementById('flexibleBidDate');
+    // --- S3 Direct Upload Logic ---
+    (function () {
+        function initS3Upload(fileId, keyId, progressId, barId, statusId, folder) {
+            var fileInput = document.getElementById(fileId);
+            var keyInput = document.getElementById(keyId);
+            var progressContainer = document.getElementById(progressId);
+            var progressBar = document.getElementById(barId);
+            var statusText = document.getElementById(statusId);
 
-    function toggleFlexibleDate() {
-        if (bidDateInput.value) {
-            flexibleDateContainer.style.display = 'block';
-        } else {
-            flexibleDateContainer.style.display = 'none';
-            flexibleDateCheckbox.checked = false; // Reset if hidden
+            // Grab CSRF token from the form's hidden input
+            var csrfInput = document.querySelector('input[name="csrf_token"]');
+            var csrfToken = csrfInput ? csrfInput.value : '';
+
+            if (!fileInput) return;
+
+            fileInput.addEventListener('change', function () {
+                var file = fileInput.files[0];
+                if (!file) return;
+
+                // Reset UI
+                progressContainer.classList.remove('d-none');
+                progressBar.style.width = '0%';
+                progressBar.textContent = '0%';
+                progressBar.classList.remove('bg-danger');
+                progressBar.classList.add('bg-success');
+                statusText.textContent = 'Preparing upload...';
+                statusText.classList.remove('d-none', 'text-danger');
+                statusText.classList.add('text-success');
+                statusText.textContent = 'Signing upload...';
+
+                // 1. Get Presigned URL
+                fetch("{{ url_for('main.sign_s3') }}", {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRFToken': csrfToken
+                    },
+                    body: JSON.stringify({
+                        filename: file.name,
+                        file_type: file.type || 'application/octet-stream',
+                        folder: folder
+                    })
+                })
+                    .then(response => {
+                        if (!response.ok) throw new Error('Signing failed (' + response.status + ')');
+                        return response.json();
+                    })
+                    .then(data => {
+                        if (data.error) throw new Error(data.error);
+
+                        // 2. Upload to S3
+                        statusText.textContent = 'Uploading to S3...';
+                        var formData = new FormData();
+                        // Append fields in order
+                        for (var key in data.fields) {
+                            formData.append(key, data.fields[key]);
+                        }
+                        formData.append('file', file);
+
+                        var xhr = new XMLHttpRequest();
+                        xhr.open('POST', data.url);
+
+                        xhr.upload.onprogress = function (e) {
+                            if (e.lengthComputable) {
+                                var percent = Math.round((e.loaded / e.total) * 100);
+                                progressBar.style.width = percent + '%';
+                                progressBar.textContent = percent + '%';
+                            }
+                        };
+
+                        xhr.onload = function () {
+                            if (xhr.status === 204 || xhr.status === 200) {
+                                // Success
+                                keyInput.value = data.fields.key; // Store key for backend
+                                statusText.textContent = 'Upload Complete!';
+                                progressBar.classList.remove('progress-bar-animated');
+
+                                // IMPORTANT: Remove name attribute to prevent double upload to Flask
+                                fileInput.removeAttribute('name');
+                            } else {
+                                statusText.textContent = 'Upload Failed!';
+                                statusText.classList.add('text-danger');
+                                progressBar.classList.add('bg-danger');
+                                console.error('S3 Upload failed status: ' + xhr.status);
+                            }
+                        };
+
+                        xhr.onerror = function () {
+                            statusText.textContent = 'Network Error!';
+                            statusText.classList.add('text-danger');
+                            progressBar.classList.add('bg-danger');
+                        };
+
+                        xhr.send(formData);
+                    })
+                    .catch(error => {
+                        console.error(error);
+                        statusText.textContent = 'Error: ' + error.message;
+                        statusText.classList.remove('text-success');
+                        statusText.classList.add('text-danger');
+                        progressBar.classList.remove('bg-success');
+                        progressBar.classList.add('bg-danger');
+                    });
+            });
         }
-    }
 
-    if (bidDateInput) {
-        bidDateInput.addEventListener('change', toggleFlexibleDate);
-        // Also listen for input event just in case
-        bidDateInput.addEventListener('input', toggleFlexibleDate);
-        toggleFlexibleDate(); // Run on load
-    }
+        // Init uploads
+        initS3Upload('file_plan', 'plan_key', 'progress-container-plan', 'progress-bar-plan', 'status-plan', 'plans');
+        initS3Upload('file_email', 'email_key', 'progress-container-email', 'progress-bar-email', 'status-email', 'emails');
+    })();
+</script>
+{% endblock %}
+function toggleFlexibleDate() {
+if (bidDateInput.value) {
+flexibleDateContainer.style.display = 'block';
+} else {
+flexibleDateContainer.style.display = 'none';
+flexibleDateCheckbox.checked = false; // Reset if hidden
+}
+}
+
+if (bidDateInput) {
+bidDateInput.addEventListener('change', toggleFlexibleDate);
+// Also listen for input event just in case
+bidDateInput.addEventListener('input', toggleFlexibleDate);
+toggleFlexibleDate(); // Run on load
+}
 </script>
 {% endblock %}

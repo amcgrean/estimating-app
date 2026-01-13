@@ -1,4 +1,4 @@
-from flask import Blueprint, render_template, request, redirect, url_for, flash, send_file, current_app, jsonify, abort
+from flask import Blueprint, render_template, request, redirect, url_for, flash, current_app, send_file, make_response, jsonify, abort
 from flask_login import login_user, login_required, logout_user, current_user
 from project import mail, db
 from project.models import (
@@ -32,7 +32,7 @@ import string
 import random
 from io import StringIO
 import logging
-from project.utils import safe_str_cmp, upload_file_to_s3, get_s3_url
+from project.utils import safe_str_cmp, upload_file_to_s3, get_s3_url, create_presigned_post
 from flask_session import Session  # Import the Session object from Flask-Session
 
 # Create a Blueprint named 'main'
@@ -703,6 +703,23 @@ def forbidden(e):
 
 
 
+@main.route('/sign_s3', methods=['POST'])
+@login_required
+def sign_s3():
+    data = request.get_json()
+    filename = data.get('filename')
+    file_type = data.get('file_type')
+    folder = data.get('folder', 'bids') # 'plans' or 'emails'
+
+    if not filename or not file_type:
+        return jsonify({'error': 'Missing filename or file_type'}), 400
+
+    presigned_data = create_presigned_post(filename, file_type, folder)
+    if not presigned_data:
+         return jsonify({'error': 'Could not generate signature'}), 500
+         
+    return jsonify(presigned_data)
+
 @main.route('/add_bid', methods=['GET', 'POST'])
 def add_bid():
     form = BidForm()
@@ -781,8 +798,12 @@ def add_bid():
         # Handle S3 Uploads
 
         
-        plan_key = upload_file_to_s3(form.plan_file.data, 'plans')
-        email_key = upload_file_to_s3(form.email_file.data, 'emails')
+        # Handle S3 Uploads (Direct or Fallback)
+        # Note: If Direct Upload was used, form.plan_key.data will contain the S3 key.
+        # If not, we try to upload the file object if present.
+        
+        plan_key = form.plan_key.data if form.plan_key.data else upload_file_to_s3(form.plan_file.data, 'plans')
+        email_key = form.email_key.data if form.email_key.data else upload_file_to_s3(form.email_file.data, 'emails')
 
         new_bid = Bid(
             plan_type=plan_type,

@@ -342,6 +342,9 @@ class BidForm(BaseForm):
     window_notes = TextAreaField('Window Notes', validators=[Optional()])
     door_notes = TextAreaField('Door Notes', validators=[Optional()])
 
+    plan_key = HiddenField()
+    email_key = HiddenField()
+
     plan_file = FileField('Plan PDF', validators=[Optional(), FileAllowed(['pdf'], 'PDFs only!')])
     email_file = FileField('Email/Doc', validators=[Optional(), FileAllowed(['pdf', 'msg', 'eml', 'png', 'jpg', 'jpeg'], 'Documents or Images!')])
 
