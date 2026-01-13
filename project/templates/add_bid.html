@@ -426,6 +426,8 @@
     // Toggle Flexible Bid Date
     const bidDateInput = document.getElementById('bid_date');
     const flexibleDateContainer = document.getElementById('flexible-date-container');
+    const flexibleDateCheckbox = document.getElementById('flexibleBidDate');
+
     // --- S3 Direct Upload Logic ---
     (function () {
         function initS3Upload(fileId, keyId, progressId, barId, statusId, folder) {
@@ -536,22 +538,21 @@
         initS3Upload('file_plan', 'plan_key', 'progress-container-plan', 'progress-bar-plan', 'status-plan', 'plans');
         initS3Upload('file_email', 'email_key', 'progress-container-email', 'progress-bar-email', 'status-email', 'emails');
     })();
-</script>
-{% endblock %}
-function toggleFlexibleDate() {
-if (bidDateInput.value) {
-flexibleDateContainer.style.display = 'block';
-} else {
-flexibleDateContainer.style.display = 'none';
-flexibleDateCheckbox.checked = false; // Reset if hidden
-}
-}
 
-if (bidDateInput) {
-bidDateInput.addEventListener('change', toggleFlexibleDate);
-// Also listen for input event just in case
-bidDateInput.addEventListener('input', toggleFlexibleDate);
-toggleFlexibleDate(); // Run on load
-}
+    function toggleFlexibleDate() {
+        if (bidDateInput.value) {
+            flexibleDateContainer.style.display = 'block';
+        } else {
+            flexibleDateContainer.style.display = 'none';
+            flexibleDateCheckbox.checked = false; // Reset if hidden
+        }
+    }
+
+    if (bidDateInput) {
+        bidDateInput.addEventListener('change', toggleFlexibleDate);
+        // Also listen for input event just in case
+        bidDateInput.addEventListener('input', toggleFlexibleDate);
+        toggleFlexibleDate(); // Run on load
+    }
 </script>
 {% endblock %}
