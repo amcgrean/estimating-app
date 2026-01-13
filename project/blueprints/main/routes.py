@@ -841,10 +841,9 @@ def add_bid():
             return redirect(url_for('main.index'))
         except Exception as e:
             db.session.rollback()
-        except Exception as e:
-            db.session.rollback()
-            flash(f'An error occurred: {str(e)}', 'danger')
-            return redirect(url_for('main.add_bid'))
+            current_app.logger.error(f"Error adding bid: {str(e)}")
+            flash(f'An error occurred while saving the bid: {str(e)}', 'danger')
+            return render_template('add_bid.html', form=form, customer_sales_rep_map=customer_sales_rep_map)
 
     else:
         if request.method == 'POST':
