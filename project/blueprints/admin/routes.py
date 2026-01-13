@@ -16,6 +16,7 @@ import chardet
 from flask_mail import Message
 from io import StringIO
 import logging
+from flask_migrate import upgrade
 
 admin = Blueprint('admin', __name__)
 logger = logging.getLogger(__name__)
@@ -692,4 +693,18 @@ def admin_dashboard():
         users_logged_in_today=users_logged_in_today,
         active_users=active_users
     )
+
+@admin.route('/perform_db_upgrade')
+@login_required
+def perform_db_upgrade():
+    if not current_user.is_admin:
+        flash('Access denied.', 'danger')
+        return redirect(url_for('main.index'))
+    
+    try:
+        # Run the upgrade
+        upgrade()
+        return "Database upgraded successfully! You can go back now."
+    except Exception as e:
+        return f"Error during upgrade: {str(e)}", 500
 
