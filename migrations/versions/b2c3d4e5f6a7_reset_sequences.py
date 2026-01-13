@@ -22,18 +22,19 @@ def upgrade():
     
     conn = op.get_bind()
     
+    inspector = sa.inspect(conn)
+    existing_tables = inspector.get_tables_names()
+
     for table in tables:
-        # Postgres specific command to reset sequence to max(id)
-        # We use execute() to run raw SQL
-        try:
-             # This SQL resets the sequence associated with the 'id' column of the table
-             # to the maximum value currently in the table.
-             # pg_get_serial_sequence gets the sequence name automatically.
-             conn.execute(sa.text(f"SELECT setval(pg_get_serial_sequence('{table}', 'id'), COALESCE((SELECT MAX(id) FROM {table}), 0) + 1, false);"))
-        except Exception as e:
-            print(f"Warning: Could not reset sequence for {table}: {e}")
-            # We don't raise here because some tables might not exist or have issues, 
-            # and we want to try the others.
+        if table in existing_tables:
+            columns = [c['name'] for c in inspector.get_columns(table)]
+            if 'id' in columns:
+                # Reset sequence safely
+                op.execute(sa.text(f"SELECT setval(pg_get_serial_sequence('{table}', 'id'), COALESCE((SELECT MAX(id) FROM {table}), 0) + 1, false);"))
+            else:
+                print(f"Skipping {table}: 'id' column not found.")
+        else:
+            print(f"Skipping {table}: Table not found.")
 
 
 def downgrade():
