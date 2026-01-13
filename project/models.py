@@ -42,6 +42,15 @@ class Bid(db.Model):
     door_notes = db.Column(db.Text, nullable=True)
     shingle_notes = db.Column(db.Text, nullable=True)
     
+    # Detailed Specs Relationships (One-to-One)
+    framing = db.relationship('Framing', backref='bid', uselist=False, cascade="all, delete-orphan")
+    siding = db.relationship('Siding', backref='bid', uselist=False, cascade="all, delete-orphan")
+    shingle = db.relationship('Shingle', backref='bid', uselist=False, cascade="all, delete-orphan")
+    deck = db.relationship('Deck', backref='bid', uselist=False, cascade="all, delete-orphan")
+    trim = db.relationship('Trim', backref='bid', uselist=False, cascade="all, delete-orphan")
+    window = db.relationship('Window', backref='bid', uselist=False, cascade="all, delete-orphan")
+    door = db.relationship('Door', backref='bid', uselist=False, cascade="all, delete-orphan")
+    
     # File Upload Paths (S3 Keys)
     plan_filename = db.Column(db.String(255), nullable=True)
     email_filename = db.Column(db.String(255), nullable=True)
@@ -162,7 +171,7 @@ class BidActivity(db.Model):
     action = db.Column(db.String(50), nullable=False)  # e.g., 'created', 'updated', 'deleted'
     timestamp = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
     user = db.relationship('User', backref=db.backref('bid_activities', lazy=True))
-    bid = db.relationship('Bid', backref=db.backref('activities', lazy=True))
+    bid = db.relationship('Bid', backref=db.backref('activities', lazy=True, cascade="all, delete-orphan"))
 
 class GeneralAudit(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -273,9 +282,10 @@ class Project(db.Model):
 class Framing(db.Model):
     __tablename__ = 'framing'
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
-    project_id = db.Column(db.Integer, db.ForeignKey('projects.id'), nullable=False)
-    plate = db.Column(db.String(50), nullable=False)
-    lot_type = db.Column(db.String(50), nullable=False)
+    project_id = db.Column(db.Integer, db.ForeignKey('projects.id'), nullable=True) # Deprecated
+    bid_id = db.Column(db.Integer, db.ForeignKey('bid.id'), nullable=True) # New Link
+    plate = db.Column(db.String(50), nullable=True)
+    lot_type = db.Column(db.String(50), nullable=True)
     basement_wall_height = db.Column(db.String(50), nullable=True)
     basement_exterior_walls = db.Column(db.String(50), nullable=False)
     basement_interior_walls = db.Column(db.String(50), nullable=False)
@@ -293,15 +303,17 @@ class Framing(db.Model):
     project = db.relationship('Project', backref=db.backref('framing', uselist=False))
 
 
+
 class Siding(db.Model):
     __tablename__ = 'siding'
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
-    project_id = db.Column(db.Integer, db.ForeignKey('projects.id'), nullable=False)
-    lap_type = db.Column(db.String(50), nullable=False)
-    panel_type = db.Column(db.String(50), nullable=False)
-    shake_type = db.Column(db.String(50), nullable=False)
-    soffit_trim = db.Column(db.String(50), nullable=False)
-    window_trim_detail = db.Column(db.String(50), nullable=False)
+    project_id = db.Column(db.Integer, db.ForeignKey('projects.id'), nullable=True)
+    bid_id = db.Column(db.Integer, db.ForeignKey('bid.id'), nullable=True)
+    lap_type = db.Column(db.String(50), nullable=True)
+    panel_type = db.Column(db.String(50), nullable=True)
+    shake_type = db.Column(db.String(50), nullable=True)
+    soffit_trim = db.Column(db.String(50), nullable=True)
+    window_trim_detail = db.Column(db.String(50), nullable=True)
     siding_notes = db.Column(db.Text, nullable=True)
 
     project = db.relationship('Project', backref=db.backref('siding', uselist=False))
@@ -310,8 +322,9 @@ class Siding(db.Model):
 class Shingle(db.Model):
     __tablename__ = 'shingle'
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
-    project_id = db.Column(db.Integer, db.ForeignKey('projects.id'), nullable=False)
-    shingle_notes = db.Column(db.Text, nullable=False)
+    project_id = db.Column(db.Integer, db.ForeignKey('projects.id'), nullable=True)
+    bid_id = db.Column(db.Integer, db.ForeignKey('bid.id'), nullable=True)
+    shingle_notes = db.Column(db.Text, nullable=True)
 
     project = db.relationship('Project', backref=db.backref('shingle', uselist=False))
 
@@ -319,10 +332,11 @@ class Shingle(db.Model):
 class Deck(db.Model):
     __tablename__ = 'deck'
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
-    project_id = db.Column(db.Integer, db.ForeignKey('projects.id'), nullable=False)
-    decking_type = db.Column(db.String(50), nullable=False)
-    railing_type = db.Column(db.String(50), nullable=False)
-    stairs = db.Column(db.String(50), nullable=False)
+    project_id = db.Column(db.Integer, db.ForeignKey('projects.id'), nullable=True)
+    bid_id = db.Column(db.Integer, db.ForeignKey('bid.id'), nullable=True)
+    decking_type = db.Column(db.String(50), nullable=True)
+    railing_type = db.Column(db.String(50), nullable=True)
+    stairs = db.Column(db.String(50), nullable=True)
     deck_notes = db.Column(db.Text, nullable=True)
 
     project = db.relationship('Project', backref=db.backref('deck', uselist=False))
@@ -331,8 +345,9 @@ class Deck(db.Model):
 class Door(db.Model):
     __tablename__ = 'door'
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
-    project_id = db.Column(db.Integer, db.ForeignKey('projects.id'), nullable=False)
-    door_notes = db.Column(db.Text, nullable=False)
+    project_id = db.Column(db.Integer, db.ForeignKey('projects.id'), nullable=True)
+    bid_id = db.Column(db.Integer, db.ForeignKey('bid.id'), nullable=True)
+    door_notes = db.Column(db.Text, nullable=True)
 
     project = db.relationship('Project', backref=db.backref('door', uselist=False))
 
@@ -340,8 +355,9 @@ class Door(db.Model):
 class Window(db.Model):
     __tablename__ = 'window'
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
-    project_id = db.Column(db.Integer, db.ForeignKey('projects.id'), nullable=False)
-    window_notes = db.Column(db.Text, nullable=False)
+    project_id = db.Column(db.Integer, db.ForeignKey('projects.id'), nullable=True)
+    bid_id = db.Column(db.Integer, db.ForeignKey('bid.id'), nullable=True)
+    window_notes = db.Column(db.Text, nullable=True)
 
     project = db.relationship('Project', backref=db.backref('window', uselist=False))
 
@@ -349,16 +365,17 @@ class Window(db.Model):
 class Trim(db.Model):
     __tablename__ = 'trim'
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
-    project_id = db.Column(db.Integer, db.ForeignKey('projects.id'), nullable=False)
-    base = db.Column(db.String(50), nullable=False)
-    case = db.Column(db.String(50), nullable=False)
-    stair_material = db.Column(db.String(50), nullable=False)
-    door_material_type = db.Column(db.String(50), nullable=False)
-    number_of_panels = db.Column(db.String(50), nullable=False)
-    door_hardware = db.Column(db.String(50), nullable=False)
-    built_in_materials_type = db.Column(db.String(50), nullable=False)
+    project_id = db.Column(db.Integer, db.ForeignKey('projects.id'), nullable=True)
+    bid_id = db.Column(db.Integer, db.ForeignKey('bid.id'), nullable=True)
+    base = db.Column(db.String(50), nullable=True)
+    case = db.Column(db.String(50), nullable=True)
+    stair_material = db.Column(db.String(50), nullable=True)
+    door_material_type = db.Column(db.String(50), nullable=True)
+    number_of_panels = db.Column(db.String(50), nullable=True)
+    door_hardware = db.Column(db.String(50), nullable=True)
+    built_in_materials_type = db.Column(db.String(50), nullable=True)
     plywood_1x_count = db.Column(db.String(50), nullable=True)
-    specify_count = db.Column(db.String(50), nullable=False)
+    specify_count = db.Column(db.String(50), nullable=True)
     trim_allowance = db.Column(db.String(50), nullable=True)
     trim_notes = db.Column(db.Text, nullable=True)
 
