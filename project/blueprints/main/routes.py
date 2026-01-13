@@ -977,6 +977,12 @@ def manage_bid(bid_id):
             flash('Sales Reps do not have permission to update bids.', 'danger')
             return redirect(url_for('main.manage_bid', bid_id=bid.id))
 
+        # Validate and Clean ID fields before populate
+        if form.sales_rep_id.data == 0:
+            form.sales_rep_id.data = None
+        if form.estimator_id.data == 0:
+            form.estimator_id.data = None
+            
         form.populate_obj(bid)
         
         # Handle New File Uploads
@@ -1006,7 +1012,8 @@ def manage_bid(bid_id):
     elif request.method == 'POST':
         print(f"DEBUG: Form validation failed: {form.errors}") # DEBUG LOG
         flash(f'Error updating bid: {form.errors}', 'danger')
-    return render_template('manage_bid.html', bid=bid, form=form)
+        
+    return render_template('manage_bid.html', bid=bid, form=form, get_s3_url=get_s3_url)
 
 @main.route('/delete_bid/<int:bid_id>', methods=['POST'])
 @login_required
