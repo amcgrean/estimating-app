@@ -712,10 +712,31 @@ def sign_s3():
     data = request.get_json()
     filename = data.get('filename')
     file_type = data.get('file_type')
-    folder = data.get('folder', 'bids') # 'plans' or 'emails'
+    customer_id = data.get('customer_id')
+    bid_id = data.get('bid_id')
+    
+    # Default folder if no customer info
+    folder = data.get('folder', 'bids') 
 
     if not filename or not file_type:
         return jsonify({'error': 'Missing filename or file_type'}), 400
+        
+    # Construct organized path if customer provided
+    if customer_id:
+        try:
+            customer = Customer.query.get(customer_id)
+            if customer:
+                current_year = datetime.now().year
+                cust_code = customer.customerCode
+                # Use 'New' if its a new bid (no ID yet), or the Bid ID
+                sub_folder = str(bid_id) if bid_id else 'New'
+                
+                # Format: 2025/CUSTCODE/105
+                folder = f"{current_year}/{cust_code}/{sub_folder}"
+        except Exception as e:
+            current_app.logger.error(f"Error generating S3 path: {e}")
+            # Fallback to default folder on error
+            pass
 
     presigned_data = create_presigned_post(filename, file_type, folder)
     if not presigned_data:
@@ -960,9 +981,12 @@ def manage_bid(bid_id):
         
         # Handle New File Uploads
         bid_files_json = request.form.get('bid_files_json')
+        print(f"DEBUG: Received bid_files_json: {bid_files_json}") # DEBUG LOG
+        
         if bid_files_json:
             try:
                 files_data = json.loads(bid_files_json)
+                print(f"DEBUG: Parsed {len(files_data)} files.") # DEBUG LOG
                 for file_data in files_data:
                     new_file = BidFile(
                         file_key=file_data['key'],
@@ -971,12 +995,17 @@ def manage_bid(bid_id):
                         bid=bid # Link to the existing bid
                     )
                     db.session.add(new_file)
+                    print(f"DEBUG: Added file {new_file.filename}") # DEBUG LOG
             except Exception as e:
                 current_app.logger.error(f"Error parsing bid_files_json in manage_bid: {e}")
+                print(f"DEBUG Error: {e}")
 
         db.session.commit()
         flash('Bid updated successfully!', 'success')
         return redirect(url_for('main.open_bids'))
+    elif request.method == 'POST':
+        print(f"DEBUG: Form validation failed: {form.errors}") # DEBUG LOG
+        flash(f'Error updating bid: {form.errors}', 'danger')
     return render_template('manage_bid.html', bid=bid, form=form)
 
 @main.route('/delete_bid/<int:bid_id>', methods=['POST'])

@@ -495,6 +495,8 @@
                 statusText.textContent = 'Signing upload...';
 
                 // 1. Get Presigned URL
+                var customerId = document.getElementById('customer_id') ? document.getElementById('customer_id').value : null;
+
                 fetch("{{ url_for('main.sign_s3') }}", {
                     method: 'POST',
                     headers: {
@@ -504,7 +506,8 @@
                     body: JSON.stringify({
                         filename: file.name,
                         file_type: file.type || 'application/octet-stream',
-                        folder: folder
+                        folder: folder,
+                        customer_id: customerId // Pass customer ID for folder organization
                     })
                 })
                     .then(response => {
@@ -622,6 +625,8 @@
             statusText.textContent = 'Signing...';
 
             // 1. Get Presigned URL
+            var customerId = document.getElementById('customer_id') ? document.getElementById('customer_id').value : null;
+
             fetch("{{ url_for('main.sign_s3') }}", {
                 method: 'POST',
                 headers: {
@@ -631,7 +636,8 @@
                 body: JSON.stringify({
                     filename: file.name,
                     file_type: file.type || 'application/octet-stream',
-                    folder: 'misc' // Use 'misc' or 'bids'
+                    folder: 'misc', // Fallback, override by backend if customer_id present
+                    customer_id: customerId
                 })
             })
                 .then(response => response.json())

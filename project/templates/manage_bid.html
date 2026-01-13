@@ -318,6 +318,10 @@
             statusText.textContent = 'Signing...';
 
             // 1. Get Presigned URL
+            // For manage_bid, we can get customer_id from the form or the bid object. Form is safer if they changed it, but bid ID is fixed.
+            var customerId = document.getElementById('customer_id') ? document.getElementById('customer_id').value : "{{ bid.customer_id }}";
+            var bidId = "{{ bid.id }}";
+
             fetch("{{ url_for('main.sign_s3') }}", {
                 method: 'POST',
                 headers: {
@@ -327,7 +331,9 @@
                 body: JSON.stringify({
                     filename: file.name,
                     file_type: file.type || 'application/octet-stream',
-                    folder: 'misc' // Use 'misc' or 'bids'
+                    folder: 'bids',
+                    customer_id: customerId,
+                    bid_id: bidId
                 })
             })
                 .then(response => response.json())
