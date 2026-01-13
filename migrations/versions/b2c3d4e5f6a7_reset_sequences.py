@@ -23,7 +23,7 @@ def upgrade():
     conn = op.get_bind()
     
     inspector = sa.inspect(conn)
-    existing_tables = inspector.get_tables_names()
+    existing_tables = inspector.get_table_names()
 
     for table in tables:
         if table in existing_tables:
