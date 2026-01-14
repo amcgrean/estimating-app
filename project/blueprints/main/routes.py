@@ -806,11 +806,28 @@ def add_bid():
     form = BidForm()
 
     # Determine the branch_id for populating choices
-    selected_branch_id = form.branch_id.data
+    selected_branch_id = None
+    
+    # 1. Try form data (if POST/bound) - Check if 'branch_id' field exists in form
+    if hasattr(form, 'branch_id') and form.branch_id.data:
+        selected_branch_id = form.branch_id.data
+
+    # 2. Try query param
     if selected_branch_id is None:
         selected_branch_id = request.args.get('branch_id', type=int)
-    
+        
+    # 3. Try session (Global dropdown)
     if selected_branch_id is None:
+        from flask import session
+        sess_branch = session.get('branch_id')
+        if sess_branch is not None:
+            try:
+                selected_branch_id = int(sess_branch)
+            except (ValueError, TypeError):
+                selected_branch_id = None
+    
+    # 4. Fallback to user's branch
+    if selected_branch_id is None and current_user.is_authenticated:
          selected_branch_id = current_user.user_branch_id
 
 
