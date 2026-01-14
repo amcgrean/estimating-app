@@ -4,7 +4,7 @@ from project import db, mail
 from datetime import date
 from sqlalchemy import func, cast, Date
 from project.models import User, UserType, Customer, Bid, Estimator, Branch, SalesRep, UserSecurity, Design, LoginActivity, NotificationRule
-from project.forms import UserForm, UpdateUserForm, UploadForm, CustomerForm, UserTypeForm, UserSecurityForm, SearchForm
+from project.forms import UserForm, UpdateUserForm, UploadForm, CustomerForm, UserTypeForm, UserSecurityForm, SearchForm, NotificationRuleForm
 from werkzeug.utils import secure_filename
 from werkzeug.security import generate_password_hash
 import csv
