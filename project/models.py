@@ -89,7 +89,9 @@ class Bid(db.Model):
             target.last_updated_by = 'System/Script'
         target.last_updated_at = datetime.utcnow()
 
-    db.event.listen(Bid, 'before_update', Bid.before_update)
+
+# Event listener moved outside the class definition
+db.event.listen(Bid, 'before_update', Bid.before_update)
 
 
 class BidFile(db.Model):
