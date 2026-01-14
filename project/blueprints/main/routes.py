@@ -1022,7 +1022,7 @@ def manage_bid(bid_id):
 @main.route('/delete_bid/<int:bid_id>', methods=['POST'])
 @login_required
 def delete_bid(bid_id):
-    if current_user.usertype.name not in ['Estimator', 'Admin']:
+    if current_user.usertype.name not in ['Estimator', 'Admin', 'Administrator']:
         flash('You do not have permission to delete bids.', 'danger')
         return redirect(url_for('main.index'))
 
