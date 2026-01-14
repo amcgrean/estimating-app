@@ -825,10 +825,38 @@ def add_bid():
     form.estimator_id.choices = get_branch_estimators(selected_branch_id)
     
     # Populate Sales Reps
-    # Assuming we want all Sales Reps, or filtered by branch. 
-    # For now, let's get all UserType='Sales Rep' or similar. 
-    # Actually, SalesRep is its own table.
-    sales_reps = SalesRep.query.order_by(SalesRep.name).all()
+    # Filter by Branch using the User table link
+    if selected_branch_id and selected_branch_id != 0:
+        # Find Users who are 'Sales Rep' type and belong to this branch
+        branch_rep_users = User.query\
+            .join(UserType)\
+            .filter(UserType.name == 'Sales Rep')\
+            .filter(User.user_branch_id == selected_branch_id)\
+            .all()
+        
+        # Extract unique SalesRep entities from these Users
+        sales_reps = []
+        seen_ids = set()
+        for u in branch_rep_users:
+            if u.sales_rep and u.sales_rep.id not in seen_ids:
+                sales_reps.append(u.sales_rep)
+                seen_ids.add(u.sales_rep.id)
+        
+        # Sort by name
+        sales_reps.sort(key=lambda x: x.name)
+        
+        # Fallback: If no reps found for branch (maybe new branch), show all? 
+        # Or strict? User likely wants strict. 
+        # But safeguards: if logged in user is sales rep, ensure they are in list?
+        if current_user.usertype.name == 'Sales Rep' and current_user.sales_rep:
+             if current_user.sales_rep.id not in seen_ids:
+                 sales_reps.append(current_user.sales_rep)
+                 sales_reps.sort(key=lambda x: x.name)
+        
+    else:
+        # specific branch not selected (or 'All'), show all
+        sales_reps = SalesRep.query.order_by(SalesRep.name).all()
+
     form.sales_rep_id.choices = [(0, 'Select Sales Rep')] + [(rep.id, rep.name) for rep in sales_reps]
     
     # Fetch Dynamic Fields
