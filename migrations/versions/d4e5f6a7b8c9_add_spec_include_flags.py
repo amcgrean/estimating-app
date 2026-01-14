@@ -17,20 +17,24 @@ depends_on = None
 
 
 def upgrade():
-    # Add new boolean columns to bid table
-    # Using server_default ensures existing rows get False
-    op.add_column('bid', sa.Column('include_specs', sa.Boolean(), server_default='false', nullable=True))
-    op.add_column('bid', sa.Column('include_framing', sa.Boolean(), server_default='false', nullable=True))
-    op.add_column('bid', sa.Column('include_siding', sa.Boolean(), server_default='false', nullable=True))
-    op.add_column('bid', sa.Column('include_shingle', sa.Boolean(), server_default='false', nullable=True))
-    op.add_column('bid', sa.Column('include_deck', sa.Boolean(), server_default='false', nullable=True))
-    op.add_column('bid', sa.Column('include_trim', sa.Boolean(), server_default='false', nullable=True))
-    op.add_column('bid', sa.Column('include_window', sa.Boolean(), server_default='false', nullable=True))
-    op.add_column('bid', sa.Column('include_door', sa.Boolean(), server_default='false', nullable=True))
-    
-    # Add date fields
-    op.add_column('bid', sa.Column('bid_date', sa.DateTime(), nullable=True))
-    op.add_column('bid', sa.Column('flexible_bid_date', sa.Boolean(), server_default='false', nullable=True))
+    conn = op.get_bind()
+    inspector = sa.inspect(conn)
+    columns = [c['name'] for c in inspector.get_columns('bid')]
+
+    # Add new boolean columns to bid table if they don't exist
+    new_bool_cols = [
+        'include_specs', 'include_framing', 'include_siding', 
+        'include_shingle', 'include_deck', 'include_trim', 
+        'include_window', 'include_door', 'flexible_bid_date'
+    ]
+
+    for col in new_bool_cols:
+        if col not in columns:
+            op.add_column('bid', sa.Column(col, sa.Boolean(), server_default='false', nullable=True))
+
+    # Add date field
+    if 'bid_date' not in columns:
+        op.add_column('bid', sa.Column('bid_date', sa.DateTime(), nullable=True))
 
 
 def downgrade():
