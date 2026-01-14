@@ -1941,12 +1941,12 @@ def fix_and_upgrade():
         messages = []
         messages.append(f"Initial Revision: {current_rev}")
         
-        if current_rev == dead_end_rev:
-            db.session.execute(text(f"UPDATE alembic_version SET version_num = '{new_parent_rev}' WHERE version_num = '{dead_end_rev}'"))
+        if current_rev == dead_end_rev or current_rev == 'manual_initial':
+            db.session.execute(text(f"UPDATE alembic_version SET version_num = '{new_parent_rev}'"))
             db.session.commit()
-            messages.append(f"FIX APPLIED: Updated alembic_version from {dead_end_rev} to {new_parent_rev}")
+            messages.append(f"FIX APPLIED: Forced alembic_version from {current_rev} to {new_parent_rev}")
         else:
-            messages.append(f"No version fix needed (Not at {dead_end_rev})")
+            messages.append(f"No version fix needed (Not at {dead_end_rev} or manual_initial)")
             
         # 2. Run Upgrade
         from flask_migrate import upgrade as flask_migrate_upgrade
