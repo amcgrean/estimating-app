@@ -3,7 +3,7 @@ from flask_login import login_required, current_user
 from project import db, mail
 from datetime import date
 from sqlalchemy import func, cast, Date
-from project.models import User, UserType, Customer, Bid, Estimator, Branch, SalesRep, UserSecurity, Design, LoginActivity, NotificationRule
+from project.models import User, UserType, Customer, Bid, Estimator, Branch, UserSecurity, Design, LoginActivity, NotificationRule
 from project.forms import UserForm, UpdateUserForm, UploadForm, CustomerForm, UserTypeForm, UserSecurityForm, SearchForm, NotificationRuleForm
 from werkzeug.utils import secure_filename
 from werkzeug.security import generate_password_hash
@@ -182,7 +182,6 @@ def upload_users():
         csv_input = csv.reader(stream)
         headers = next(csv_input)  # Skip the header row
         users_to_add = []
-        sales_reps_to_add = []
 
         for row in csv_input:
             if len(row) < 4:  # Make sure the row has enough columns
@@ -206,18 +205,6 @@ def upload_users():
         # Bulk add users to the database
         db.session.bulk_save_objects(users_to_add)
         db.session.flush()  # Flush to assign IDs without committing
-
-        # Create sales reps and link them to users
-        for user in users_to_add:
-            sales_rep = SalesRep(name=user.username, username=user.username)
-            sales_reps_to_add.append(sales_rep)
-
-        db.session.bulk_save_objects(sales_reps_to_add)
-        db.session.flush()  # Flush to assign IDs
-
-        # Link sales reps to users
-        for user, sales_rep in zip(users_to_add, sales_reps_to_add):
-            user.sales_rep_id = sales_rep.id
 
         db.session.commit()  # Final commit after all operations
 
@@ -525,114 +512,8 @@ def user_security():
 
     return render_template('user_security.html', form=form, usertypes=usertypes)
 
-@admin.route('/manage_sales_reps', methods=['GET', 'POST'])
-@login_required
-def manage_sales_reps():
-    if not current_user.is_admin:
-        flash('Access denied.', 'danger')
-        return redirect(url_for('main.index'))
-
-    # Get all current sales reps
-    sales_reps = SalesRep.query.all()
-
-    # Get users who are not yet tied to a sales rep
-    available_users = User.query.filter(User.sales_rep_id == None).all()
-
-    if request.method == 'POST':
-        if 'add_sales_rep' in request.form:
-            # Adding a new Sales Rep
-            user_id = request.form.get('user_id')
-            user = User.query.get(user_id)
-            if user:
-                # Create a new SalesRep entry
-                new_sales_rep = SalesRep(name=user.username, username=user.username)
-                db.session.add(new_sales_rep)
-                db.session.flush()  # Get the new sales rep ID
-                # Update the user with the new sales_rep_id
-                user.sales_rep_id = new_sales_rep.id
-                db.session.commit()
-                flash(f"User {user.username} has been added as a sales rep.", "success")
-                return redirect(url_for('admin.manage_sales_reps'))
-
-        elif 'remove_sales_rep' in request.form:
-            # Removing a Sales Rep
-            sales_rep_id = request.form.get('sales_rep_id')
-            sales_rep = SalesRep.query.get(sales_rep_id)
-            if sales_rep:
-                # Remove the sales_rep_id from the associated user
-                for user in sales_rep.users:
-                    user.sales_rep_id = None
-                db.session.delete(sales_rep)
-                db.session.commit()
-                flash(f"Sales rep {sales_rep.name} has been removed.", "success")
-                return redirect(url_for('admin.manage_sales_reps'))
-
-    return render_template(
-        'manage_sales_reps.html',
-        sales_reps=sales_reps,
-        available_users=available_users
-    )
-
-@admin.route('/upload_sales_reps_csv', methods=['POST'])
-@login_required
-def upload_sales_reps_csv():
-    if not current_user.is_admin:
-        flash('Access denied.', 'danger')
-        return redirect(url_for('main.index'))
-
-    if 'file' not in request.files:
-        flash('No file part', 'danger')
-        return redirect(url_for('admin.manage_sales_reps'))
-    
-    file = request.files['file']
-    if file.filename == '':
-        flash('No selected file', 'danger')
-        return redirect(url_for('admin.manage_sales_reps'))
-
-    if file:
-        try:
-            filename = secure_filename(file.filename)
-            raw_data = file.read()
-            result = chardet.detect(raw_data)
-            encoding = result['encoding'] or 'utf-8'
-
-            stream = io.StringIO(raw_data.decode(encoding), newline=None)
-            csv_input = csv.reader(stream)
-            try:
-                header = next(csv_input)  # Skip header
-            except StopIteration:
-                 flash("CSV file is empty", "danger")
-                 return redirect(url_for('admin.manage_sales_reps'))
-
-            added_count = 0
-            for row in csv_input:
-                if len(row) < 2:
-                    continue
-                
-                name = row[0].strip()
-                username = row[1].strip()
-                
-                if not name or not username:
-                    continue
-
-                existing_rep = SalesRep.query.filter_by(username=username).first()
-                if not existing_rep:
-                    new_rep = SalesRep(name=name, username=username)
-                    db.session.add(new_rep)
-                    added_count += 1
-            
-            db.session.commit()
-            if added_count > 0:
-                flash(f'Successfully imported {added_count} sales reps.', 'success')
-            else:
-                flash('No new sales reps added. Check if they already exist.', 'info')
-
-        except Exception as e:
-            db.session.rollback()
-            flash(f'Error processing file: {str(e)}', 'danger')
-            logger.error(f'Error uploading sales reps CSV: {e}')
-            
-    return redirect(url_for('admin.manage_sales_reps'))
+# Sales Rep management routes removed as SalesRep table is deprecated.
+# Sales Reps are now managed via User roles.
 
 @admin.route('/user_type', methods=['GET', 'POST'])
 @login_required
