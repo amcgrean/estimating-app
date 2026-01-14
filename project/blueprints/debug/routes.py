@@ -14,9 +14,9 @@ def fix_and_upgrade():
 
     try:
         # 1. Fix Head
-        dead_end_rev = 'b2c3d4e5f6a7'
-        # The new parent should be the one BEFORE the split.
-        new_parent_rev = 'd9319f6e738f' 
+        # b2c3 is no longer a dead end; it is the valid parent of the new chain.
+        # We only need to fix if we are at 'manual_initial' or unknown.
+        new_valid_rev = 'b2c3d4e5f6a7'
         
         # Check current revision
         result = db.session.execute(text("SELECT version_num FROM alembic_version"))
@@ -25,14 +25,16 @@ def fix_and_upgrade():
         messages = []
         messages.append(f"Initial Revision: {current_rev}")
         
-        if current_rev == dead_end_rev or current_rev == 'manual_initial':
-            db.session.execute(text(f"UPDATE alembic_version SET version_num = '{new_parent_rev}'"))
+        if current_rev == 'manual_initial':
+            db.session.execute(text(f"UPDATE alembic_version SET version_num = '{new_valid_rev}'"))
             db.session.commit()
-            messages.append(f"FIX APPLIED: Forced alembic_version from {current_rev} to {new_parent_rev}")
+            messages.append(f"FIX APPLIED: Forced alembic_version from {current_rev} to {new_valid_rev}")
             messages.append("IMPORTANT: Please REFRESH this page to run the upgrade now that the version is fixed.")
             return "<br>".join(messages)
+        elif current_rev == 'b2c3d4e5f6a7':
+             messages.append(f"Version is {current_rev} (Valid). Proceeding to upgrade.")
         else:
-            messages.append(f"No version fix needed (Not at {dead_end_rev} or manual_initial)")
+            messages.append(f"Current version {current_rev}. Attempting upgrade...")
             
         # 2. Run Upgrade
         from flask_migrate import upgrade as flask_migrate_upgrade
