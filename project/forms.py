@@ -322,7 +322,16 @@ class BidForm(BaseForm):
     # New Enhancement Fields
     bid_date = DateField('Bid Date', format='%Y-%m-%d', validators=[Optional()])
     flexible_bid_date = BooleanField('Flexible Bid Date')
-    include_specs = BooleanField('Include Specs')
+    
+    # Spec Controls
+    include_specs = BooleanField('Include Specs') # Master toggle
+    include_framing = BooleanField('Include Framing')
+    include_siding = BooleanField('Include Siding')
+    include_shingle = BooleanField('Include Shingle')
+    include_deck = BooleanField('Include Deck')
+    include_trim = BooleanField('Include Trim')
+    include_window = BooleanField('Include Window')
+    include_door = BooleanField('Include Door')
     
     # Nested Detailed Specs Forms
     framing = FormField(FramingForm)

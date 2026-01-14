@@ -31,9 +31,20 @@ class Bid(db.Model):
     completion_date = db.Column(db.DateTime, nullable=True)
     
     # New Fields for Enhancements
+    # New Fields for Enhancements
     bid_date = db.Column(db.DateTime, nullable=True)
     flexible_bid_date = db.Column(db.Boolean, default=False)
-    include_specs = db.Column(db.Boolean, default=False)
+    
+    # Spec Include Flags (Control visibility and validation)
+    include_specs = db.Column(db.Boolean, default=False) # Master toggle
+    include_framing = db.Column(db.Boolean, default=False)
+    include_siding = db.Column(db.Boolean, default=False)
+    include_shingle = db.Column(db.Boolean, default=False)
+    include_deck = db.Column(db.Boolean, default=False)
+    include_trim = db.Column(db.Boolean, default=False)
+    include_window = db.Column(db.Boolean, default=False)
+    include_door = db.Column(db.Boolean, default=False)
+
     framing_notes = db.Column(db.Text, nullable=True)
     siding_notes = db.Column(db.Text, nullable=True)
     deck_notes = db.Column(db.Text, nullable=True)

@@ -213,11 +213,51 @@
                     <i class="fas fa-list-alt mr-2 small"></i> MODULE SPECIFICATIONS
                 </h5>
 
-                <!-- Grid Layout for Specs (No Tabs) -->
-                <div class="row">
-                    <!-- Column 1: Structurals & Deck -->
-                    <div class="col-lg-6">
-                        <!-- Framing Card -->
+                <!-- Section Toggles -->
+                <div class="row mb-4">
+                    <div class="col-12">
+                        <label class="font-weight-600 small text-uppercase tracking-wider mb-2">Select Sections to
+                            Include:</label>
+                        <div class="d-flex flex-wrap gap-3">
+                            <div class="custom-control custom-checkbox mr-3 mb-2">
+                                {{ form.include_framing(class="custom-control-input section-toggle",
+                                id="toggle_framing") }}
+                                <label class="custom-control-label" for="toggle_framing">Framing</label>
+                            </div>
+                            <div class="custom-control custom-checkbox mr-3 mb-2">
+                                {{ form.include_siding(class="custom-control-input section-toggle", id="toggle_siding")
+                                }}
+                                <label class="custom-control-label" for="toggle_siding">Siding</label>
+                            </div>
+                            <div class="custom-control custom-checkbox mr-3 mb-2">
+                                {{ form.include_shingle(class="custom-control-input section-toggle",
+                                id="toggle_shingle") }}
+                                <label class="custom-control-label" for="toggle_shingle">Shingles</label>
+                            </div>
+                            <div class="custom-control custom-checkbox mr-3 mb-2">
+                                {{ form.include_deck(class="custom-control-input section-toggle", id="toggle_deck") }}
+                                <label class="custom-control-label" for="toggle_deck">Deck</label>
+                            </div>
+                            <div class="custom-control custom-checkbox mr-3 mb-2">
+                                {{ form.include_trim(class="custom-control-input section-toggle", id="toggle_trim") }}
+                                <label class="custom-control-label" for="toggle_trim">Trim</label>
+                            </div>
+                            <div class="custom-control custom-checkbox mr-3 mb-2">
+                                {{ form.include_window(class="custom-control-input section-toggle", id="toggle_window")
+                                }}
+                                <label class="custom-control-label" for="toggle_window">Window</label>
+                            </div>
+                            <div class="custom-control custom-checkbox mr-3 mb-2">
+                                {{ form.include_door(class="custom-control-input section-toggle", id="toggle_door") }}
+                                <label class="custom-control-label" for="toggle_door">Door</label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Framing Section (Full Width) -->
+                <div class="row" id="section-framing" style="display:none;">
+                    <div class="col-12">
                         <div class="card mb-4 shadow-sm">
                             <div class="card-header bg-light py-2">
                                 <h6 class="mb-0 text-primary font-weight-bold"><i class="fas fa-hammer mr-2"></i>
@@ -229,79 +269,7 @@
                                     {% if field.type == 'CSRFTokenField' or field.type == 'HiddenField' %}
                                     {{ field() }}
                                     {% elif field.type != 'CSRFTokenField' and field.type != 'HiddenField' %}
-                                    <div class="col-md-6 mb-3">
-                                        <label class="font-weight-600 small text-uppercase text-muted mb-1">{{
-                                            field.label.text }}</label>
-                                        {{ field(class="form-control form-control-sm") }}
-                                    </div>
-                                    {% endif %}
-                                    {% endfor %}
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- Deck Card -->
-                        <div class="card mb-4 shadow-sm">
-                            <div class="card-header bg-light py-2">
-                                <h6 class="mb-0 text-success font-weight-bold"><i class="fas fa-umbrella mr-2"></i> Deck
-                                </h6>
-                            </div>
-                            <div class="card-body">
-                                <div class="row">
-                                    {% for field in form.deck %}
-                                    {% if field.type == 'CSRFTokenField' or field.type == 'HiddenField' %}
-                                    {{ field() }}
-                                    {% elif field.type != 'CSRFTokenField' and field.type != 'HiddenField' %}
-                                    <div class="col-md-6 mb-3">
-                                        <label class="font-weight-600 small text-uppercase text-muted mb-1">{{
-                                            field.label.text }}</label>
-                                        {{ field(class="form-control form-control-sm") }}
-                                    </div>
-                                    {% endif %}
-                                    {% endfor %}
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Column 2: Exterior Handling -->
-                    <div class="col-lg-6">
-                        <!-- Siding Card -->
-                        <div class="card mb-4 shadow-sm">
-                            <div class="card-header bg-light py-2">
-                                <h6 class="mb-0 text-info font-weight-bold"><i class="fas fa-layer-group mr-2"></i>
-                                    Siding</h6>
-                            </div>
-                            <div class="card-body">
-                                <div class="row">
-                                    {% for field in form.siding %}
-                                    {% if field.type == 'CSRFTokenField' or field.type == 'HiddenField' %}
-                                    {{ field() }}
-                                    {% elif field.type != 'CSRFTokenField' and field.type != 'HiddenField' %}
-                                    <div class="col-md-6 mb-3">
-                                        <label class="font-weight-600 small text-uppercase text-muted mb-1">{{
-                                            field.label.text }}</label>
-                                        {{ field(class="form-control form-control-sm") }}
-                                    </div>
-                                    {% endif %}
-                                    {% endfor %}
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- Trim Card -->
-                        <div class="card mb-4 shadow-sm">
-                            <div class="card-header bg-light py-2">
-                                <h6 class="mb-0 text-warning font-weight-bold"><i
-                                        class="fas fa-ruler-combined mr-2"></i> Trim</h6>
-                            </div>
-                            <div class="card-body">
-                                <div class="row">
-                                    {% for field in form.trim %}
-                                    {% if field.type == 'CSRFTokenField' or field.type == 'HiddenField' %}
-                                    {{ field() }}
-                                    {% elif field.type != 'CSRFTokenField' and field.type != 'HiddenField' %}
-                                    <div class="col-md-6 mb-3">
+                                    <div class="col-md-4 mb-3">
                                         <label class="font-weight-600 small text-uppercase text-muted mb-1">{{
                                             field.label.text }}</label>
                                         {{ field(class="form-control form-control-sm") }}
@@ -314,9 +282,117 @@
                     </div>
                 </div>
 
-                <!-- Row 2: Windows, Doors, Roof -->
+                <!-- Siding Section (Full Width) -->
+                <div class="row" id="section-siding" style="display:none;">
+                    <div class="col-12">
+                        <div class="card mb-4 shadow-sm">
+                            <div class="card-header bg-light py-2">
+                                <h6 class="mb-0 text-info font-weight-bold"><i class="fas fa-layer-group mr-2"></i>
+                                    Siding</h6>
+                            </div>
+                            <div class="card-body">
+                                <div class="row">
+                                    {% for field in form.siding %}
+                                    {% if field.type == 'CSRFTokenField' or field.type == 'HiddenField' %}
+                                    {{ field() }}
+                                    {% elif field.type != 'CSRFTokenField' and field.type != 'HiddenField' %}
+                                    <div class="col-md-4 mb-3">
+                                        <label class="font-weight-600 small text-uppercase text-muted mb-1">{{
+                                            field.label.text }}</label>
+                                        {{ field(class="form-control form-control-sm") }}
+                                    </div>
+                                    {% endif %}
+                                    {% endfor %}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Shingle/Roof Section (Full Width - Moved here) -->
+                <div class="row" id="section-shingle" style="display:none;">
+                    <div class="col-12">
+                        <div class="card mb-4 shadow-sm">
+                            <div class="card-header bg-light py-2">
+                                <h6 class="mb-0 text-secondary font-weight-bold"><i class="fas fa-home mr-2"></i>
+                                    Shingle/Roof</h6>
+                            </div>
+                            <div class="card-body">
+                                <div class="row">
+                                    {% for field in form.shingle %}
+                                    {% if field.type == 'CSRFTokenField' or field.type == 'HiddenField' %}
+                                    {{ field() }}
+                                    {% elif field.type != 'CSRFTokenField' and field.type != 'HiddenField' %}
+                                    <div class="col-md-12 mb-2">
+                                        <label class="font-weight-600 small text-uppercase text-muted mb-1">{{
+                                            field.label.text }}</label>
+                                        {{ field(class="form-control form-control-sm") }}
+                                    </div>
+                                    {% endif %}
+                                    {% endfor %}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Deck Section (Full Width) -->
+                <div class="row" id="section-deck" style="display:none;">
+                    <div class="col-12">
+                        <div class="card mb-4 shadow-sm">
+                            <div class="card-header bg-light py-2">
+                                <h6 class="mb-0 text-success font-weight-bold"><i class="fas fa-umbrella mr-2"></i> Deck
+                                </h6>
+                            </div>
+                            <div class="card-body">
+                                <div class="row">
+                                    {% for field in form.deck %}
+                                    {% if field.type == 'CSRFTokenField' or field.type == 'HiddenField' %}
+                                    {{ field() }}
+                                    {% elif field.type != 'CSRFTokenField' and field.type != 'HiddenField' %}
+                                    <div class="col-md-4 mb-3">
+                                        <label class="font-weight-600 small text-uppercase text-muted mb-1">{{
+                                            field.label.text }}</label>
+                                        {{ field(class="form-control form-control-sm") }}
+                                    </div>
+                                    {% endif %}
+                                    {% endfor %}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Trim Section (Full Width) -->
+                <div class="row" id="section-trim" style="display:none;">
+                    <div class="col-12">
+                        <div class="card mb-4 shadow-sm">
+                            <div class="card-header bg-light py-2">
+                                <h6 class="mb-0 text-warning font-weight-bold"><i
+                                        class="fas fa-ruler-combined mr-2"></i> Trim</h6>
+                            </div>
+                            <div class="card-body">
+                                <div class="row">
+                                    {% for field in form.trim %}
+                                    {% if field.type == 'CSRFTokenField' or field.type == 'HiddenField' %}
+                                    {{ field() }}
+                                    {% elif field.type != 'CSRFTokenField' and field.type != 'HiddenField' %}
+                                    <div class="col-md-4 mb-3">
+                                        <label class="font-weight-600 small text-uppercase text-muted mb-1">{{
+                                            field.label.text }}</label>
+                                        {{ field(class="form-control form-control-sm") }}
+                                    </div>
+                                    {% endif %}
+                                    {% endfor %}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Windows and Doors (Shared Row) -->
                 <div class="row">
-                    <div class="col-lg-4">
+                    <div class="col-lg-6" id="section-window" style="display:none;">
                         <div class="card mb-4 shadow-sm">
                             <div class="card-header bg-light py-2">
                                 <h6 class="mb-0 text-dark font-weight-bold"><i class="fas fa-window-maximize mr-2"></i>
@@ -337,7 +413,7 @@
                             </div>
                         </div>
                     </div>
-                    <div class="col-lg-4">
+                    <div class="col-lg-6" id="section-door" style="display:none;">
                         <div class="card mb-4 shadow-sm">
                             <div class="card-header bg-light py-2">
                                 <h6 class="mb-0 text-dark font-weight-bold"><i class="fas fa-door-open mr-2"></i> Doors
@@ -345,27 +421,6 @@
                             </div>
                             <div class="card-body">
                                 {% for field in form.door %}
-                                {% if field.type == 'CSRFTokenField' or field.type == 'HiddenField' %}
-                                {{ field() }}
-                                {% elif field.type != 'CSRFTokenField' and field.type != 'HiddenField' %}
-                                <div class="form-group mb-2">
-                                    <label class="font-weight-600 small text-uppercase text-muted mb-1">{{
-                                        field.label.text }}</label>
-                                    {{ field(class="form-control form-control-sm") }}
-                                </div>
-                                {% endif %}
-                                {% endfor %}
-                            </div>
-                        </div>
-                    </div>
-                    <div class="col-lg-4">
-                        <div class="card mb-4 shadow-sm">
-                            <div class="card-header bg-light py-2">
-                                <h6 class="mb-0 text-secondary font-weight-bold"><i class="fas fa-home mr-2"></i>
-                                    Shingle/Roof</h6>
-                            </div>
-                            <div class="card-body">
-                                {% for field in form.shingle %}
                                 {% if field.type == 'CSRFTokenField' or field.type == 'HiddenField' %}
                                 {{ field() }}
                                 {% elif field.type != 'CSRFTokenField' and field.type != 'HiddenField' %}
@@ -429,23 +484,73 @@
         }
     });
 
-    // Toggle Specs Section
+    // Section Toggles Logic
+    const sectionMap = {
+        'toggle_framing': 'section-framing',
+        'toggle_siding': 'section-siding',
+        'toggle_shingle': 'section-shingle',
+        'toggle_deck': 'section-deck',
+        'toggle_trim': 'section-trim',
+        'toggle_window': 'section-window',
+        'toggle_door': 'section-door'
+    };
+
+    function toggleSection(toggleId) {
+        const toggle = document.getElementById(toggleId);
+        const sectionId = sectionMap[toggleId];
+        const section = document.getElementById(sectionId);
+
+        if (toggle && section) {
+            section.style.display = toggle.checked ? (['section-window', 'section-door'].includes(sectionId) ? 'block' : 'flex') : 'none';
+            if (['section-window', 'section-door'].includes(sectionId)) {
+                section.parentElement.closest('.row').style.display = 'flex'; // Ensure parent row is visible
+            }
+            // For Bootstrap rows, 'flex' is default, but 'block' works for divs inside cols.
+            // Actually, for the full width rows (col-12), the row itself is hidden.
+            // Let's use 'flex' for row, or just remove display:none.
+            section.style.display = toggle.checked ? 'flex' : 'none';
+
+            // Special handling for shared row (Windows/Doors)
+            if (['section-window', 'section-door'].includes(sectionId)) {
+                // section is the col-lg-6 div
+                section.style.display = toggle.checked ? 'block' : 'none';
+            }
+        }
+    }
+
+    // Attach listeners
+    Object.keys(sectionMap).forEach(toggleId => {
+        const toggle = document.getElementById(toggleId);
+        if (toggle) {
+            toggle.addEventListener('change', () => toggleSection(toggleId));
+            // Run on init
+            toggleSection(toggleId);
+        }
+    });
+
+    // Master Specs Toggle (Optional: You might want to remove this if sections are independent, 
+    // or use it to show/hide the whole block. 
+    // Based on user request "include in bid at the top... ensure they are off by default by section until user marks sections"
+    // I will assume the outer "Include Detailed Specifications" toggle is removed or always true?
+    // The user said: "we need to have the 'include in bid' at the top of the specs still where we have the user mark the sections"
+    // So the section checkboxes REPLACE the functionality of the master toggle somewhat, OR the master toggle shows the checkboxes.
+    // Let's keep the master toggle to show/hide the entire "MODULE SPECIFICATIONS" block, and inside that block, the user toggles sections.
+
     const specsToggle = document.getElementById('includeSpecsToggle');
     const specsSection = document.getElementById('specs-section');
 
     function toggleSpecs() {
-        if (specsToggle.checked) {
-            specsSection.style.display = 'block';
-            // Optional: Scroll to section
-            // specsSection.scrollIntoView({ behavior: 'smooth' });
-        } else {
-            specsSection.style.display = 'none';
+        if (specsToggle && specsSection) {
+            if (specsToggle.checked) {
+                specsSection.style.display = 'block';
+            } else {
+                specsSection.style.display = 'none';
+            }
         }
     }
 
     if (specsToggle) {
         specsToggle.addEventListener('change', toggleSpecs);
-        // Run on load in case of form validation failure (re-rendering)
         toggleSpecs();
     }
 
