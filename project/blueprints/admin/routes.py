@@ -880,3 +880,78 @@ def delete_field(field_id):
     db.session.commit()
     flash('Bid Field deleted.', 'success')
     return redirect(url_for('admin.manage_fields'))
+
+@admin.route('/fields/reorder', methods=['POST'])
+@login_required
+def reorder_fields():
+    if not current_user.is_admin:
+        abort(403)
+    
+    data = request.get_json()
+    field_ids = data.get('field_ids', [])
+    
+    if not field_ids:
+        return jsonify({'error': 'No fields provided'}), 400
+
+    try:
+        # Update sort_order for each field in the list
+        for index, field_id in enumerate(field_ids):
+            field = BidField.query.get(field_id)
+            if field:
+                field.sort_order = index
+        
+        db.session.commit()
+        return jsonify({'success': True})
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({'error': str(e)}), 500
+
+@admin.route('/fields/bulk_update', methods=['POST'])
+@login_required
+def bulk_update_fields():
+    if not current_user.is_admin:
+        abort(403)
+    
+    field_ids = request.form.getlist('field_ids')
+    action = request.form.get('action')
+    
+    if not field_ids or not action:
+        flash('No fields selected or invalid action.', 'warning')
+        return redirect(url_for('admin.manage_fields'))
+    
+    try:
+        fields = BidField.query.filter(BidField.id.in_(field_ids)).all()
+        
+        if action == 'set_required':
+            for f in fields: f.is_required = True
+        elif action == 'set_optional':
+            for f in fields: f.is_required = False
+        elif action == 'change_category':
+            new_cat = request.form.get('category')
+            if new_cat:
+                for f in fields: f.category = new_cat
+        elif action == 'add_branch':
+            branch_id = request.form.get('branch_id')
+            if branch_id:
+                for f in fields:
+                    current_branches = json.loads(f.branch_ids) if f.branch_ids else []
+                    if str(branch_id) not in current_branches:
+                        current_branches.append(str(branch_id))
+                        f.branch_ids = json.dumps(current_branches)
+        elif action == 'remove_branch':
+            branch_id = request.form.get('branch_id')
+            if branch_id:
+                for f in fields:
+                    current_branches = json.loads(f.branch_ids) if f.branch_ids else []
+                    if str(branch_id) in current_branches:
+                        current_branches.remove(str(branch_id))
+                        f.branch_ids = json.dumps(current_branches)
+                        
+        db.session.commit()
+        flash(f'Bulk action "{action}" applied to {len(fields)} fields.', 'success')
+        
+    except Exception as e:
+        db.session.rollback()
+        flash(f'Error performing bulk action: {e}', 'danger')
+        
+    return redirect(url_for('admin.manage_fields'))
