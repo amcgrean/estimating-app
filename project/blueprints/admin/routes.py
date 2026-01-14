@@ -725,34 +725,38 @@ def add_notification_rule():
         flash('Access denied.', 'danger')
         return redirect(url_for('main.index'))
 
-    # Hardcoded generic event types for now
-    event_types = [('new_bid', 'New Bid Submitted'), ('bid_completed', 'Bid Completed')]
+    form = NotificationRuleForm()
     
-    # Get potential recipients
-    users = User.query.all()
+    # Populate Event Choices
+    form.event_type.choices = [('', 'Choose Event...'), ('new_bid', 'New Bid Submitted'), ('bid_completed', 'Bid Completed')]
+    
+    # Populate Role Choices
     roles = UserType.query.all()
+    form.recipient_role.choices = [(0, 'Select Role...')] + [(r.id, r.name) for r in roles]
     
-    if request.method == 'POST':
-        event_type = request.form.get('event_type')
-        recipient_type = request.form.get('recipient_type')
-        recipient_value = request.form.get('recipient_value') # ID
+    # Populate User Choices
+    users = User.query.all()
+    form.recipient_user.choices = [(0, 'Select User...')] + [(u.id, f"{u.username} ({u.email})") for u in users]
+
+    if form.validate_on_submit():
+        event_type = form.event_type.data
+        recipient_type = form.recipient_type.data
         
-        # Resolve name for display
         recipient_name = "Unknown"
         recipient_id = None
         
         if recipient_type == 'user':
-            user = User.query.get(recipient_value)
+            recipient_id = form.recipient_user.data
+            user = User.query.get(recipient_id)
             if user:
-                recipient_name = user.username
-                recipient_id = user.id
+                 recipient_name = user.username
         elif recipient_type == 'role':
-            role = UserType.query.get(recipient_value)
+            recipient_id = form.recipient_role.data
+            role = UserType.query.get(recipient_id)
             if role:
                 recipient_name = role.name
-                recipient_id = role.id
 
-        if event_type and recipient_type and recipient_id:
+        if event_type and recipient_type and recipient_id and recipient_id != 0:
             new_rule = NotificationRule(
                 event_type=event_type,
                 recipient_type=recipient_type,
@@ -764,9 +768,9 @@ def add_notification_rule():
             flash('Notification rule added.', 'success')
             return redirect(url_for('admin.manage_notifications'))
         else:
-            flash('Invalid selection.', 'danger')
+             flash('Please select a valid recipient for the chosen type.', 'danger')
 
-    return render_template('add_notification_rule.html', event_types=event_types, users=users, roles=roles)
+    return render_template('add_notification_rule.html', form=form)
 
 @admin.route('/delete_notification_rule/<int:rule_id>', methods=['POST'])
 @login_required

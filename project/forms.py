@@ -429,3 +429,11 @@ class ITServiceForm(FlaskForm):
     status = SelectField('Status', choices=[('Open', 'Open'), ('In Progress', 'In Progress'), ('Completed', 'Completed')], default='Open')
     notes = TextAreaField('Notes')
     submit = SubmitField('Submit')
+
+class NotificationRuleForm(FlaskForm):
+    event_type = SelectField('Trigger Event', validators=[DataRequired()])
+    recipient_type = SelectField('Recipient Type', choices=[('role', 'User Role'), ('user', 'Specific User')], validators=[DataRequired()])
+    # We will populate these choices dynamically in the view or leave them empty and let JS/Validation handle logic
+    recipient_role = SelectField('Role', coerce=int, validators=[Optional()])
+    recipient_user = SelectField('User', coerce=int, validators=[Optional()])
+    submit = SubmitField('Create Rule')

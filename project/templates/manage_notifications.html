@@ -55,7 +55,7 @@
                         <td class="px-4 py-3 align-middle text-right">
                             <form action="{{ url_for('admin.delete_notification_rule', rule_id=rule.id) }}"
                                 method="POST" class="d-inline">
-                                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
+                                <!-- Removed invalid csrf_token() call -->
                                 <button type="submit" class="btn btn-sm btn-outline-danger border-0"
                                     onclick="return confirm('Delete this rule?');" title="Delete Rule">
                                     <i class="fas fa-trash-alt"></i>

@@ -6,43 +6,28 @@
 <div class="row justify-content-center animate-fade-in">
     <div class="col-lg-8">
         <div class="card shadow-lg border-0" style="border-radius: 15px; overflow: hidden;">
-            <div class="card-header bg-gradient-brand text-white py-4">
+            <div class="card-header bg-primary text-white py-4"
+                style="background: linear-gradient(135deg, #0d6efd 0%, #0dcaf0 100%);">
                 <h4 class="mb-0 font-weight-bold text-center">Configure Notification</h4>
-                <p class="mb-0 text-center text-white-50 small mt-1">Set up automated email alerts rules</p>
+                <p class="mb-0 text-center text-white-50 small mt-1">Set up automated email alert rules</p>
             </div>
             <div class="card-body p-5">
                 <form method="POST" action="{{ url_for('admin.add_notification_rule') }}">
-                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
+                    {{ form.hidden_tag() }}
 
                     <!-- Event Selection -->
                     <div class="form-group mb-4">
-                        <label class="font-weight-bold text-uppercase small text-muted tracking-wider">Trigger
-                            Event</label>
-                        <select class="form-control form-control-lg custom-select input-premium" name="event_type"
-                            required>
-                            <option value="">Choose Event...</option>
-                            {% for type_code, type_name in event_types %}
-                            <option value="{{ type_code }}">{{ type_name }}</option>
-                            {% endfor %}
-                        </select>
+                        {{ form.event_type.label(class="font-weight-bold text-uppercase small text-muted
+                        tracking-wider") }}
+                        {{ form.event_type(class="form-control form-control-lg custom-select input-premium") }}
                     </div>
 
                     <!-- Recipient Type -->
                     <div class="form-group mb-4">
-                        <label class="font-weight-bold text-uppercase small text-muted tracking-wider">Recipient
-                            Type</label>
-                        <div class="btn-group btn-group-toggle d-flex" data-toggle="buttons">
-                            <label class="btn btn-outline-primary flex-fill p-3 active">
-                                <input type="radio" name="recipient_type" value="role" checked
-                                    onchange="toggleRecipientInput()">
-                                <i class="fas fa-users mr-2"></i> User Role / Group
-                            </label>
-                            <label class="btn btn-outline-primary flex-fill p-3">
-                                <input type="radio" name="recipient_type" value="user"
-                                    onchange="toggleRecipientInput()">
-                                <i class="fas fa-user mr-2"></i> Specific User
-                            </label>
-                        </div>
+                        {{ form.recipient_type.label(class="font-weight-bold text-uppercase small text-muted
+                        tracking-wider") }}
+                        {{ form.recipient_type(class="form-control form-control-lg custom-select input-premium",
+                        onchange="toggleRecipientInput()") }}
                     </div>
 
                     <!-- Recipient Selection (Dynamic) -->
@@ -52,26 +37,14 @@
 
                         <!-- Role Select -->
                         <div id="role-select-container">
-                            <select class="form-control form-control-lg custom-select input-premium"
-                                name="recipient_value" id="role-select">
-                                <option value="">Select Role...</option>
-                                {% for role in roles %}
-                                <option value="{{ role.id }}">{{ role.name }}</option>
-                                {% endfor %}
-                            </select>
+                            {{ form.recipient_role(class="form-control form-control-lg custom-select input-premium") }}
                             <small class="text-muted mt-2 d-block">Email will be sent to <strong>all active
                                     users</strong> with this role.</small>
                         </div>
 
                         <!-- User Select -->
                         <div id="user-select-container" style="display: none;">
-                            <select class="form-control form-control-lg custom-select input-premium"
-                                name="recipient_value" id="user-select" disabled>
-                                <option value="">Select User...</option>
-                                {% for user in users %}
-                                <option value="{{ user.id }}">{{ user.username }} ({{ user.email }})</option>
-                                {% endfor %}
-                            </select>
+                            {{ form.recipient_user(class="form-control form-control-lg custom-select input-premium") }}
                             <small class="text-muted mt-2 d-block">Email will be sent to this <strong>specific
                                     user</strong>.</small>
                         </div>
@@ -80,9 +53,7 @@
                     <div class="d-flex justify-content-between align-items-center">
                         <a href="{{ url_for('admin.manage_notifications') }}"
                             class="text-muted font-weight-bold">Cancel</a>
-                        <button type="submit" class="btn btn-premium btn-lg px-5 shadow-sm">
-                            Create Rule <i class="fas fa-arrow-right ml-2"></i>
-                        </button>
+                        {{ form.submit(class="btn btn-primary btn-lg px-5 shadow-sm", style="border-radius: 8px;") }}
                     </div>
                 </form>
             </div>
@@ -95,23 +66,25 @@
 {% block scripts %}
 <script>
     function toggleRecipientInput() {
-        const type = document.querySelector('input[name="recipient_type"]:checked').value;
+        // Get value from select (WTForms renders select for recipient_type)
+        const typeSelect = document.getElementById('recipient_type');
+        const type = typeSelect.value;
+
         const roleContainer = document.getElementById('role-select-container');
         const userContainer = document.getElementById('user-select-container');
-        const roleSelect = document.getElementById('role-select');
-        const userSelect = document.getElementById('user-select');
 
         if (type === 'role') {
             roleContainer.style.display = 'block';
             userContainer.style.display = 'none';
-            roleSelect.disabled = false;
-            userSelect.disabled = true;
         } else {
             roleContainer.style.display = 'none';
             userContainer.style.display = 'block';
-            roleSelect.disabled = true;
-            userSelect.disabled = false;
         }
     }
+
+    // Run on load
+    document.addEventListener('DOMContentLoaded', function () {
+        toggleRecipientInput();
+    });
 </script>
 {% endblock %}
