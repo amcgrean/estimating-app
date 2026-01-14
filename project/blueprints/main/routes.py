@@ -804,6 +804,8 @@ def send_bid_notification(bid, event_type):
 @main.route('/add_bid', methods=['GET', 'POST'])
 def add_bid():
     form = BidForm()
+    # Populate Branch Choices for validation
+    form.branch_id.choices = [(b.branch_id, b.branch_name) for b in Branch.query.all()]
 
     # Determine the branch_id for populating choices
     selected_branch_id = None
@@ -1046,6 +1048,8 @@ def add_bid():
             db.session.rollback()
             current_app.logger.error(f"Error adding bid: {str(e)}")
             flash(f'An error occurred while saving the bid: {str(e)}', 'danger')
+            if selected_branch_id:
+                form.branch_id.data = selected_branch_id
             return render_template('add_bid.html', form=form, dynamic_fields=dynamic_fields, customer_sales_rep_map=customer_sales_rep_map)
 
     else:
@@ -1056,6 +1060,8 @@ def add_bid():
             current_app.logger.error(f"Customer ID Choices: {form.customer_id.choices}")
             current_app.logger.error(f"Submitted Customer ID: {form.customer_id.data}")
 
+    if selected_branch_id:
+        form.branch_id.data = selected_branch_id
     return render_template('add_bid.html', form=form, dynamic_fields=dynamic_fields, customer_sales_rep_map=customer_sales_rep_map)
 
 
@@ -1102,6 +1108,8 @@ def manage_bid(bid_id):
     form = BidForm(obj=bid)
 
     # Populate customer and estimator choices with a branch filter
+    form.branch_id.choices = [(b.branch_id, b.branch_name) for b in Branch.query.all()]
+
     customer_query = Customer.query
     if bid.branch_id and bid.branch_id != 0:
          customer_query = customer_query.filter((Customer.branch_id == bid.branch_id) | (Customer.branch_id == None))

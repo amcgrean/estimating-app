@@ -78,6 +78,9 @@
                     <label class="font-weight-600 small text-uppercase tracking-wider mb-2">{{ form.branch_id.label.text
                         }}</label>
                     {{ form.branch_id(class="input-modern", disabled=True) }}
+                    {% if form.branch_id.data %}
+                    <input type="hidden" name="branch_id" value="{{ form.branch_id.data }}">
+                    {% endif %}
                 </div>
 
                 <!-- File Uploads -->
