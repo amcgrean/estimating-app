@@ -4,7 +4,8 @@ from project import mail, db
 from project.models import (
     Bid, Customer, Estimator, Design, User, EWP, UserType, UserSecurity,
     Branch, SalesRep, LoginActivity, ITService, Project, Framing, Siding,
-    Shingle, Deck, Door, Window, Trim, BidActivity, BidFile, NotificationRule
+    Shingle, Deck, Door, Window, Trim, BidActivity, BidFile, NotificationRule,
+    BidField, BidValue
 )
 import csv
 import json
@@ -828,6 +829,38 @@ def add_bid():
     # Actually, SalesRep is its own table.
     sales_reps = SalesRep.query.order_by(SalesRep.name).all()
     form.sales_rep_id.choices = [(0, 'Select Sales Rep')] + [(rep.id, rep.name) for rep in sales_reps]
+    
+    # Fetch Dynamic Fields
+    all_fields = BidField.query.order_by(BidField.sort_order).all()
+    dynamic_fields = []
+    for f in all_fields:
+        if not f.branch_ids or f.branch_ids == '[]':
+            dynamic_fields.append(f)
+        else:
+            try:
+                allowed_branches = json.loads(f.branch_ids)
+                if selected_branch_id in allowed_branches:
+                    dynamic_fields.append(f)
+            except:
+                pass
+
+    
+    # Fetch Dynamic Fields
+    # Filter by branch if needed (logic to parse JSON branch_ids is complex in SQL, so filtering in Python for now or simple check)
+    all_fields = BidField.query.order_by(BidField.sort_order).all()
+    dynamic_fields = []
+    for f in all_fields:
+        if not f.branch_ids or f.branch_ids == '[]':
+            dynamic_fields.append(f)
+        else:
+            try:
+                allowed_branches = json.loads(f.branch_ids)
+                # If current or selected branch is in allowed_branches
+                # Use selected_branch_id for context
+                if selected_branch_id in allowed_branches:
+                    dynamic_fields.append(f)
+            except:
+                pass # JSON parse error, skip or include? Default skip.
 
     # Create Customer -> Sales Rep ID mapping for JS
     # Logic: Match Customer.sales_agent (string) to SalesRep.name (string)
@@ -955,6 +988,33 @@ def add_bid():
         try:
             db.session.commit()
             
+            # --- Save Dynamic Fields ---
+            # dynamic_fields variable is already available from GET scope if not overwritten? 
+            # No, we need to re-fetch or iterate request.form keys matching 'dynamic_field_'
+            for key, val in request.form.items():
+                if key.startswith('dynamic_field_'):
+                    try:
+                        f_id = int(key.replace('dynamic_field_', ''))
+                        if val and val.strip(): # Only save non-empty? Or save empty updates? For new bid, skip empty.
+                             # Check if field exists to be safe
+                             b_val = BidValue(bid_id=new_bid.id, field_id=f_id, value=val)
+                             db.session.add(b_val)
+                    except ValueError:
+                        pass
+            db.session.commit()
+            
+            # --- Save Dynamic Fields ---
+            for key, val in request.form.items():
+                if key.startswith('dynamic_field_'):
+                    try:
+                        f_id = int(key.replace('dynamic_field_', ''))
+                        if val and val.strip():
+                             b_val = BidValue(bid_id=new_bid.id, field_id=f_id, value=val)
+                             db.session.add(b_val)
+                    except ValueError:
+                        pass
+            db.session.commit()
+
             # Send Notification
             send_bid_notification(new_bid, 'new_bid')
 
@@ -1025,11 +1085,14 @@ def manage_bid(bid_id):
          customer_query = customer_query.filter((Customer.branch_id == bid.branch_id) | (Customer.branch_id == None))
     
     form.customer_id.choices = [(0, 'Select a customer')] + [(customer.id, customer.name) for customer in customer_query.all()]
-    form.estimator_id.choices = get_branch_estimators(bid.branch_id)
-    form.branch_id.choices = [(b.branch_id, b.branch_name) for b in Branch.query.all()]
+    # Fetch Dynamic Fields for Rendering
+    dynamic_fields = BidField.query.order_by(BidField.sort_order).all()
+    # Filter by branch if restricted
+    if bid.branch_id:
+        dynamic_fields = [f for f in dynamic_fields if not f.branch_ids or str(bid.branch_id) in json.loads(f.branch_ids or '[]')]
     
-    sales_reps = SalesRep.query.order_by(SalesRep.name).all()
-    form.sales_rep_id.choices = [(0, 'Select Sales Rep')] + [(rep.id, rep.name) for rep in sales_reps]
+    # Map existing values: field_id -> value
+    dynamic_values_map = {v.field_id: v.value for v in bid.dynamic_values}
 
     if form.validate_on_submit():
         if current_user.usertype.name == 'Sales Rep':
@@ -1043,15 +1106,31 @@ def manage_bid(bid_id):
             form.estimator_id.data = None
             
         form.populate_obj(bid)
+
+        # --- Save Dynamic Fields ---
+        # Iterate form data for dynamic_field_ prefixes
+        for key, value in request.form.items():
+            if key.startswith('dynamic_field_'):
+                try:
+                    field_id = int(key.split('_')[-1])
+                    # Check if BidValue exists
+                    bid_val = BidValue.query.filter_by(bid_id=bid.id, field_id=field_id).first()
+                    if bid_val:
+                        bid_val.value = value
+                    else:
+                        new_val = BidValue(bid_id=bid.id, field_id=field_id, value=value)
+                        db.session.add(new_val)
+                except ValueError:
+                    continue
         
         # Handle New File Uploads
         bid_files_json = request.form.get('bid_files_json')
-        print(f"DEBUG: Received bid_files_json: {bid_files_json}") # DEBUG LOG
+        # print(f"DEBUG: Received bid_files_json: {bid_files_json}") # DEBUG LOG
         
         if bid_files_json:
             try:
                 files_data = json.loads(bid_files_json)
-                print(f"DEBUG: Parsed {len(files_data)} files.") # DEBUG LOG
+                # print(f"DEBUG: Parsed {len(files_data)} files.") # DEBUG LOG
                 for file_data in files_data:
                     new_file = BidFile(
                         file_key=file_data['key'],
@@ -1060,7 +1139,7 @@ def manage_bid(bid_id):
                         bid=bid # Link to the existing bid
                     )
                     db.session.add(new_file)
-                    print(f"DEBUG: Added file {new_file.filename}") # DEBUG LOG
+                    # print(f"DEBUG: Added file {new_file.filename}") # DEBUG LOG
             except Exception as e:
                 current_app.logger.error(f"Error parsing bid_files_json in manage_bid: {e}")
                 print(f"DEBUG Error: {e}")
@@ -1072,7 +1151,7 @@ def manage_bid(bid_id):
         print(f"DEBUG: Form validation failed: {form.errors}") # DEBUG LOG
         flash(f'Error updating bid: {form.errors}', 'danger')
         
-    return render_template('manage_bid.html', bid=bid, form=form, get_s3_url=get_s3_url)
+    return render_template('manage_bid.html', bid=bid, form=form, get_s3_url=get_s3_url, dynamic_fields=dynamic_fields, dynamic_values_map=dynamic_values_map)
 
 @main.route('/delete_bid/<int:bid_id>', methods=['POST'])
 @login_required

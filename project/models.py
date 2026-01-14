@@ -104,6 +104,36 @@ class BidFile(db.Model):
         return f'<BidFile {self.filename}>'
 
 
+class BidField(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(100), nullable=False)
+    category = db.Column(db.String(50), nullable=False, default="General") # Branding, Siding, etc
+    field_type = db.Column(db.String(50), nullable=False, default="text") # text, textarea, select, checkbox
+    is_required = db.Column(db.Boolean, default=False)
+    options = db.Column(db.Text, nullable=True) # JSON or comma-separated for select
+    default_value = db.Column(db.String(255), nullable=True)
+    sort_order = db.Column(db.Integer, default=0)
+    
+    # Store branch_ids as JSON string or simpler comma-separated list for compatibility
+    # If null/empty -> All Branches
+    branch_ids = db.Column(db.Text, nullable=True) 
+
+    def __repr__(self):
+        return f'<BidField {self.name} ({self.category})>'
+
+class BidValue(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    bid_id = db.Column(db.Integer, db.ForeignKey('bid.id'), nullable=False)
+    field_id = db.Column(db.Integer, db.ForeignKey('bid_field.id'), nullable=False)
+    value = db.Column(db.Text, nullable=True)
+
+    bid = db.relationship('Bid', backref=db.backref('dynamic_values', lazy=True, cascade="all, delete-orphan"))
+    field = db.relationship('BidField', backref=db.backref('values', lazy=True))
+
+    def __repr__(self):
+        return f'<BidValue Bid:{self.bid_id} Field:{self.field_id} Val:{self.value}>'
+
+
 class NotificationRule(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     event_type = db.Column(db.String(50), nullable=False) # e.g., 'new_bid'

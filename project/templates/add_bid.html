@@ -265,17 +265,43 @@
                             </div>
                             <div class="card-body">
                                 <div class="row">
-                                    {% for field in form.framing %}
-                                    {% if field.type == 'CSRFTokenField' or field.type == 'HiddenField' %}
-                                    {{ field() }}
-                                    {% elif field.type != 'CSRFTokenField' and field.type != 'HiddenField' %}
+                                    {# Legacy fields removed in favor of dynamic fields #}
+                                    <!-- Dynamic Fields for Framing -->
+                                    {% for field in dynamic_fields %}
+                                    {% if field.category == 'Framing' %}
                                     <div class="col-md-4 mb-3">
                                         <label class="font-weight-600 small text-uppercase text-muted mb-1">{{
-                                            field.label.text }}</label>
-                                        {{ field(class="form-control form-control-sm") }}
+                                            field.name }} {% if field.is_required %}<span class="text-danger">*</span>{%
+                                            endif %}</label>
+                                        {% if field.field_type == 'text' %}
+                                        <input type="text" name="dynamic_field_{{ field.id }}"
+                                            class="form-control form-control-sm" {% if field.is_required %}required{%
+                                            endif %}>
+                                        {% elif field.field_type == 'textarea' %}
+                                        <textarea name="dynamic_field_{{ field.id }}"
+                                            class="form-control form-control-sm" rows="3" {% if field.is_required
+                                            %}required{% endif %}></textarea>
+                                        {% elif field.field_type == 'select' %}
+                                        <select name="dynamic_field_{{ field.id }}" class="form-control form-control-sm"
+                                            {% if field.is_required %}required{% endif %}>
+                                            <option value="">Select...</option>
+                                            {% for option in field.options.split(',') %}
+                                            <option value="{{ option.strip() }}">{{ option.strip() }}</option>
+                                            {% endfor %}
+                                        </select>
+                                        {% elif field.field_type == 'checkbox' %}
+                                        <div class="custom-control custom-checkbox mt-2">
+                                            <input type="checkbox" class="custom-control-input"
+                                                id="dyn_field_{{ field.id }}" name="dynamic_field_{{ field.id }}"
+                                                value="Yes">
+                                            <label class="custom-control-label"
+                                                for="dyn_field_{{ field.id }}">Yes</label>
+                                        </div>
+                                        {% endif %}
                                     </div>
                                     {% endif %}
                                     {% endfor %}
+
                                 </div>
                             </div>
                         </div>
@@ -300,6 +326,42 @@
                                         <label class="font-weight-600 small text-uppercase text-muted mb-1">{{
                                             field.label.text }}</label>
                                         {{ field(class="form-control form-control-sm") }}
+                                    </div>
+                                    {% endif %}
+                                    {% endfor %}
+
+                                    <!-- Dynamic Fields for Siding -->
+                                    {% for field in dynamic_fields %}
+                                    {% if field.category == 'Siding' %}
+                                    <div class="col-md-4 mb-3">
+                                        <label class="font-weight-600 small text-uppercase text-muted mb-1">{{
+                                            field.name }} {% if field.is_required %}<span class="text-danger">*</span>{%
+                                            endif %}</label>
+                                        {% if field.field_type == 'text' %}
+                                        <input type="text" name="dynamic_field_{{ field.id }}"
+                                            class="form-control form-control-sm" {% if field.is_required %}required{%
+                                            endif %}>
+                                        {% elif field.field_type == 'textarea' %}
+                                        <textarea name="dynamic_field_{{ field.id }}"
+                                            class="form-control form-control-sm" rows="3" {% if field.is_required
+                                            %}required{% endif %}></textarea>
+                                        {% elif field.field_type == 'select' %}
+                                        <select name="dynamic_field_{{ field.id }}" class="form-control form-control-sm"
+                                            {% if field.is_required %}required{% endif %}>
+                                            <option value="">Select...</option>
+                                            {% for option in field.options.split(',') %}
+                                            <option value="{{ option.strip() }}">{{ option.strip() }}</option>
+                                            {% endfor %}
+                                        </select>
+                                        {% elif field.field_type == 'checkbox' %}
+                                        <div class="custom-control custom-checkbox mt-2">
+                                            <input type="checkbox" class="custom-control-input"
+                                                id="dyn_field_{{ field.id }}" name="dynamic_field_{{ field.id }}"
+                                                value="Yes">
+                                            <label class="custom-control-label"
+                                                for="dyn_field_{{ field.id }}">Yes</label>
+                                        </div>
+                                        {% endif %}
                                     </div>
                                     {% endif %}
                                     {% endfor %}
@@ -330,6 +392,42 @@
                                     </div>
                                     {% endif %}
                                     {% endfor %}
+
+                                    <!-- Dynamic Fields for Shingle -->
+                                    {% for field in dynamic_fields %}
+                                    {% if field.category == 'Shingle' %}
+                                    <div class="col-md-12 mb-2">
+                                        <label class="font-weight-600 small text-uppercase text-muted mb-1">{{
+                                            field.name }} {% if field.is_required %}<span class="text-danger">*</span>{%
+                                            endif %}</label>
+                                        {% if field.field_type == 'text' %}
+                                        <input type="text" name="dynamic_field_{{ field.id }}"
+                                            class="form-control form-control-sm" {% if field.is_required %}required{%
+                                            endif %}>
+                                        {% elif field.field_type == 'textarea' %}
+                                        <textarea name="dynamic_field_{{ field.id }}"
+                                            class="form-control form-control-sm" rows="3" {% if field.is_required
+                                            %}required{% endif %}></textarea>
+                                        {% elif field.field_type == 'select' %}
+                                        <select name="dynamic_field_{{ field.id }}" class="form-control form-control-sm"
+                                            {% if field.is_required %}required{% endif %}>
+                                            <option value="">Select...</option>
+                                            {% for option in field.options.split(',') %}
+                                            <option value="{{ option.strip() }}">{{ option.strip() }}</option>
+                                            {% endfor %}
+                                        </select>
+                                        {% elif field.field_type == 'checkbox' %}
+                                        <div class="custom-control custom-checkbox mt-2">
+                                            <input type="checkbox" class="custom-control-input"
+                                                id="dyn_field_{{ field.id }}" name="dynamic_field_{{ field.id }}"
+                                                value="Yes">
+                                            <label class="custom-control-label"
+                                                for="dyn_field_{{ field.id }}">Yes</label>
+                                        </div>
+                                        {% endif %}
+                                    </div>
+                                    {% endif %}
+                                    {% endfor %}
                                 </div>
                             </div>
                         </div>
@@ -354,6 +452,42 @@
                                         <label class="font-weight-600 small text-uppercase text-muted mb-1">{{
                                             field.label.text }}</label>
                                         {{ field(class="form-control form-control-sm") }}
+                                    </div>
+                                    {% endif %}
+                                    {% endfor %}
+
+                                    <!-- Dynamic Fields for Deck -->
+                                    {% for field in dynamic_fields %}
+                                    {% if field.category == 'Deck' %}
+                                    <div class="col-md-4 mb-3">
+                                        <label class="font-weight-600 small text-uppercase text-muted mb-1">{{
+                                            field.name }} {% if field.is_required %}<span class="text-danger">*</span>{%
+                                            endif %}</label>
+                                        {% if field.field_type == 'text' %}
+                                        <input type="text" name="dynamic_field_{{ field.id }}"
+                                            class="form-control form-control-sm" {% if field.is_required %}required{%
+                                            endif %}>
+                                        {% elif field.field_type == 'textarea' %}
+                                        <textarea name="dynamic_field_{{ field.id }}"
+                                            class="form-control form-control-sm" rows="3" {% if field.is_required
+                                            %}required{% endif %}></textarea>
+                                        {% elif field.field_type == 'select' %}
+                                        <select name="dynamic_field_{{ field.id }}" class="form-control form-control-sm"
+                                            {% if field.is_required %}required{% endif %}>
+                                            <option value="">Select...</option>
+                                            {% for option in field.options.split(',') %}
+                                            <option value="{{ option.strip() }}">{{ option.strip() }}</option>
+                                            {% endfor %}
+                                        </select>
+                                        {% elif field.field_type == 'checkbox' %}
+                                        <div class="custom-control custom-checkbox mt-2">
+                                            <input type="checkbox" class="custom-control-input"
+                                                id="dyn_field_{{ field.id }}" name="dynamic_field_{{ field.id }}"
+                                                value="Yes">
+                                            <label class="custom-control-label"
+                                                for="dyn_field_{{ field.id }}">Yes</label>
+                                        </div>
+                                        {% endif %}
                                     </div>
                                     {% endif %}
                                     {% endfor %}
@@ -384,6 +518,42 @@
                                     </div>
                                     {% endif %}
                                     {% endfor %}
+
+                                    <!-- Dynamic Fields for Trim -->
+                                    {% for field in dynamic_fields %}
+                                    {% if field.category == 'Trim' %}
+                                    <div class="col-md-4 mb-3">
+                                        <label class="font-weight-600 small text-uppercase text-muted mb-1">{{
+                                            field.name }} {% if field.is_required %}<span class="text-danger">*</span>{%
+                                            endif %}</label>
+                                        {% if field.field_type == 'text' %}
+                                        <input type="text" name="dynamic_field_{{ field.id }}"
+                                            class="form-control form-control-sm" {% if field.is_required %}required{%
+                                            endif %}>
+                                        {% elif field.field_type == 'textarea' %}
+                                        <textarea name="dynamic_field_{{ field.id }}"
+                                            class="form-control form-control-sm" rows="3" {% if field.is_required
+                                            %}required{% endif %}></textarea>
+                                        {% elif field.field_type == 'select' %}
+                                        <select name="dynamic_field_{{ field.id }}" class="form-control form-control-sm"
+                                            {% if field.is_required %}required{% endif %}>
+                                            <option value="">Select...</option>
+                                            {% for option in field.options.split(',') %}
+                                            <option value="{{ option.strip() }}">{{ option.strip() }}</option>
+                                            {% endfor %}
+                                        </select>
+                                        {% elif field.field_type == 'checkbox' %}
+                                        <div class="custom-control custom-checkbox mt-2">
+                                            <input type="checkbox" class="custom-control-input"
+                                                id="dyn_field_{{ field.id }}" name="dynamic_field_{{ field.id }}"
+                                                value="Yes">
+                                            <label class="custom-control-label"
+                                                for="dyn_field_{{ field.id }}">Yes</label>
+                                        </div>
+                                        {% endif %}
+                                    </div>
+                                    {% endif %}
+                                    {% endfor %}
                                 </div>
                             </div>
                         </div>
@@ -410,6 +580,39 @@
                                 </div>
                                 {% endif %}
                                 {% endfor %}
+
+                                <!-- Dynamic Fields for Window -->
+                                {% for field in dynamic_fields %}
+                                {% if field.category == 'Window' %}
+                                <div class="form-group mb-2">
+                                    <label class="font-weight-600 small text-uppercase text-muted mb-1">{{ field.name }}
+                                        {% if field.is_required %}<span class="text-danger">*</span>{% endif %}</label>
+                                    {% if field.field_type == 'text' %}
+                                    <input type="text" name="dynamic_field_{{ field.id }}"
+                                        class="form-control form-control-sm" {% if field.is_required %}required{% endif
+                                        %}>
+                                    {% elif field.field_type == 'textarea' %}
+                                    <textarea name="dynamic_field_{{ field.id }}" class="form-control form-control-sm"
+                                        rows="3" {% if field.is_required %}required{% endif %}></textarea>
+                                    {% elif field.field_type == 'select' %}
+                                    <select name="dynamic_field_{{ field.id }}" class="form-control form-control-sm" {%
+                                        if field.is_required %}required{% endif %}>
+                                        <option value="">Select...</option>
+                                        {% for option in field.options.split(',') %}
+                                        <option value="{{ option.strip() }}">{{ option.strip() }}</option>
+                                        {% endfor %}
+                                    </select>
+                                    {% elif field.field_type == 'checkbox' %}
+                                    <div class="custom-control custom-checkbox mt-2">
+                                        <input type="checkbox" class="custom-control-input"
+                                            id="dyn_field_{{ field.id }}" name="dynamic_field_{{ field.id }}"
+                                            value="Yes">
+                                        <label class="custom-control-label" for="dyn_field_{{ field.id }}">Yes</label>
+                                    </div>
+                                    {% endif %}
+                                </div>
+                                {% endif %}
+                                {% endfor %}
                             </div>
                         </div>
                     </div>
@@ -428,6 +631,39 @@
                                     <label class="font-weight-600 small text-uppercase text-muted mb-1">{{
                                         field.label.text }}</label>
                                     {{ field(class="form-control form-control-sm") }}
+                                </div>
+                                {% endif %}
+                                {% endfor %}
+
+                                <!-- Dynamic Fields for Door -->
+                                {% for field in dynamic_fields %}
+                                {% if field.category == 'Door' %}
+                                <div class="form-group mb-2">
+                                    <label class="font-weight-600 small text-uppercase text-muted mb-1">{{ field.name }}
+                                        {% if field.is_required %}<span class="text-danger">*</span>{% endif %}</label>
+                                    {% if field.field_type == 'text' %}
+                                    <input type="text" name="dynamic_field_{{ field.id }}"
+                                        class="form-control form-control-sm" {% if field.is_required %}required{% endif
+                                        %}>
+                                    {% elif field.field_type == 'textarea' %}
+                                    <textarea name="dynamic_field_{{ field.id }}" class="form-control form-control-sm"
+                                        rows="3" {% if field.is_required %}required{% endif %}></textarea>
+                                    {% elif field.field_type == 'select' %}
+                                    <select name="dynamic_field_{{ field.id }}" class="form-control form-control-sm" {%
+                                        if field.is_required %}required{% endif %}>
+                                        <option value="">Select...</option>
+                                        {% for option in field.options.split(',') %}
+                                        <option value="{{ option.strip() }}">{{ option.strip() }}</option>
+                                        {% endfor %}
+                                    </select>
+                                    {% elif field.field_type == 'checkbox' %}
+                                    <div class="custom-control custom-checkbox mt-2">
+                                        <input type="checkbox" class="custom-control-input"
+                                            id="dyn_field_{{ field.id }}" name="dynamic_field_{{ field.id }}"
+                                            value="Yes">
+                                        <label class="custom-control-label" for="dyn_field_{{ field.id }}">Yes</label>
+                                    </div>
+                                    {% endif %}
                                 </div>
                                 {% endif %}
                                 {% endfor %}

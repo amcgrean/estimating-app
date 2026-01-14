@@ -783,3 +783,100 @@ def delete_notification_rule(rule_id):
     db.session.commit()
     flash('Rule deleted.', 'success')
     return redirect(url_for('admin.manage_notifications'))
+
+# --- Dynamic Bid Fields Management ---
+
+from project.models import BidField, BidValue
+from project.forms import BidFieldForm
+import json
+
+@admin.route('/manage_fields')
+@login_required
+def manage_fields():
+    if not current_user.is_admin:
+        abort(403)
+    fields = BidField.query.order_by(BidField.sort_order).all()
+    form = BidFieldForm() # For CSRF token in deletion forms
+    return render_template('manage_fields.html', fields=fields, form=form)
+
+@admin.route('/add_field', methods=['GET', 'POST'])
+@login_required
+def add_field():
+    if not current_user.is_admin:
+        abort(403)
+    
+    form = BidFieldForm()
+    # Populate branches
+    branches = Branch.query.all()
+    form.branch_ids.choices = [(b.branch_id, b.branch_name) for b in branches]
+
+    if form.validate_on_submit():
+        branch_ids_data = form.branch_ids.data 
+        # If empty list, it means Applicable to ALL. Storing as JSON '[]' or null is fine.
+        # But WTForms SelectMultipleField returns a list of values.
+        
+        new_field = BidField(
+            name=form.name.data,
+            category=form.category.data,
+            field_type=form.field_type.data,
+            is_required=form.is_required.data,
+            options=form.options.data,
+            sort_order=int(form.sort_order.data) if form.sort_order.data.isdigit() else 0,
+            branch_ids=json.dumps(branch_ids_data) if branch_ids_data else None
+        )
+        db.session.add(new_field)
+        db.session.commit()
+        flash('Bid Field added successfully.', 'success')
+        return redirect(url_for('admin.manage_fields'))
+
+    return render_template('add_field.html', form=form, title="Add Bid Field")
+
+@admin.route('/edit_field/<int:field_id>', methods=['GET', 'POST'])
+@login_required
+def edit_field(field_id):
+    if not current_user.is_admin:
+        abort(403)
+    
+    field = BidField.query.get_or_404(field_id)
+    form = BidFieldForm(obj=field)
+    
+    # Populate branches
+    branches = Branch.query.all()
+    form.branch_ids.choices = [(b.branch_id, b.branch_name) for b in branches]
+
+    if request.method == 'GET':
+        # Pre-select branches
+        if field.branch_ids:
+            try:
+                form.branch_ids.data = json.loads(field.branch_ids)
+            except:
+                form.branch_ids.data = []
+
+    if form.validate_on_submit():
+        field.name = form.name.data
+        field.category = form.category.data
+        field.field_type = form.field_type.data
+        field.is_required = form.is_required.data
+        field.options = form.options.data
+        field.sort_order = int(form.sort_order.data) if form.sort_order.data.isdigit() else 0
+        
+        branch_ids_data = form.branch_ids.data
+        field.branch_ids = json.dumps(branch_ids_data) if branch_ids_data else None
+        
+        db.session.commit()
+        flash('Bid Field updated successfully.', 'success')
+        return redirect(url_for('admin.manage_fields'))
+
+    return render_template('add_field.html', form=form, title="Edit Bid Field")
+
+@admin.route('/delete_field/<int:field_id>', methods=['POST'])
+@login_required
+def delete_field(field_id):
+    if not current_user.is_admin:
+        abort(403)
+    
+    field = BidField.query.get_or_404(field_id)
+    db.session.delete(field)
+    db.session.commit()
+    flash('Bid Field deleted.', 'success')
+    return redirect(url_for('admin.manage_fields'))

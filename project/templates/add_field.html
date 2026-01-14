@@ -1,0 +1,104 @@
+{% extends "base.html" %}
+
+{% block title %}{{ title }} | Admin{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center animate-fade-in">
+    <div class="col-lg-8">
+        <div class="card shadow-lg border-0" style="border-radius: 15px; overflow: hidden;">
+            <div class="card-header bg-primary text-white py-4"
+                style="background: linear-gradient(135deg, #0d6efd 0%, #0dcaf0 100%);">
+                <h4 class="mb-0 font-weight-bold text-center">{{ title }}</h4>
+            </div>
+            <div class="card-body p-5">
+                <form method="POST">
+                    {{ form.hidden_tag() }}
+
+                    <div class="row">
+                        <div class="col-md-8">
+                            <div class="form-group mb-4">
+                                {{ form.name.label(class="font-weight-bold small text-uppercase text-muted") }}
+                                {{ form.name(class="form-control form-control-lg input-premium") }}
+                                {% for error in form.name.errors %}
+                                <span class="text-danger small">{{ error }}</span>
+                                {% endfor %}
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="form-group mb-4">
+                                {{ form.sort_order.label(class="font-weight-bold small text-uppercase text-muted") }}
+                                {{ form.sort_order(class="form-control form-control-lg input-premium") }}
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="form-group mb-4">
+                                {{ form.category.label(class="font-weight-bold small text-uppercase text-muted") }}
+                                {{ form.category(class="form-control form-control-lg custom-select input-premium") }}
+                                <small class="text-muted">Determines which section this field appears in.</small>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group mb-4">
+                                {{ form.field_type.label(class="font-weight-bold small text-uppercase text-muted") }}
+                                {{ form.field_type(class="form-control form-control-lg custom-select input-premium",
+                                onchange="toggleOptions()") }}
+                            </div>
+                        </div>
+                    </div>
+
+                    <div id="options-container" class="form-group mb-4" style="display: none;">
+                        {{ form.options.label(class="font-weight-bold small text-uppercase text-muted") }}
+                        {{ form.options(class="form-control input-premium", rows=3, placeholder="Option 1, Option 2,
+                        Option 3") }}
+                        <small class="text-muted">Comma-separated values for Dropdown menus.</small>
+                    </div>
+
+                    <div class="form-group mb-4">
+                        {{ form.branch_ids.label(class="font-weight-bold small text-uppercase text-muted") }}
+                        {{ form.branch_ids(class="form-control input-premium select2-enable", multiple="multiple") }}
+                        <small class="text-muted">Leave empty to show for ALL branches.</small>
+                    </div>
+
+                    <div class="form-group mb-5">
+                        <div class="custom-control custom-switch">
+                            {{ form.is_required(class="custom-control-input") }}
+                            <label class="custom-control-label font-weight-bold text-dark" for="is_required">Required
+                                Field</label>
+                        </div>
+                    </div>
+
+                    <div class="d-flex justify-content-between align-items-center">
+                        <a href="{{ url_for('admin.manage_fields') }}" class="text-muted font-weight-bold">Cancel</a>
+                        {{ form.submit(class="btn btn-primary btn-lg px-5 shadow-sm", style="border-radius: 8px;") }}
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    function toggleOptions() {
+        const type = document.getElementById('field_type').value;
+        const container = document.getElementById('options-container');
+        if (type === 'select') {
+            container.style.display = 'block';
+        } else {
+            container.style.display = 'none';
+        }
+    }
+
+    $(document).ready(function () {
+        toggleOptions(); // Run on load
+        $('.select2-enable').select2({
+            placeholder: "All Branches",
+            allowClear: true
+        });
+    });
+</script>
+{% endblock %}
