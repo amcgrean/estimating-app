@@ -10,7 +10,7 @@ from .models import UserType, UserSecurity, Estimator, Branch, GeneralAudit, Cus
 
 # ... (omitted)
 
-class BidRequestForm(BaseForm):
+class BidRequestForm(FlaskForm):
     # ...
     def __init__(self, *args, **kwargs):
         super(BidRequestForm, self).__init__(*args, **kwargs)
