@@ -50,6 +50,14 @@ def create_app():
         engine_opts = {"connect_args": {"timeout": 30}}
     app.config["SQLALCHEMY_ENGINE_OPTIONS"] = engine_opts
 
+    # --- Email Configuration ---
+    app.config['MAIL_SERVER'] = os.environ.get('MAIL_SERVER')
+    app.config['MAIL_PORT'] = int(os.environ.get('MAIL_PORT') or 587)
+    app.config['MAIL_USE_TLS'] = os.environ.get('MAIL_USE_TLS', 'true').lower() in ['true', 'on', '1']
+    app.config['MAIL_USERNAME'] = os.environ.get('MAIL_USERNAME')
+    app.config['MAIL_PASSWORD'] = os.environ.get('MAIL_PASSWORD')
+    app.config['MAIL_DEFAULT_SENDER'] = os.environ.get('MAIL_DEFAULT_SENDER')
+
     # --- Paths / files ---
     app.config["UPLOAD_FOLDER"] = os.environ.get("UPLOAD_FOLDER", "uploads")
     app.config["PDF_TEMPLATE"] = os.environ.get("PDF_TEMPLATE", "project/form.pdf")

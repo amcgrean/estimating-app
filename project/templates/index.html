@@ -84,12 +84,12 @@
         font-size: 0.9rem;
     }
 </style>
-    .fc-event {
-        cursor: pointer;
-    }
-    .fc-toolbar-title {
-        font-size: 1.25rem !important;
-    }
+.fc-event {
+cursor: pointer;
+}
+.fc-toolbar-title {
+font-size: 1.25rem !important;
+}
 </style>
 <link href='https://cdn.jsdelivr.net/npm/fullcalendar@5.10.1/main.min.css' rel='stylesheet' />
 {% endblock %}
@@ -130,9 +130,7 @@
                 <a class="dropdown-item py-2" href="{{ url_for('main.add_design', branch_id=current_branch_id) }}">
                     <i class="fas fa-pen-nib mr-2 text-primary"></i> Add Design
                 </a>
-                <a class="dropdown-item py-2" href="{{ url_for('main.bid_request', branch_id=current_branch_id) }}">
-                    <i class="fas fa-clipboard-list mr-2 text-primary"></i> Bid Request Form
-                </a>
+
                 {% if current_user.is_admin %}
                 <div class="dropdown-divider"></div>
                 <a class="dropdown-item py-2" href="{{ url_for('admin.manage_customers') }}">
@@ -410,7 +408,7 @@
                 events: {
                     url: "{{ url_for('main.api_bids_events') }}",
                     extraParams: {
-                        branch_id: 3 
+                        branch_id: 3
                     }
                 },
                 eventClick: function (info) {
@@ -421,7 +419,7 @@
                 },
                 height: 600,
                 // Simple event styling
-                eventDidMount: function(info) {
+                eventDidMount: function (info) {
                     // Tooltip logic if needed
                     $(info.el).attr('title', info.event.title);
                 }
