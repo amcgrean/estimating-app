@@ -3,7 +3,7 @@ from flask_login import login_required, current_user
 from project import db, mail
 from datetime import date
 from sqlalchemy import func, cast, Date
-from project.models import User, UserType, Customer, Bid, Estimator, Branch, SalesRep, UserSecurity, Design, LoginActivity
+from project.models import User, UserType, Customer, Bid, Estimator, Branch, SalesRep, UserSecurity, Design, LoginActivity, NotificationRule
 from project.forms import UserForm, UpdateUserForm, UploadForm, CustomerForm, UserTypeForm, UserSecurityForm, SearchForm
 from werkzeug.utils import secure_filename
 from werkzeug.security import generate_password_hash
@@ -708,3 +708,74 @@ def perform_db_upgrade():
     except Exception as e:
         return f"Error during upgrade: {str(e)}", 500
 
+@admin.route('/manage_notifications')
+@login_required
+def manage_notifications():
+    if not current_user.is_admin:
+        flash('Access denied.', 'danger')
+        return redirect(url_for('main.index'))
+    
+    rules = NotificationRule.query.order_by(NotificationRule.created_at.desc()).all()
+    return render_template('manage_notifications.html', rules=rules)
+
+@admin.route('/add_notification_rule', methods=['GET', 'POST'])
+@login_required
+def add_notification_rule():
+    if not current_user.is_admin:
+        flash('Access denied.', 'danger')
+        return redirect(url_for('main.index'))
+
+    # Hardcoded generic event types for now
+    event_types = [('new_bid', 'New Bid Submitted'), ('bid_completed', 'Bid Completed')]
+    
+    # Get potential recipients
+    users = User.query.all()
+    roles = UserType.query.all()
+    
+    if request.method == 'POST':
+        event_type = request.form.get('event_type')
+        recipient_type = request.form.get('recipient_type')
+        recipient_value = request.form.get('recipient_value') # ID
+        
+        # Resolve name for display
+        recipient_name = "Unknown"
+        recipient_id = None
+        
+        if recipient_type == 'user':
+            user = User.query.get(recipient_value)
+            if user:
+                recipient_name = user.username
+                recipient_id = user.id
+        elif recipient_type == 'role':
+            role = UserType.query.get(recipient_value)
+            if role:
+                recipient_name = role.name
+                recipient_id = role.id
+
+        if event_type and recipient_type and recipient_id:
+            new_rule = NotificationRule(
+                event_type=event_type,
+                recipient_type=recipient_type,
+                recipient_id=recipient_id,
+                recipient_name=recipient_name
+            )
+            db.session.add(new_rule)
+            db.session.commit()
+            flash('Notification rule added.', 'success')
+            return redirect(url_for('admin.manage_notifications'))
+        else:
+            flash('Invalid selection.', 'danger')
+
+    return render_template('add_notification_rule.html', event_types=event_types, users=users, roles=roles)
+
+@admin.route('/delete_notification_rule/<int:rule_id>', methods=['POST'])
+@login_required
+def delete_notification_rule(rule_id):
+    if not current_user.is_admin:
+        abort(403)
+        
+    rule = NotificationRule.query.get_or_404(rule_id)
+    db.session.delete(rule)
+    db.session.commit()
+    flash('Rule deleted.', 'success')
+    return redirect(url_for('admin.manage_notifications'))

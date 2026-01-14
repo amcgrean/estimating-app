@@ -4,9 +4,7 @@ from project import mail, db
 from project.models import (
     Bid, Customer, Estimator, Design, User, EWP, UserType, UserSecurity,
     Branch, SalesRep, LoginActivity, ITService, Project, Framing, Siding,
-    Bid, Customer, Estimator, Design, User, EWP, UserType, UserSecurity,
-    Branch, SalesRep, LoginActivity, ITService, Project, Framing, Siding,
-    Shingle, Deck, Door, Window, Trim, BidActivity, BidFile
+    Shingle, Deck, Door, Window, Trim, BidActivity, BidFile, NotificationRule
 )
 import csv
 import json
@@ -748,6 +746,59 @@ def sign_s3():
          
     return jsonify(presigned_data)
 
+def send_bid_notification(bid, event_type):
+    """
+    Sends email notifications based on NotificationRules.
+    """
+    try:
+        rules = NotificationRule.query.filter_by(event_type=event_type).all()
+        if not rules:
+            return
+
+        recipients = set() # Set of emails to avoid duplicates
+
+        for rule in rules:
+            if rule.recipient_type == 'user':
+                user = User.query.get(rule.recipient_id)
+                if user and user.email:
+                    recipients.add(user.email)
+            elif rule.recipient_type == 'role':
+                # Get all users with this role
+                users = User.query.filter_by(usertype_id=rule.recipient_id).all()
+                for user in users:
+                    if user.email:
+                        recipients.add(user.email)
+            # Add branch_role logic if needed later
+        
+        if not recipients:
+            return
+
+        subject = f"New Bid Submitted: {bid.project_name}"
+        if event_type == 'bid_completed':
+            subject = f"Bid Completed: {bid.project_name}"
+            
+        msg = Message(subject,
+                      sender=current_app.config.get('MAIL_DEFAULT_SENDER', 'noreply@pa-bid-request.com'),
+                      recipients=list(recipients))
+        
+        # Simple text body for now
+        msg.body = f"""
+        A new bid has been submitted.
+        
+        Project: {bid.project_name}
+        Customer: {bid.customer.name if bid.customer else 'Unknown'}
+        Submitted By: {bid.last_updated_by}
+        Link: {url_for('main.edit_bid', bid_id=bid.id, _external=True)}
+        
+        Please log in to view details.
+        """
+        
+        mail.send(msg)
+        current_app.logger.info(f"Sent {event_type} notification to {len(recipients)} recipients.")
+
+    except Exception as e:
+        current_app.logger.error(f"Failed to send notification: {e}")
+
 @main.route('/add_bid', methods=['GET', 'POST'])
 def add_bid():
     form = BidForm()
@@ -903,6 +954,10 @@ def add_bid():
         db.session.add(new_bid)
         try:
             db.session.commit()
+            
+            # Send Notification
+            send_bid_notification(new_bid, 'new_bid')
+
             flash('Bid added successfully!', 'success')
             return redirect(url_for('main.index'))
         except Exception as e:
@@ -1408,6 +1463,7 @@ def add_design():
         )
         db.session.add(new_design)
         db.session.commit()
+        
         flash('Design added successfully!', 'success')
         return redirect(url_for('main.index'))
     return render_template('add_design.html', form=form)

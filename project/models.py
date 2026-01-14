@@ -104,6 +104,21 @@ class BidFile(db.Model):
         return f'<BidFile {self.filename}>'
 
 
+class NotificationRule(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    event_type = db.Column(db.String(50), nullable=False) # e.g., 'new_bid'
+    
+    # Recipient Configuration
+    recipient_type = db.Column(db.String(50), nullable=False) 
+    recipient_id = db.Column(db.Integer, nullable=True) 
+    recipient_name = db.Column(db.String(100), nullable=True)
+
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+
+    def __repr__(self):
+        return f'<NotificationRule {self.event_type} -> {self.recipient_type}:{self.recipient_id}>'
+
+
 class Customer(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     customerCode = db.Column(db.String(100), nullable=False, unique=True)
