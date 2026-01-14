@@ -825,7 +825,9 @@ def add_bid():
     form.estimator_id.choices = get_branch_estimators(selected_branch_id)
     
     # Populate Sales Reps
+    # Populate Sales Reps
     # Filter by Branch using the User table link
+    print(f"DEBUG: selected_branch_id = {selected_branch_id}")
     if selected_branch_id and selected_branch_id != 0:
         # Find Users who are 'Sales Rep' type and belong to this branch
         branch_rep_users = User.query\
@@ -834,6 +836,10 @@ def add_bid():
             .filter(User.user_branch_id == selected_branch_id)\
             .all()
         
+        print(f"DEBUG: Found {len(branch_rep_users)} users for branch {selected_branch_id}")
+        for u in branch_rep_users:
+            print(f"DEBUG: User: {u.username}, Rep: {u.sales_rep.name if u.sales_rep else 'None'}")
+
         # Extract unique SalesRep entities from these Users
         sales_reps = []
         seen_ids = set()
@@ -855,8 +861,10 @@ def add_bid():
         
     else:
         # specific branch not selected (or 'All'), show all
+        print("DEBUG: No branch selected, showing all reps")
         sales_reps = SalesRep.query.order_by(SalesRep.name).all()
 
+    print(f"DEBUG: Final Sales Rep Choices: {[r.name for r in sales_reps]}")
     form.sales_rep_id.choices = [(0, 'Select Sales Rep')] + [(rep.id, rep.name) for rep in sales_reps]
     
     # Fetch Dynamic Fields
