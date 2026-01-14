@@ -20,7 +20,8 @@
     <div class="card-body bg-light py-2 px-3" style="border-radius: 12px;">
         <form action="{{ url_for('admin.bulk_update_fields') }}" method="POST" id="bulkForm"
             class="form-inline d-flex align-items-center justify-content-between">
-            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" /> <!-- Manual CSRF if form not passed -->
+            <input type="hidden" name="csrf_token" value="{{ form.csrf_token.current_token }}" />
+            <!-- Manual CSRF if form not passed -->
 
             <div class="d-flex align-items-center">
                 <label class="mr-2 font-weight-bold small text-muted text-uppercase">Bulk Action:</label>
@@ -119,7 +120,7 @@
                             </a>
                             <form action="{{ url_for('admin.delete_field', field_id=field.id) }}" method="POST"
                                 class="d-inline">
-                                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
+                                <input type="hidden" name="csrf_token" value="{{ form.csrf_token.current_token }}" />
                                 <button type="submit" class="btn btn-sm btn-outline-danger border-0"
                                     onclick="return confirm('Delete this field? DATA LOSS WARNING: All values associated with this field will be deleted.');"
                                     title="Delete">
@@ -213,7 +214,7 @@
                     contentType: 'application/json',
                     data: JSON.stringify({ field_ids: order }),
                     headers: {
-                        'X-CSRFToken': "{{ csrf_token() }}" // Assuming Flask-WTF csrf protection
+                        'X-CSRFToken': "{{ form.csrf_token.current_token }}" // Assuming Flask-WTF csrf protection
                     },
                     success: function (response) {
                         console.log('Order updated');
