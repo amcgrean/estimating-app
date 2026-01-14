@@ -22,7 +22,7 @@ class Bid(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     plan_type = db.Column(db.String(50), nullable=False)
     customer_id = db.Column(db.Integer, db.ForeignKey('customer.id'), nullable=False)
-    sales_rep_id = db.Column(db.Integer, db.ForeignKey('sales_rep.id'), nullable=True)
+    sales_rep_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=True)
     project_name = db.Column(db.String(100), nullable=False)
     estimator_id = db.Column(db.Integer, db.ForeignKey('estimator.estimatorID', name='fk_estimator_id'), nullable=True)
     status = db.Column(db.String(50), default='Incomplete')
