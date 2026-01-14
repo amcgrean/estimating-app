@@ -1945,14 +1945,18 @@ def fix_and_upgrade():
             db.session.execute(text(f"UPDATE alembic_version SET version_num = '{new_parent_rev}'"))
             db.session.commit()
             messages.append(f"FIX APPLIED: Forced alembic_version from {current_rev} to {new_parent_rev}")
+            messages.append("IMPORTANT: Please REFRESH this page to run the upgrade now that the version is fixed.")
+            return "<br>".join(messages)
         else:
             messages.append(f"No version fix needed (Not at {dead_end_rev} or manual_initial)")
             
         # 2. Run Upgrade
         from flask_migrate import upgrade as flask_migrate_upgrade
+        # Explicitly configure alembic to ensure it sees the new state if possible, though new request is safer.
         flask_migrate_upgrade()
         messages.append("SUCCESS: flask db upgrade executed. Refresh page/check DB.")
         
         return "<br>".join(messages)
     except Exception as e:
-        return f"ERROR: {str(e)}"
+        import traceback
+        return f"ERROR: {str(e)} <br> {traceback.format_exc()}"
