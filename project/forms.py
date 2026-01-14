@@ -6,7 +6,20 @@ from flask_login import current_user
 from project import db
 from datetime import datetime, timedelta
 import re
-from .models import UserType, UserSecurity, Estimator, Branch, GeneralAudit, SalesRep, Customer
+from .models import UserType, UserSecurity, Estimator, Branch, GeneralAudit, Customer, User
+
+# ... (omitted)
+
+class BidRequestForm(BaseForm):
+    # ...
+    def __init__(self, *args, **kwargs):
+        super(BidRequestForm, self).__init__(*args, **kwargs)
+
+        # Populate sales rep dropdown (Users with type 'Sales Rep')
+        sales_reps = User.query.join(UserType).filter(UserType.name == 'Sales Rep').order_by(User.username).all()
+        self.sales_rep.choices = [
+            ('', 'Select Sales Rep (or Cash if N/A)')
+        ] + [(u.id, u.username) for u in sales_reps]
 
 # Custom email validator
 def simple_email_check(form, field):
@@ -302,9 +315,10 @@ class BidRequestForm(BaseForm):
         super(BidRequestForm, self).__init__(*args, **kwargs)
 
         # Populate sales rep dropdown
+        sales_reps = User.query.join(UserType).filter(UserType.name == 'Sales Rep').order_by(User.username).all()
         self.sales_rep.choices = [
             ('', 'Select Sales Rep (or Cash if N/A)')
-        ] + [(rep.id, rep.name) for rep in SalesRep.query.order_by(SalesRep.name).all()]
+        ] + [(u.id, u.username) for u in sales_reps]
 
         # Populate customer dropdown
         self.customer_id.choices = [

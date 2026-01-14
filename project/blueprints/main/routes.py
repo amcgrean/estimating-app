@@ -3,7 +3,7 @@ from flask_login import login_user, login_required, logout_user, current_user
 from project import mail, db
 from project.models import (
     Bid, Customer, Estimator, Design, User, EWP, UserType, UserSecurity,
-    Branch, SalesRep, LoginActivity, ITService, Project, Framing, Siding,
+    Branch, LoginActivity, ITService, Project, Framing, Siding,
     Shingle, Deck, Door, Window, Trim, BidActivity, BidFile, NotificationRule,
     BidField, BidValue
 )
@@ -78,14 +78,14 @@ def index():
             query = query.filter(model.branch_id == branch_id)
         
         # Sales Rep Filtering (My Bids)
-        if filter_sales_reps and current_user.is_authenticated and current_user.usertype.name == 'Sales Rep' and current_user.sales_rep_id:
+        if filter_sales_reps and current_user.is_authenticated and current_user.usertype.name == 'Sales Rep':
             if model == Bid:
-                 sales_rep_name = current_user.sales_rep.name
+                 sales_rep_name = current_user.username
                  # Ensure we join with Customer if not already joined, but SQLAlchemy handles joins smartly.
                  # Actually, to be safe, we check if filtering by Customer fields.
                  # But simplistic approach:
                  query = query.join(Customer).filter(
-                     (Bid.sales_rep_id == current_user.sales_rep_id) |
+                     (Bid.sales_rep_id == current_user.id) |
                      (Customer.sales_agent == sales_rep_name)
                  )
         return query
@@ -432,16 +432,14 @@ def get_branch_estimators(branch_id, estimator_type=None):
     return [(0, 'No Estimator')] + [(e.estimatorID, e.estimatorName) for e in estimators]
 
 def get_branch_sales_reps(branch_id):
-    """Helper to get sales reps for a specific branch."""
-    query = db.session.query(SalesRep).join(
-        User, User.sales_rep_id == SalesRep.id
-    ).filter(User.is_active == True)
+    """Helper to get sales reps (Users) for a specific branch."""
+    query = User.query.join(UserType).filter(UserType.name == 'Sales Rep', User.is_active == True)
 
     if branch_id and branch_id != 0:
         query = query.filter(User.user_branch_id == branch_id)
     
     reps = query.all()
-    return [('', 'Select Sales Rep')] + [(rep.id, rep.name) for rep in reps]
+    return [('', 'Select Sales Rep')] + [(rep.id, rep.username) for rep in reps]
 
 
 # Route to manage user types
@@ -844,47 +842,33 @@ def add_bid():
     form.estimator_id.choices = get_branch_estimators(selected_branch_id)
     
     # Populate Sales Reps
-    # Populate Sales Reps
     # Filter by Branch using the User table link
     print(f"DEBUG: selected_branch_id = {selected_branch_id}")
+    sales_reps = []
     if selected_branch_id and selected_branch_id != 0:
         # Find Users who are 'Sales Rep' type and belong to this branch
-        branch_rep_users = User.query\
+        sales_reps = User.query\
             .join(UserType)\
             .filter(UserType.name == 'Sales Rep')\
             .filter(User.user_branch_id == selected_branch_id)\
+            .order_by(User.username)\
             .all()
         
-        print(f"DEBUG: Found {len(branch_rep_users)} users for branch {selected_branch_id}")
-        for u in branch_rep_users:
-            print(f"DEBUG: User: {u.username}, Rep: {u.sales_rep.name if u.sales_rep else 'None'}")
-
-        # Extract unique SalesRep entities from these Users
-        sales_reps = []
-        seen_ids = set()
-        for u in branch_rep_users:
-            if u.sales_rep and u.sales_rep.id not in seen_ids:
-                sales_reps.append(u.sales_rep)
-                seen_ids.add(u.sales_rep.id)
+        print(f"DEBUG: Found {len(sales_reps)} sales reps (users) for branch {selected_branch_id}")
         
-        # Sort by name
-        sales_reps.sort(key=lambda x: x.name)
-        
-        # Fallback: If no reps found for branch (maybe new branch), show all? 
-        # Or strict? User likely wants strict. 
-        # But safeguards: if logged in user is sales rep, ensure they are in list?
-        if current_user.usertype.name == 'Sales Rep' and current_user.sales_rep:
-             if current_user.sales_rep.id not in seen_ids:
-                 sales_reps.append(current_user.sales_rep)
-                 sales_reps.sort(key=lambda x: x.name)
+        # Fallback: If logged in user is sales rep, ensure they are in list?
+        if current_user.usertype.name == 'Sales Rep':
+             if current_user.id not in [u.id for u in sales_reps]:
+                 sales_reps.append(current_user)
+                 sales_reps.sort(key=lambda x: x.username)
         
     else:
         # specific branch not selected (or 'All'), show all
         print("DEBUG: No branch selected, showing all reps")
-        sales_reps = SalesRep.query.order_by(SalesRep.name).all()
+        sales_reps = User.query.join(UserType).filter(UserType.name == 'Sales Rep').order_by(User.username).all()
 
-    print(f"DEBUG: Final Sales Rep Choices: {[r.name for r in sales_reps]}")
-    form.sales_rep_id.choices = [(0, 'Select Sales Rep')] + [(rep.id, rep.name) for rep in sales_reps]
+    print(f"DEBUG: Final Sales Rep Choices: {[r.username for r in sales_reps]}")
+    form.sales_rep_id.choices = [(0, 'Select Sales Rep')] + [(rep.id, rep.username) for rep in sales_reps]
     
     # Fetch Dynamic Fields
     all_fields = BidField.query.order_by(BidField.sort_order).all()
@@ -919,9 +903,9 @@ def add_bid():
                 pass # JSON parse error, skip or include? Default skip.
 
     # Create Customer -> Sales Rep ID mapping for JS
-    # Logic: Match Customer.sales_agent (string) to SalesRep.name (string)
+    # Logic: Match Customer.sales_agent (string) to SalesRep.username (string)
     # This is a bit fuzzy, assuming names match.
-    rep_name_map = {r.name.lower().strip(): r.id for r in sales_reps}
+    rep_name_map = {r.username.lower().strip(): r.id for r in sales_reps}
     customer_sales_rep_map = {}
     
     for c in customers:
@@ -1120,36 +1104,25 @@ def manage_bid(bid_id):
     form.estimator_id.choices = get_branch_estimators(bid.branch_id)
 
     # Populate Sales Rep Choices (Reuse logic from add_bid roughly, or just simple branch filter)
-    sales_rep_query = SalesRep.query
+    # Populate Sales Rep Choices (Reuse logic from add_bid roughly)
+    sales_reps = []
     if bid.branch_id and bid.branch_id != 0:
-        # Use simple join if SalesRep had branch_id, but it doesn't. 
-        # We must use User table join as established in add_bid.
-        branch_rep_users = User.query\
+        sales_reps = User.query\
             .join(UserType)\
             .filter(UserType.name == 'Sales Rep')\
             .filter(User.user_branch_id == bid.branch_id)\
+            .order_by(User.username)\
             .all()
         
-        filtered_reps = []
-        seen_ids = set()
-        for u in branch_rep_users:
-            if u.sales_rep and u.sales_rep.id not in seen_ids:
-                filtered_reps.append(u.sales_rep)
-                seen_ids.add(u.sales_rep.id)
-        filtered_reps.sort(key=lambda x: x.name)
-        
         # Ensure current bid's sales rep is in list even if branch changed (edge case)
-        if bid.sales_rep and bid.sales_rep.id not in seen_ids:
-             filtered_reps.append(bid.sales_rep)
-             
-        # Also ensure current user if they are a sales rep? Maybe not necessary for manage,
-        # but good for consistency if they are taking over a bid? 
-        # Stick to just what's correct for the bid context.
-        sales_reps = filtered_reps
+        # Note: bid.sales_rep is now a User object.
+        if bid.sales_rep and bid.sales_rep.id not in [u.id for u in sales_reps]:
+             sales_reps.append(bid.sales_rep)
+             sales_reps.sort(key=lambda x: x.username)
     else:
-        sales_reps = SalesRep.query.order_by(SalesRep.name).all()
+        sales_reps = User.query.join(UserType).filter(UserType.name == 'Sales Rep').order_by(User.username).all()
 
-    form.sales_rep_id.choices = [(0, 'Select Sales Rep')] + [(rep.id, rep.name) for rep in sales_reps]
+    form.sales_rep_id.choices = [(0, 'Select Sales Rep')] + [(rep.id, rep.username) for rep in sales_reps]
 
     # Fetch Dynamic Fields for Rendering
     dynamic_fields = BidField.query.order_by(BidField.sort_order).all()

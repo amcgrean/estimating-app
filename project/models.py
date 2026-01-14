@@ -73,7 +73,7 @@ class Bid(db.Model):
     branch_id = db.Column(db.Integer, db.ForeignKey('branch.branch_id'), nullable=True)
     
     customer = db.relationship('Customer', backref=db.backref('bid', lazy=True))
-    sales_rep = db.relationship('SalesRep', backref=db.backref('bids', lazy=True))
+    sales_rep = db.relationship('User', foreign_keys=[sales_rep_id], backref=db.backref('bids_as_rep', lazy=True))
     estimator = db.relationship('Estimator', backref=db.backref('bid', lazy=True))
     branch = db.relationship('Branch', backref=db.backref('bids', lazy=True))
     files = db.relationship('BidFile', backref='bid', cascade="all, delete-orphan", lazy=True)
@@ -89,7 +89,7 @@ class Bid(db.Model):
             target.last_updated_by = 'System/Script'
         target.last_updated_at = datetime.utcnow()
 
-db.event.listen(Bid, 'before_update', Bid.before_update)
+    db.event.listen(Bid, 'before_update', Bid.before_update)
 
 
 class BidFile(db.Model):
@@ -185,7 +185,6 @@ class UserType(db.Model):
     name = db.Column(db.String(50), unique=True, nullable=False)
 
 
-
 class User(db.Model, UserMixin):
     id = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.String(150), unique=True, nullable=False)
@@ -193,7 +192,7 @@ class User(db.Model, UserMixin):
     password = db.Column(db.String(255), nullable=False)
     usertype_id = db.Column(db.Integer, db.ForeignKey('user_type.id'), nullable=False)
     estimatorID = db.Column(db.Integer, db.ForeignKey('estimator.estimatorID'), nullable=True)
-    sales_rep_id = db.Column(db.Integer, db.ForeignKey('sales_rep.id'), nullable=True)
+    # sales_rep_id removed as we are deleting SalesRep table
     user_branch_id = db.Column(db.Integer, db.ForeignKey('branch.branch_id'), nullable=True)
 
     last_login = db.Column(db.DateTime, nullable=True)
@@ -207,7 +206,7 @@ class User(db.Model, UserMixin):
     usertype = db.relationship('UserType', backref=db.backref('users', lazy=True))
     estimator = db.relationship('Estimator', backref=db.backref('estimators', lazy=True))  # Changed backref name
     branch = db.relationship('Branch', backref=db.backref('branches', lazy=True))  # Changed backref name
-    sales_rep = db.relationship('SalesRep', backref='users', lazy=True)  # Reference the backref here only
+    # sales_rep relationship removed
 
     def set_password(self, password):
         self.password = bcrypt.generate_password_hash(password).decode('utf-8')
@@ -251,11 +250,7 @@ class GeneralAudit(db.Model):
     changes = db.Column(db.Text, nullable=True)  # Stores changes in a JSON format
     user = db.relationship('User', backref=db.backref('audits', lazy=True))
 
-class SalesRep(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-    name = db.Column(db.String(100), nullable=False)
-    username = db.Column(db.String(100), nullable=False, unique=True)
-
+# SalesRep Class REMOVED
 
 class EWP(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -322,7 +317,7 @@ class Project(db.Model):
 
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
     customer_id = db.Column(db.Integer, db.ForeignKey('customer.id'), nullable=True)  # FK to Customer table
-    sales_rep_id = db.Column(db.Integer, db.ForeignKey('sales_rep.id'), nullable=False)  # Relates to SalesRep
+    sales_rep_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)  # Relates to User now
     contractor = db.Column(db.String(255), nullable=False)
     project_address = db.Column(db.String(255), nullable=False)
     contractor_phone = db.Column(db.String(15), nullable=True)
@@ -341,7 +336,7 @@ class Project(db.Model):
     branch_id = db.Column(db.Integer, db.ForeignKey('branch.branch_id'), nullable=True)
 
     # Relationships
-    sales_rep = db.relationship('SalesRep', backref=db.backref('projects', lazy=True))  # SalesRep relation
+    sales_rep = db.relationship('User', backref=db.backref('projects', lazy=True))  # User relation
     customer = db.relationship('Customer', backref=db.backref('projects', lazy=True))
     branch = db.relationship('Branch', backref=db.backref('projects', lazy=True))
 
