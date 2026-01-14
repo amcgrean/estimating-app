@@ -18,9 +18,7 @@ from sqlalchemy import func, cast, Date
 from flask_mail import Message
 from werkzeug.security import generate_password_hash
 from flask_wtf import FlaskForm
-from flask_migrate import upgrade as flask_migrate_upgrade
 from sqlalchemy import text
-from wtforms import StringField, SubmitField, BooleanField, RadioField, SelectField, HiddenField
 from wtforms import StringField, SubmitField, BooleanField, RadioField, SelectField, HiddenField
 from wtforms.validators import DataRequired
 from project.forms import (BidRequestForm, UpdateUserForm, LoginForm, RegistrationForm, FramingForm, SidingForm, ShingleForm,
@@ -1951,6 +1949,7 @@ def fix_and_upgrade():
             messages.append(f"No version fix needed (Not at {dead_end_rev})")
             
         # 2. Run Upgrade
+        from flask_migrate import upgrade as flask_migrate_upgrade
         flask_migrate_upgrade()
         messages.append("SUCCESS: flask db upgrade executed. Refresh page/check DB.")
         
