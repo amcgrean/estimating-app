@@ -123,10 +123,12 @@ def create_app():
     from .blueprints.main.routes import main as main_blueprint
     from .blueprints.auth.routes import auth as auth_blueprint
     from .blueprints.admin.routes import admin as admin_blueprint
+    from .blueprints.debug.routes import debug_bp
     
     app.register_blueprint(main_blueprint)
     app.register_blueprint(auth_blueprint)
     app.register_blueprint(admin_blueprint)
+    app.register_blueprint(debug_bp)
 
     # Logging (stdout is safest on serverless)
     if not app.debug:
