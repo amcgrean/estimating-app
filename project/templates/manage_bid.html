@@ -19,14 +19,7 @@
                 <fieldset {% if is_readonly %}disabled{% endif %}>
                     {{ form.hidden_tag() }}
 
-                    {# Render CSRF tokens for nested subforms to prevent validation errors #}
-                    {{ form.framing.csrf_token }}
-                    {{ form.siding.csrf_token }}
-                    {{ form.shingle.csrf_token }}
-                    {{ form.deck.csrf_token }}
-                    {{ form.trim.csrf_token }}
-                    {{ form.window.csrf_token }}
-                    {{ form.door.csrf_token }}
+                    {# Render CSRF tokens for nested subforms REMOVED as subforms are gone #}
 
                     <div class="row">
                         <div class="col-md-6">
