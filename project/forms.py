@@ -237,9 +237,16 @@ class BidForm(BaseForm):
     # siding_notes = TextAreaField('Siding Notes', validators=[Optional()])
     # shingle_notes = TextAreaField('Shingle Notes', validators=[Optional()])
     # deck_notes = TextAreaField('Deck Notes', validators=[Optional()])
-    # trim_notes = TextAreaField('Trim Notes', validators=[Optional()])
-    # window_notes = TextAreaField('Window Notes', validators=[Optional()])
-    # door_notes = TextAreaField('Door Notes', validators=[Optional()])
+    door = FormField(DoorForm)
+    
+    # Keep simple notes for fallback or other needs
+    framing_notes = TextAreaField('Framing Notes', validators=[Optional()])
+    siding_notes = TextAreaField('Siding Notes', validators=[Optional()])
+    shingle_notes = TextAreaField('Shingle Notes', validators=[Optional()])
+    deck_notes = TextAreaField('Deck Notes', validators=[Optional()])
+    trim_notes = TextAreaField('Trim Notes', validators=[Optional()])
+    window_notes = TextAreaField('Window Notes', validators=[Optional()])
+    door_notes = TextAreaField('Door Notes', validators=[Optional()])
 
     plan_key = HiddenField()
     email_key = HiddenField()
