@@ -1021,7 +1021,7 @@ def add_bid():
             db.session.rollback()
             current_app.logger.error(f"Error adding bid: {str(e)}")
             flash(f'An error occurred while saving the bid: {str(e)}', 'danger')
-            return render_template('add_bid.html', form=form, customer_sales_rep_map=customer_sales_rep_map)
+            return render_template('add_bid.html', form=form, dynamic_fields=dynamic_fields, customer_sales_rep_map=customer_sales_rep_map)
 
     else:
         if request.method == 'POST':
@@ -1031,7 +1031,7 @@ def add_bid():
             current_app.logger.error(f"Customer ID Choices: {form.customer_id.choices}")
             current_app.logger.error(f"Submitted Customer ID: {form.customer_id.data}")
 
-    return render_template('add_bid.html', form=form, customer_sales_rep_map=customer_sales_rep_map)
+    return render_template('add_bid.html', form=form, dynamic_fields=dynamic_fields, customer_sales_rep_map=customer_sales_rep_map)
 
 
 @main.route('/bid/<int:bid_id>/download/<file_type>')

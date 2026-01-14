@@ -265,7 +265,6 @@
                             </div>
                             <div class="card-body">
                                 <div class="row">
-                                    {# Legacy fields removed in favor of dynamic fields #}
                                     <!-- Dynamic Fields for Framing -->
                                     {% for field in dynamic_fields %}
                                     {% if field.category == 'Framing' %}
@@ -301,7 +300,6 @@
                                     </div>
                                     {% endif %}
                                     {% endfor %}
-
                                 </div>
                             </div>
                         </div>
@@ -318,18 +316,6 @@
                             </div>
                             <div class="card-body">
                                 <div class="row">
-                                    {% for field in form.siding %}
-                                    {% if field.type == 'CSRFTokenField' or field.type == 'HiddenField' %}
-                                    {{ field() }}
-                                    {% elif field.type != 'CSRFTokenField' and field.type != 'HiddenField' %}
-                                    <div class="col-md-4 mb-3">
-                                        <label class="font-weight-600 small text-uppercase text-muted mb-1">{{
-                                            field.label.text }}</label>
-                                        {{ field(class="form-control form-control-sm") }}
-                                    </div>
-                                    {% endif %}
-                                    {% endfor %}
-
                                     <!-- Dynamic Fields for Siding -->
                                     {% for field in dynamic_fields %}
                                     {% if field.category == 'Siding' %}
@@ -381,18 +367,6 @@
                             </div>
                             <div class="card-body">
                                 <div class="row">
-                                    {% for field in form.shingle %}
-                                    {% if field.type == 'CSRFTokenField' or field.type == 'HiddenField' %}
-                                    {{ field() }}
-                                    {% elif field.type != 'CSRFTokenField' and field.type != 'HiddenField' %}
-                                    <div class="col-md-12 mb-2">
-                                        <label class="font-weight-600 small text-uppercase text-muted mb-1">{{
-                                            field.label.text }}</label>
-                                        {{ field(class="form-control form-control-sm") }}
-                                    </div>
-                                    {% endif %}
-                                    {% endfor %}
-
                                     <!-- Dynamic Fields for Shingle -->
                                     {% for field in dynamic_fields %}
                                     {% if field.category == 'Shingle' %}
@@ -444,18 +418,6 @@
                             </div>
                             <div class="card-body">
                                 <div class="row">
-                                    {% for field in form.deck %}
-                                    {% if field.type == 'CSRFTokenField' or field.type == 'HiddenField' %}
-                                    {{ field() }}
-                                    {% elif field.type != 'CSRFTokenField' and field.type != 'HiddenField' %}
-                                    <div class="col-md-4 mb-3">
-                                        <label class="font-weight-600 small text-uppercase text-muted mb-1">{{
-                                            field.label.text }}</label>
-                                        {{ field(class="form-control form-control-sm") }}
-                                    </div>
-                                    {% endif %}
-                                    {% endfor %}
-
                                     <!-- Dynamic Fields for Deck -->
                                     {% for field in dynamic_fields %}
                                     {% if field.category == 'Deck' %}
@@ -507,18 +469,6 @@
                             </div>
                             <div class="card-body">
                                 <div class="row">
-                                    {% for field in form.trim %}
-                                    {% if field.type == 'CSRFTokenField' or field.type == 'HiddenField' %}
-                                    {{ field() }}
-                                    {% elif field.type != 'CSRFTokenField' and field.type != 'HiddenField' %}
-                                    <div class="col-md-4 mb-3">
-                                        <label class="font-weight-600 small text-uppercase text-muted mb-1">{{
-                                            field.label.text }}</label>
-                                        {{ field(class="form-control form-control-sm") }}
-                                    </div>
-                                    {% endif %}
-                                    {% endfor %}
-
                                     <!-- Dynamic Fields for Trim -->
                                     {% for field in dynamic_fields %}
                                     {% if field.category == 'Trim' %}
@@ -569,18 +519,6 @@
                                     Windows</h6>
                             </div>
                             <div class="card-body">
-                                {% for field in form.window %}
-                                {% if field.type == 'CSRFTokenField' or field.type == 'HiddenField' %}
-                                {{ field() }}
-                                {% elif field.type != 'CSRFTokenField' and field.type != 'HiddenField' %}
-                                <div class="form-group mb-2">
-                                    <label class="font-weight-600 small text-uppercase text-muted mb-1">{{
-                                        field.label.text }}</label>
-                                    {{ field(class="form-control form-control-sm") }}
-                                </div>
-                                {% endif %}
-                                {% endfor %}
-
                                 <!-- Dynamic Fields for Window -->
                                 {% for field in dynamic_fields %}
                                 {% if field.category == 'Window' %}
@@ -623,18 +561,6 @@
                                 </h6>
                             </div>
                             <div class="card-body">
-                                {% for field in form.door %}
-                                {% if field.type == 'CSRFTokenField' or field.type == 'HiddenField' %}
-                                {{ field() }}
-                                {% elif field.type != 'CSRFTokenField' and field.type != 'HiddenField' %}
-                                <div class="form-group mb-2">
-                                    <label class="font-weight-600 small text-uppercase text-muted mb-1">{{
-                                        field.label.text }}</label>
-                                    {{ field(class="form-control form-control-sm") }}
-                                </div>
-                                {% endif %}
-                                {% endfor %}
-
                                 <!-- Dynamic Fields for Door -->
                                 {% for field in dynamic_fields %}
                                 {% if field.category == 'Door' %}
