@@ -962,54 +962,22 @@ def add_bid():
                 current_app.logger.error(f"Error parsing bid_files_json: {e}")
                 # Don't fail the whole bid creation, but log it.
         
-        # Populate Detailed Specs using the nested forms
-        # We initialize empty models and let wtforms populate them from the form data
-        new_bid.framing = Framing()
-        form.framing.form.populate_obj(new_bid.framing)
+        # Legacy spec models (Framing, Siding, etc.) are no longer populated via form subforms.
+        # They are replaced by BidValue (Dynamic Fields).
+        # if backwards compatibility requires empty rows, we could create them, but better to migrate away.
+        # For now, we skip creating them.
         
-        new_bid.siding = Siding()
-        form.siding.form.populate_obj(new_bid.siding)
-        
-        new_bid.shingle = Shingle()
-        form.shingle.form.populate_obj(new_bid.shingle)
-        
-        new_bid.deck = Deck()
-        form.deck.form.populate_obj(new_bid.deck)
-        
-        new_bid.trim = Trim()
-        form.trim.form.populate_obj(new_bid.trim)
-        
-        new_bid.window = Window()
-        form.window.form.populate_obj(new_bid.window)
-        
-        new_bid.door = Door()
-        form.door.form.populate_obj(new_bid.door)
-
         db.session.add(new_bid)
         try:
             db.session.commit()
             
             # --- Save Dynamic Fields ---
-            # dynamic_fields variable is already available from GET scope if not overwritten? 
-            # No, we need to re-fetch or iterate request.form keys matching 'dynamic_field_'
             for key, val in request.form.items():
                 if key.startswith('dynamic_field_'):
                     try:
                         f_id = int(key.replace('dynamic_field_', ''))
-                        if val and val.strip(): # Only save non-empty? Or save empty updates? For new bid, skip empty.
+                        if val and val.strip(): # Only save non-empty
                              # Check if field exists to be safe
-                             b_val = BidValue(bid_id=new_bid.id, field_id=f_id, value=val)
-                             db.session.add(b_val)
-                    except ValueError:
-                        pass
-            db.session.commit()
-            
-            # --- Save Dynamic Fields ---
-            for key, val in request.form.items():
-                if key.startswith('dynamic_field_'):
-                    try:
-                        f_id = int(key.replace('dynamic_field_', ''))
-                        if val and val.strip():
                              b_val = BidValue(bid_id=new_bid.id, field_id=f_id, value=val)
                              db.session.add(b_val)
                     except ValueError:
