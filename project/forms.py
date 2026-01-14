@@ -222,22 +222,18 @@ class BidForm(BaseForm):
     include_window = BooleanField('Include Window')
     include_door = BooleanField('Include Door')
     
-    # Nested Detailed Specs Forms
-    framing = FormField(FramingForm)
-    siding = FormField(SidingForm)
-    shingle = FormField(ShingleForm)
-    deck = FormField(DeckForm)
-    trim = FormField(TrimForm)
-    window = FormField(WindowForm)
-    door = FormField(DoorForm)
+    # Nested Detailed Specs Forms REMOVED in favor of Dynamic Fields
+    # framing = FormField(FramingForm)
+    # siding = FormField(SidingForm)
+    # shingle = FormField(ShingleForm)
+    # deck = FormField(DeckForm)
+    # trim = FormField(TrimForm)
+    # window = FormField(WindowForm)
+    # door = FormField(DoorForm)
     
     # Keep simple notes for fallback or other needs
-    # Notes handled by Dynamic Fields now
+    # Notes handled by Dynamic Fields now but kept for compat if referenced explicitly
     # framing_notes = TextAreaField('Framing Notes', validators=[Optional()])
-    # siding_notes = TextAreaField('Siding Notes', validators=[Optional()])
-    # shingle_notes = TextAreaField('Shingle Notes', validators=[Optional()])
-    # deck_notes = TextAreaField('Deck Notes', validators=[Optional()])
-    door = FormField(DoorForm)
     
     # Keep simple notes for fallback or other needs
     framing_notes = TextAreaField('Framing Notes', validators=[Optional()])
