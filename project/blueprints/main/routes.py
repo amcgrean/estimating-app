@@ -21,6 +21,7 @@ from flask_wtf import FlaskForm
 from flask_migrate import upgrade as flask_migrate_upgrade
 from sqlalchemy import text
 from wtforms import StringField, SubmitField, BooleanField, RadioField, SelectField, HiddenField
+from wtforms import StringField, SubmitField, BooleanField, RadioField, SelectField, HiddenField
 from wtforms.validators import DataRequired
 from project.forms import (BidRequestForm, UpdateUserForm, LoginForm, RegistrationForm, FramingForm, SidingForm, ShingleForm,
                     DoorForm, WindowForm, TrimForm, DeckForm, UserForm, UserTypeForm, DesignForm, LayoutForm, BidForm,
@@ -1728,6 +1729,201 @@ def bid_request():
         window_form=window_form,
         trim_form=trim_form
     )
+
+
+def save_related_forms(
+    project_id, framing_form, siding_form, shingle_form, deck_form,
+    door_form, window_form, trim_form, include_framing, include_siding,
+    include_shingles, include_deck, include_doors, include_windows,
+    include_trim
+):
+    """Helper function to save related form data."""
+    if include_framing:
+        framing = Framing(
+            project_id=project_id,
+            plate=framing_form.plate.data,
+            lot_type=framing_form.lot_type.data,
+            basement_wall_height=framing_form.basement_wall_height.data,
+            basement_exterior_walls=framing_form.basement_exterior_walls.data,
+            basement_interior_walls=framing_form.basement_interior_walls.data,
+            floor_framing=framing_form.floor_framing.data,
+            floor_sheeting=framing_form.floor_sheeting.data,
+            floor_adhesive=framing_form.floor_adhesive.data,
+            exterior_walls=framing_form.exterior_walls.data,
+            first_floor_wall_height=framing_form.first_floor_wall_height.data,
+            second_floor_wall_height=framing_form.second_floor_wall_height.data,
+            wall_sheeting=framing_form.wall_sheeting.data,
+            roof_trusses=framing_form.roof_trusses.data,
+            roof_sheeting=framing_form.roof_sheeting.data,
+            framing_notes=framing_form.framing_notes.data
+        )
+        db.session.add(framing)
+
+    if include_siding:
+        siding = Siding(
+            project_id=project_id,
+            lap_type=siding_form.lap_type.data,
+            panel_type=siding_form.panel_type.data,
+            shake_type=siding_form.shake_type.data,
+            soffit_trim=siding_form.soffit_trim.data,
+            window_trim_detail=siding_form.window_trim_detail.data,
+            siding_notes=siding_form.siding_notes.data
+        )
+        db.session.add(siding)
+
+    if include_shingles:
+        shingle = Shingle(
+            project_id=project_id,
+            shingle_notes=shingle_form.shingle_notes.data
+        )
+        db.session.add(shingle)
+
+    if include_deck:
+        deck = Deck(
+            project_id=project_id,
+            decking_type=deck_form.decking_type.data,
+            railing_type=deck_form.railing_type.data,
+            stairs=deck_form.stairs.data,
+            deck_notes=deck_form.deck_notes.data
+        )
+        db.session.add(deck)
+
+    if include_doors:
+        door = Door(
+            project_id=project_id,
+            door_notes=door_form.door_notes.data
+        )
+        db.session.add(door)
+
+    if include_windows:
+        window = Window(
+            project_id=project_id,
+            window_notes=window_form.window_notes.data
+        )
+        db.session.add(window)
+
+    if include_trim:
+        trim = Trim(
+            project_id=project_id,
+            base=trim_form.base.data,
+            case=trim_form.case.data,
+            stair_material=trim_form.stair_material.data,
+            door_material_type=trim_form.door_material_type.data,
+            number_of_panels=trim_form.number_of_panels.data,
+            door_hardware=trim_form.door_hardware.data,
+            built_in_materials_type=trim_form.built_in_materials_type.data,
+            plywood_1x_count=trim_form.plywood_1x_count.data,
+            specify_count=trim_form.specify_count.data,
+            trim_allowance=trim_form.trim_allowance.data,
+            trim_notes=trim_form.trim_notes.data
+        )
+        db.session.add(trim)
+
+@main.route('/projects', methods=['GET'])
+@login_required
+def projects():
+    # Get the sort column and direction
+    sort_column = request.args.get('sort', 'created_at')
+    sort_direction = request.args.get('direction', 'asc')
+
+    # Validate the sort direction
+    if sort_direction not in ['asc', 'desc']:
+        sort_direction = 'asc'
+
+    # Pagination parameters
+    page = request.args.get('page', 1, type=int)
+    per_page = request.args.get('per_page', 50, type=int)
+
+    # Define column mapping
+    column_map = {
+        'project_address': Project.project_address,
+        'contractor': Project.contractor,
+        'created_at': Project.created_at,
+        'last_updated_at': Project.last_updated_at
+    }
+
+    # Apply sorting
+    sort_column_attr = column_map.get(sort_column, Project.created_at)
+    if sort_direction == 'desc':
+        sort_column_attr = sort_column_attr.desc()
+
+    # Base query for projects
+    query = Project.query
+
+    # Branch filtering
+    from flask import session
+    branch_id = session.get('branch_id')
+    if branch_id and branch_id != 0:
+        query = query.filter(Project.branch_id == branch_id)
+
+    query = query.order_by(sort_column_attr)
+
+    # Apply pagination
+    pagination = query.paginate(page=page, per_page=per_page)
+    projects = pagination.items
+
+    branches = Branch.query.all()
+    return render_template(
+        'projects.html',
+        projects=projects,
+        pagination=pagination,
+        sort_column=sort_column,
+        sort_direction=sort_direction,
+        branches=branches,
+        current_branch_id=branch_id
+    )
+
+@main.route('/manage_project/<int:project_id>', methods=['GET', 'POST'])
+@login_required
+def manage_project(project_id):
+    project = Project.query.get_or_404(project_id)
+
+    # Load forms with the project's current data
+    form = BidRequestForm(obj=project)
+    framing_form = FramingForm(obj=project.framing)
+    siding_form = SidingForm(obj=project.siding)
+    shingle_form = ShingleForm(obj=project.shingle)
+    deck_form = DeckForm(obj=project.deck)
+    door_form = DoorForm(obj=project.door)
+    window_form = WindowForm(obj=project.window)
+    trim_form = TrimForm(obj=project.trim)
+
+    if form.validate_on_submit():
+        try:
+            # Update project data
+            form.populate_obj(project)
+
+            # Update related forms
+            # update_related_forms(
+            #     project.id,
+            #     framing_form, siding_form, shingle_form, deck_form,
+            #     door_form, window_form, trim_form,
+            #     form.include_framing.data, form.include_siding.data,
+            #     form.include_shingles.data, form.include_deck.data,
+            #     form.include_doors.data, form.include_windows.data,
+            #     form.include_trim.data
+            # )
+
+            db.session.commit()
+            flash('Project updated successfully!', 'success')
+            return redirect(url_for('main.projects'))
+        except Exception as e:
+            db.session.rollback()
+            flash(f"An error occurred: {str(e)}", 'danger')
+
+    return render_template(
+        'manage_project.html',
+        project=project,
+        form=form,
+        framing_form=framing_form,
+        siding_form=siding_form,
+        shingle_form=shingle_form,
+        deck_form=deck_form,
+        door_form=door_form,
+        window_form=window_form,
+        trim_form=trim_form
+    )
+
 
 @main.route('/debug/fix_and_upgrade')
 @login_required
