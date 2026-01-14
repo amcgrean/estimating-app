@@ -1090,6 +1090,42 @@ def manage_bid(bid_id):
          customer_query = customer_query.filter((Customer.branch_id == bid.branch_id) | (Customer.branch_id == None))
     
     form.customer_id.choices = [(0, 'Select a customer')] + [(customer.id, customer.name) for customer in customer_query.all()]
+
+    # Populate Estimator Choices
+    form.estimator_id.choices = get_branch_estimators(bid.branch_id)
+
+    # Populate Sales Rep Choices (Reuse logic from add_bid roughly, or just simple branch filter)
+    sales_rep_query = SalesRep.query
+    if bid.branch_id and bid.branch_id != 0:
+        # Use simple join if SalesRep had branch_id, but it doesn't. 
+        # We must use User table join as established in add_bid.
+        branch_rep_users = User.query\
+            .join(UserType)\
+            .filter(UserType.name == 'Sales Rep')\
+            .filter(User.user_branch_id == bid.branch_id)\
+            .all()
+        
+        filtered_reps = []
+        seen_ids = set()
+        for u in branch_rep_users:
+            if u.sales_rep and u.sales_rep.id not in seen_ids:
+                filtered_reps.append(u.sales_rep)
+                seen_ids.add(u.sales_rep.id)
+        filtered_reps.sort(key=lambda x: x.name)
+        
+        # Ensure current bid's sales rep is in list even if branch changed (edge case)
+        if bid.sales_rep and bid.sales_rep.id not in seen_ids:
+             filtered_reps.append(bid.sales_rep)
+             
+        # Also ensure current user if they are a sales rep? Maybe not necessary for manage,
+        # but good for consistency if they are taking over a bid? 
+        # Stick to just what's correct for the bid context.
+        sales_reps = filtered_reps
+    else:
+        sales_reps = SalesRep.query.order_by(SalesRep.name).all()
+
+    form.sales_rep_id.choices = [(0, 'Select Sales Rep')] + [(rep.id, rep.name) for rep in sales_reps]
+
     # Fetch Dynamic Fields for Rendering
     dynamic_fields = BidField.query.order_by(BidField.sort_order).all()
     # Filter by branch if restricted
