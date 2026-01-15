@@ -47,8 +47,17 @@ def manage_users():
         flash('Access denied.', 'danger')
         return redirect(url_for('main.index'))
         
-    users = User.query.options(db.joinedload(User.branch), db.joinedload(User.usertype)).all()
-    return render_template('manage_users.html', users=users)
+    users_query = User.query.options(db.joinedload(User.branch), db.joinedload(User.usertype))
+    
+    # Branch Filter
+    branch_id = request.args.get('branch_id', type=int)
+    if branch_id and branch_id != 0:
+        users_query = users_query.filter(User.user_branch_id == branch_id)
+    
+    users = users_query.all()
+    branches = Branch.query.all()
+    
+    return render_template('manage_users.html', users=users, branches=branches, selected_branch_id=branch_id)
 
 @admin.route('/add_user', methods=['GET', 'POST'])
 @login_required
