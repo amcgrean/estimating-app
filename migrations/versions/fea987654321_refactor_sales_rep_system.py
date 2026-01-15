@@ -19,37 +19,26 @@ depends_on = None
 def upgrade():
     # Use raw SQL for robustness to avoid transaction aborts if constraints don't exist
     conn = op.get_bind()
+    inspector = sa.inspect(conn)
+    table_names = inspector.get_table_names()
     
     # 1. Update Bid table
-    # Drop old constraint safely
     op.execute("ALTER TABLE bid DROP CONSTRAINT IF EXISTS bid_sales_rep_id_fkey")
-    # Add new constraint (if not exists logic is looser here, assuming it doesn't exist yet)
-    # We can try/except this one or just let it run. If it fails, we see why.
-    # Note: If validation fails (data mismatch), this will fail.
     op.create_foreign_key('fk_bid_sales_rep_user_id', 'bid', 'user', ['sales_rep_id'], ['id'])
 
     # 2. Update Project table
-    op.execute("ALTER TABLE project DROP CONSTRAINT IF EXISTS project_sales_rep_id_fkey")
-    # Only add new FK if table exists. 
-    # Check if table exists using reflection or just ignore if it fails? 
-    # Better: Inspect.
-    inspector = sa.inspect(conn)
-    if 'project' in inspector.get_table_names():
+    if 'project' in table_names:
+        op.execute("ALTER TABLE project DROP CONSTRAINT IF EXISTS project_sales_rep_id_fkey")
         op.create_foreign_key('fk_project_sales_rep_user_id', 'project', 'user', ['sales_rep_id'], ['id'])
 
     # 3. Clean up User table
-    op.execute("ALTER TABLE user_account DROP CONSTRAINT IF EXISTS user_sales_rep_id_fkey") # Trying 'user_account' just in case? No, likely 'user' or 'users'.
     # Flask-SQLAlchemy default is camelCase -> snake_case. User -> user.
     op.execute("ALTER TABLE \"user\" DROP CONSTRAINT IF EXISTS user_sales_rep_id_fkey") 
     
     # Drop column safely
-    # op.drop_column('user', 'sales_rep_id') 
-    # Use raw SQL for if exists?
     op.execute("ALTER TABLE \"user\" DROP COLUMN IF EXISTS sales_rep_id")
 
     # 4. Drop SalesRep table
-    # Use CASCADE to ensure any other hidden FKs are dropped too? 
-    # Safe if we are sure we want it gone.
     op.execute("DROP TABLE IF EXISTS sales_rep CASCADE")
 
 
