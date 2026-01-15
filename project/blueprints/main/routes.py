@@ -12,6 +12,7 @@ import json
 from werkzeug.utils import secure_filename
 from datetime import datetime, timedelta,date
 import io
+import zipfile
 import calendar
 import chardet
 from sqlalchemy import func, cast, Date
@@ -35,7 +36,7 @@ import string
 import random
 from io import StringIO
 import logging
-from project.utils import safe_str_cmp, upload_file_to_s3, get_s3_url, create_presigned_post
+from project.utils import safe_str_cmp, upload_file_to_s3, get_s3_url, create_presigned_post, get_s3_client
 from flask_session import Session  # Import the Session object from Flask-Session
 
 # Create a Blueprint named 'main'
@@ -1069,6 +1070,60 @@ def download_bid_file(bid_id, file_type):
         return redirect(url_for('main.manage_bid', bid_id=bid_id))
         
     return redirect(url)
+
+@main.route('/bid/<int:bid_id>/download_all')
+@login_required
+def download_all_bid_files(bid_id):
+    bid = Bid.query.get_or_404(bid_id)
+    s3 = get_s3_client()
+    bucket_name = current_app.config.get('AWS_BUCKET_NAME')
+    
+    if not bucket_name:
+        flash('AWS Bucket not configured.', 'danger')
+        return redirect(url_for('main.manage_bid', bid_id=bid_id))
+        
+    # Collect files to download: (key, zip_filename)
+    files_to_zip = []
+    
+    if bid.plan_filename:
+        # Extract filename from key or use generic name
+        original_name = bid.plan_filename.split('_')[-1] if '_' in bid.plan_filename else 'plan_document.pdf'
+        files_to_zip.append((bid.plan_filename, f"Plan_{original_name}"))
+        
+    if bid.email_filename:
+        original_name = bid.email_filename.split('_')[-1] if '_' in bid.email_filename else 'bid_request.msg'
+        files_to_zip.append((bid.email_filename, f"Request_{original_name}"))
+        
+    for f in bid.files:
+        files_to_zip.append((f.file_key, f.filename))
+        
+    if not files_to_zip:
+        flash('No files attached to this bid.', 'warning')
+        return redirect(url_for('main.manage_bid', bid_id=bid_id))
+        
+    try:
+        memory_file = io.BytesIO()
+        with zipfile.ZipFile(memory_file, 'w', zipfile.ZIP_DEFLATED) as zf:
+            for key, filename in files_to_zip:
+                try:
+                    obj = s3.get_object(Bucket=bucket_name, Key=key)
+                    file_content = obj['Body'].read()
+                    zf.writestr(filename, file_content)
+                except Exception as e:
+                    # Log error but continue? Or fail? Best to log and maybe add error note file
+                    print(f"Error downloading {key}: {e}")
+                    zf.writestr(f"ERROR_{filename}.txt", f"Could not download file: {str(e)}")
+                    
+        memory_file.seek(0)
+        return send_file(
+            memory_file,
+            as_attachment=True,
+            download_name=f"Bid_{bid_id}_Attachments.zip",
+            mimetype='application/zip'
+        )
+    except Exception as e:
+        flash(f'Error creating zip file: {str(e)}', 'danger')
+        return redirect(url_for('main.manage_bid', bid_id=bid_id))
 
 @main.route('/manage_bid/<int:bid_id>', methods=['GET', 'POST'])
 def manage_bid(bid_id):
