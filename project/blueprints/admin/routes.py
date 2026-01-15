@@ -57,7 +57,37 @@ def manage_users():
     users = users_query.all()
     branches = Branch.query.all()
     
-    return render_template('manage_users.html', users=users, branches=branches, selected_branch_id=branch_id)
+    # User Types for Bulk Action
+    usertypes = UserType.query.all()
+    
+    return render_template('manage_users.html', users=users, branches=branches, selected_branch_id=branch_id, usertypes=usertypes)
+
+@admin.route('/bulk_update_users', methods=['POST'])
+@login_required
+def bulk_update_users():
+    if not current_user.is_admin:
+        flash('Access denied.', 'danger')
+        return redirect(url_for('main.index'))
+    
+    user_ids = request.form.getlist('user_ids')
+    new_usertype_id = request.form.get('new_usertype_id')
+    
+    if not user_ids or not new_usertype_id:
+        flash('Please select users and a user type.', 'warning')
+        return redirect(url_for('admin.manage_users'))
+        
+    try:
+        # Update users
+        # Use bulk update for efficiency if possible, or loop (loop is safer for signals/listeners if any)
+        # SQLAlchemy 'in_' query combined with update()
+        count = User.query.filter(User.id.in_(user_ids)).update({User.usertype_id: new_usertype_id}, synchronize_session=False)
+        db.session.commit()
+        flash(f'Successfully updated {count} users.', 'success')
+    except Exception as e:
+        db.session.rollback()
+        flash(f'Error updating users: {str(e)}', 'danger')
+        
+    return redirect(url_for('admin.manage_users'))
 
 @admin.route('/add_user', methods=['GET', 'POST'])
 @login_required
