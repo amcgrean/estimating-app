@@ -631,23 +631,7 @@
         window.location.href = url.toString();
     };
 
-    // Customer -> Sales Rep Auto-Selection
-    // Safe parsing of the map passed from backend
-    var customerSalesReps = {{ customer_sales_rep_map| tojson | safe if customer_sales_rep_map else '{}' }};
 
-    $('#customer_id').change(function () {
-        var customerId = $(this).val();
-        // Check if we have a mapped sales rep
-        if (customerSalesReps.hasOwnProperty(customerId)) {
-            var salesRepId = customerSalesReps[customerId];
-            var salesRepSelect = $('#sales_rep_id');
-
-            // Only update if the select exists (Estimator view) and the option exists
-            if (salesRepSelect.length && salesRepSelect.find('option[value="' + salesRepId + '"]').length) {
-                salesRepSelect.val(salesRepId).trigger('change');
-            }
-        }
-    });
 
     // Section Toggles Logic
     const sectionMap = {
@@ -725,6 +709,29 @@
     const flexibleDateCheckbox = document.getElementById('flexibleBidDate');
 
     // --- S3 Direct Upload Logic ---
+    // --- Auto-fill Sales Rep Logic ---
+    {% if current_user.usertype.name != 'Sales Rep' %}
+    var customerRepMap = {{ customer_sales_rep_map | tojson | default ('{}') }};
+    var customerSelect = document.getElementById('customer_id'); // Ensure ID matches WTForms default
+    var salesRepSelect = document.getElementById('sales_rep_id');
+
+    if (customerSelect && salesRepSelect) {
+        customerSelect.addEventListener('change', function () {
+            var custId = this.value;
+            // logic: if map has this custId, set salesRepSelect value
+            if (customerRepMap.hasOwnProperty(custId)) {
+                var repId = customerRepMap[custId];
+                salesRepSelect.value = repId;
+            } else {
+                // Optional: Reset to "Select Sales Rep" or keep existing? 
+                // Usually keeping existing is less annoying if they manually set it first.
+                // But if they switch customers, maybe we should reset?
+                // Let's only change if we find a match.
+            }
+        });
+    }
+    {% endif %}
+
     (function () {
         // Shared state for multiple files
         var uploadedFiles = []; // { key, filename, type }
