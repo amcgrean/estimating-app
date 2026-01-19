@@ -801,6 +801,7 @@ def send_bid_notification(bid, event_type):
         current_app.logger.error(f"Failed to send notification: {e}")
 
 @main.route('/add_bid', methods=['GET', 'POST'])
+@login_required
 def add_bid():
     form = BidForm()
     # Populate Branch Choices for validation
