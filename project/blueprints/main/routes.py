@@ -936,7 +936,7 @@ def add_bid():
         if current_user.usertype.name == 'Sales Rep':
             # Auto-assign if they stick to their own bids. 
             # Note: The form field might be hidden, so we check user.sales_rep_id
-            sales_rep_id = current_user.sales_rep_id
+            sales_rep_id = current_user.id
         else:
              sales_rep_id = form.sales_rep_id.data if form.sales_rep_id.data != 0 else None
 
