@@ -199,6 +199,7 @@ logger = logging.getLogger(__name__)
 
 
 @main.route('/customer/<int:customer_id>/bids', methods=['GET'])
+@login_required
 def view_customer_bids(customer_id):
     try:
         customer = Customer.query.get_or_404(customer_id)
@@ -530,6 +531,7 @@ def view_layouts():
 
 
 @main.route('/create_layout', methods=['GET', 'POST'])
+@login_required
 def create_layout():
     form = LayoutForm()
 
@@ -571,6 +573,7 @@ def create_layout():
     return render_template('create_layout.html', form=form)
 
 @main.route('/edit_layout/<int:layout_id>', methods=['GET', 'POST'])
+@login_required
 def edit_layout(layout_id):
     layout = EWP.query.get_or_404(layout_id)
     form = LayoutForm(obj=layout)
@@ -587,6 +590,7 @@ def edit_layout(layout_id):
     return render_template('edit_layout.html', form=form, layout=layout)
 
 @main.route('/upload_ewp_layouts', methods=['GET', 'POST'])
+@login_required
 def upload_ewp_layouts():
     if request.method == 'POST':
         if 'file' not in request.files:
@@ -683,6 +687,7 @@ def update_issue(issue_id):
     return render_template('update_issue.html', form=form, issue=issue)
 
 @main.route('/view_issues')
+@login_required
 def view_issues():
     issues = ITService.query.order_by(ITService.createdDate.desc()).all()  # Fetch all issues, ordered by created date
     return render_template('view_issues.html', issues=issues)
@@ -1127,6 +1132,7 @@ def download_all_bid_files(bid_id):
         return redirect(url_for('main.manage_bid', bid_id=bid_id))
 
 @main.route('/manage_bid/<int:bid_id>', methods=['GET', 'POST'])
+@login_required
 def manage_bid(bid_id):
     bid = Bid.query.get_or_404(bid_id)
 
@@ -1739,6 +1745,7 @@ def manage_design(design_id):
     return render_template('manage_design.html', design=design, form=form, statuses=statuses)
 
 @main.route('/bid_request', methods=['GET', 'POST'])
+@login_required
 def bid_request():
     form = BidRequestForm()
     framing_form = FramingForm()
