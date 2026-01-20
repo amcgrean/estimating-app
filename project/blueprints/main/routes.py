@@ -927,9 +927,11 @@ def add_bid():
     if not form.branch_id.data:
         form.branch_id.data = selected_branch_id
 
-    # Set default value for due_date to 14 days from today
+    # Set default value for due_date
+    # Coralville (ID 3) gets 1 week (7 days), others get 2 weeks (14 days)
     if not form.due_date.data:
-        form.due_date.data = (datetime.utcnow() + timedelta(days=14)).date()
+        days_offset = 7 if selected_branch_id == 3 else 14
+        form.due_date.data = (datetime.utcnow() + timedelta(days=days_offset)).date()
 
     if form.validate_on_submit():
         plan_type = form.plan_type.data
