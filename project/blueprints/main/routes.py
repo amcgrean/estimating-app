@@ -929,7 +929,11 @@ def add_bid():
 
     # Set default value for due_date
     # Coralville (ID 3) gets 1 week (7 days), others get 2 weeks (14 days)
-    if not form.due_date.data:
+    # Set default value for due_date
+    # Coralville (ID 3) gets 1 week (7 days), others get 2 weeks (14 days)
+    # We must check request.method == 'GET' because form.due_date.data already has a default 
+    # from the form class definition so 'if not form.due_date.data' will fail.
+    if request.method == 'GET':
         days_offset = 7 if selected_branch_id == 3 else 14
         form.due_date.data = (datetime.utcnow() + timedelta(days=days_offset)).date()
 
