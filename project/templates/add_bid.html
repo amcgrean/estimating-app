@@ -65,12 +65,20 @@
                         </div>
                     </div>
                     <div class="col-md-6">
-                        <!-- Status is typically Incomplete for new bids; hiding to simplify form -->
+                        <!-- Status: Visible for Estimators, Hidden/Default Incomplete for others -->
+                        {% if current_user.usertype.name == 'Estimator' %}
+                        <div class="form-group mb-4">
+                            <label class="font-weight-600 small text-uppercase tracking-wider mb-2">{{
+                                form.status.label.text }}</label>
+                            {{ form.status(class="input-modern") }}
+                        </div>
+                        {% else %}
                         <div class="form-group mb-4" style="display: none;">
                             <label class="font-weight-600 small text-uppercase tracking-wider mb-2">{{
                                 form.status.label.text }}</label>
                             {{ form.status(class="input-modern") }}
                         </div>
+                        {% endif %}
                     </div>
                 </div>
 

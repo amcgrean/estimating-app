@@ -945,8 +945,11 @@ def add_bid():
         else:
              sales_rep_id = form.sales_rep_id.data if form.sales_rep_id.data != 0 else None
 
-        # Force status to Incomplete for new bids
-        status = 'Incomplete' 
+        # Status logic: Estimators can set it; others (Sales Rep) default to Incomplete
+        if current_user.usertype.name == 'Estimator' and form.status.data:
+            status = form.status.data
+        else:
+            status = 'Incomplete' 
         due_date = form.due_date.data
         notes = form.notes.data
 
