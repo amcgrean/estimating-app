@@ -945,8 +945,8 @@ def add_bid():
         else:
              sales_rep_id = form.sales_rep_id.data if form.sales_rep_id.data != 0 else None
 
-        # Status logic: Estimators can set it; others (Sales Rep) default to Incomplete
-        if current_user.usertype.name == 'Estimator' and form.status.data:
+        # Status logic: Estimators/Admins can set it; others (Sales Rep) default to Incomplete
+        if current_user.usertype.name in ['Estimator', 'Admin', 'Administrator'] and form.status.data:
             status = form.status.data
         else:
             status = 'Incomplete' 
