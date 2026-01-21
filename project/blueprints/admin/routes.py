@@ -735,6 +735,9 @@ def add_field():
         # If empty list, it means Applicable to ALL. Storing as JSON '[]' or null is fine.
         # But WTForms SelectMultipleField returns a list of values.
         
+        filtered_branch_ids = [b for b in branch_ids_data if b]
+        final_branch_ids = json.dumps(filtered_branch_ids) if filtered_branch_ids else None
+
         new_field = BidField(
             name=form.name.data,
             category=form.category.data,
@@ -743,8 +746,7 @@ def add_field():
             options=form.options.data,
             default_value=form.default_value.data,
             sort_order=int(form.sort_order.data) if form.sort_order.data.isdigit() else 0,
-            branch_ids=[b for b in branch_ids_data if b]
-            branch_ids=json.dumps(branch_ids) if branch_ids else None
+            branch_ids=final_branch_ids
         )
         db.session.add(new_field)
         db.session.commit()
