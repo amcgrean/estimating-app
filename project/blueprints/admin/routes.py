@@ -741,8 +741,10 @@ def add_field():
             field_type=form.field_type.data,
             is_required=form.is_required.data,
             options=form.options.data,
+            default_value=form.default_value.data,
             sort_order=int(form.sort_order.data) if form.sort_order.data.isdigit() else 0,
-            branch_ids=json.dumps(branch_ids_data) if branch_ids_data else None
+            branch_ids=[b for b in branch_ids_data if b]
+            branch_ids=json.dumps(branch_ids) if branch_ids else None
         )
         db.session.add(new_field)
         db.session.commit()
@@ -778,10 +780,12 @@ def edit_field(field_id):
         field.field_type = form.field_type.data
         field.is_required = form.is_required.data
         field.options = form.options.data
+        field.default_value = form.default_value.data
         field.sort_order = int(form.sort_order.data) if form.sort_order.data.isdigit() else 0
         
         branch_ids_data = form.branch_ids.data
-        field.branch_ids = json.dumps(branch_ids_data) if branch_ids_data else None
+        branch_ids = [b for b in branch_ids_data if b]
+        field.branch_ids = json.dumps(branch_ids) if branch_ids else None
         
         db.session.commit()
         flash('Bid Field updated successfully.', 'success')

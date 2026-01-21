@@ -285,25 +285,29 @@
                                             endif %}</label>
                                         {% if field.field_type == 'text' %}
                                         <input type="text" name="dynamic_field_{{ field.id }}"
-                                            class="form-control form-control-sm" {% if field.is_required %}required{%
-                                            endif %}>
+                                            class="form-control form-control-sm"
+                                            value="{{ dynamic_values_map.get(field.id, '') }}" {% if field.is_required
+                                            %}required{% endif %}>
                                         {% elif field.field_type == 'textarea' %}
                                         <textarea name="dynamic_field_{{ field.id }}"
                                             class="form-control form-control-sm" rows="3" {% if field.is_required
-                                            %}required{% endif %}></textarea>
+                                            %}required{% endif %}>{{ dynamic_values_map.get(field.id, '') }}</textarea>
                                         {% elif field.field_type == 'select' %}
                                         <select name="dynamic_field_{{ field.id }}" class="form-control form-control-sm"
                                             {% if field.is_required %}required{% endif %}>
                                             <option value="">Select...</option>
                                             {% for option in field.options.split(',') %}
-                                            <option value="{{ option.strip() }}">{{ option.strip() }}</option>
+                                            <option value="{{ option.strip() }}" {% if
+                                                option.strip()==dynamic_values_map.get(field.id, '' ) %}selected{% endif
+                                                %}>{{ option.strip() }}</option>
                                             {% endfor %}
                                         </select>
                                         {% elif field.field_type == 'checkbox' %}
                                         <div class="custom-control custom-checkbox mt-2">
                                             <input type="checkbox" class="custom-control-input"
                                                 id="dyn_field_{{ field.id }}" name="dynamic_field_{{ field.id }}"
-                                                value="Yes">
+                                                value="Yes" {% if dynamic_values_map.get(field.id)=='Yes' %}checked{%
+                                                endif %}>
                                             <label class="custom-control-label"
                                                 for="dyn_field_{{ field.id }}">Yes</label>
                                         </div>
@@ -336,25 +340,29 @@
                                             endif %}</label>
                                         {% if field.field_type == 'text' %}
                                         <input type="text" name="dynamic_field_{{ field.id }}"
-                                            class="form-control form-control-sm" {% if field.is_required %}required{%
-                                            endif %}>
+                                            class="form-control form-control-sm"
+                                            value="{{ dynamic_values_map.get(field.id, '') }}" {% if field.is_required
+                                            %}required{% endif %}>
                                         {% elif field.field_type == 'textarea' %}
                                         <textarea name="dynamic_field_{{ field.id }}"
                                             class="form-control form-control-sm" rows="3" {% if field.is_required
-                                            %}required{% endif %}></textarea>
+                                            %}required{% endif %}>{{ dynamic_values_map.get(field.id, '') }}</textarea>
                                         {% elif field.field_type == 'select' %}
                                         <select name="dynamic_field_{{ field.id }}" class="form-control form-control-sm"
                                             {% if field.is_required %}required{% endif %}>
                                             <option value="">Select...</option>
                                             {% for option in field.options.split(',') %}
-                                            <option value="{{ option.strip() }}">{{ option.strip() }}</option>
+                                            <option value="{{ option.strip() }}" {% if
+                                                option.strip()==dynamic_values_map.get(field.id, '' ) %}selected{% endif
+                                                %}>{{ option.strip() }}</option>
                                             {% endfor %}
                                         </select>
                                         {% elif field.field_type == 'checkbox' %}
                                         <div class="custom-control custom-checkbox mt-2">
                                             <input type="checkbox" class="custom-control-input"
                                                 id="dyn_field_{{ field.id }}" name="dynamic_field_{{ field.id }}"
-                                                value="Yes">
+                                                value="Yes" {% if dynamic_values_map.get(field.id)=='Yes' %}checked{%
+                                                endif %}>
                                             <label class="custom-control-label"
                                                 for="dyn_field_{{ field.id }}">Yes</label>
                                         </div>
@@ -387,25 +395,29 @@
                                             endif %}</label>
                                         {% if field.field_type == 'text' %}
                                         <input type="text" name="dynamic_field_{{ field.id }}"
-                                            class="form-control form-control-sm" {% if field.is_required %}required{%
-                                            endif %}>
+                                            class="form-control form-control-sm"
+                                            value="{{ dynamic_values_map.get(field.id, '') }}" {% if field.is_required
+                                            %}required{% endif %}>
                                         {% elif field.field_type == 'textarea' %}
                                         <textarea name="dynamic_field_{{ field.id }}"
                                             class="form-control form-control-sm" rows="3" {% if field.is_required
-                                            %}required{% endif %}></textarea>
+                                            %}required{% endif %}>{{ dynamic_values_map.get(field.id, '') }}</textarea>
                                         {% elif field.field_type == 'select' %}
                                         <select name="dynamic_field_{{ field.id }}" class="form-control form-control-sm"
                                             {% if field.is_required %}required{% endif %}>
                                             <option value="">Select...</option>
                                             {% for option in field.options.split(',') %}
-                                            <option value="{{ option.strip() }}">{{ option.strip() }}</option>
+                                            <option value="{{ option.strip() }}" {% if
+                                                option.strip()==dynamic_values_map.get(field.id, '' ) %}selected{% endif
+                                                %}>{{ option.strip() }}</option>
                                             {% endfor %}
                                         </select>
                                         {% elif field.field_type == 'checkbox' %}
                                         <div class="custom-control custom-checkbox mt-2">
                                             <input type="checkbox" class="custom-control-input"
                                                 id="dyn_field_{{ field.id }}" name="dynamic_field_{{ field.id }}"
-                                                value="Yes">
+                                                value="Yes" {% if dynamic_values_map.get(field.id)=='Yes' %}checked{%
+                                                endif %}>
                                             <label class="custom-control-label"
                                                 for="dyn_field_{{ field.id }}">Yes</label>
                                         </div>
@@ -438,25 +450,29 @@
                                             endif %}</label>
                                         {% if field.field_type == 'text' %}
                                         <input type="text" name="dynamic_field_{{ field.id }}"
-                                            class="form-control form-control-sm" {% if field.is_required %}required{%
-                                            endif %}>
+                                            class="form-control form-control-sm"
+                                            value="{{ dynamic_values_map.get(field.id, '') }}" {% if field.is_required
+                                            %}required{% endif %}>
                                         {% elif field.field_type == 'textarea' %}
                                         <textarea name="dynamic_field_{{ field.id }}"
                                             class="form-control form-control-sm" rows="3" {% if field.is_required
-                                            %}required{% endif %}></textarea>
+                                            %}required{% endif %}>{{ dynamic_values_map.get(field.id, '') }}</textarea>
                                         {% elif field.field_type == 'select' %}
                                         <select name="dynamic_field_{{ field.id }}" class="form-control form-control-sm"
                                             {% if field.is_required %}required{% endif %}>
                                             <option value="">Select...</option>
                                             {% for option in field.options.split(',') %}
-                                            <option value="{{ option.strip() }}">{{ option.strip() }}</option>
+                                            <option value="{{ option.strip() }}" {% if
+                                                option.strip()==dynamic_values_map.get(field.id, '' ) %}selected{% endif
+                                                %}>{{ option.strip() }}</option>
                                             {% endfor %}
                                         </select>
                                         {% elif field.field_type == 'checkbox' %}
                                         <div class="custom-control custom-checkbox mt-2">
                                             <input type="checkbox" class="custom-control-input"
                                                 id="dyn_field_{{ field.id }}" name="dynamic_field_{{ field.id }}"
-                                                value="Yes">
+                                                value="Yes" {% if dynamic_values_map.get(field.id)=='Yes' %}checked{%
+                                                endif %}>
                                             <label class="custom-control-label"
                                                 for="dyn_field_{{ field.id }}">Yes</label>
                                         </div>
@@ -489,25 +505,29 @@
                                             endif %}</label>
                                         {% if field.field_type == 'text' %}
                                         <input type="text" name="dynamic_field_{{ field.id }}"
-                                            class="form-control form-control-sm" {% if field.is_required %}required{%
-                                            endif %}>
+                                            class="form-control form-control-sm"
+                                            value="{{ dynamic_values_map.get(field.id, '') }}" {% if field.is_required
+                                            %}required{% endif %}>
                                         {% elif field.field_type == 'textarea' %}
                                         <textarea name="dynamic_field_{{ field.id }}"
                                             class="form-control form-control-sm" rows="3" {% if field.is_required
-                                            %}required{% endif %}></textarea>
+                                            %}required{% endif %}>{{ dynamic_values_map.get(field.id, '') }}</textarea>
                                         {% elif field.field_type == 'select' %}
                                         <select name="dynamic_field_{{ field.id }}" class="form-control form-control-sm"
                                             {% if field.is_required %}required{% endif %}>
                                             <option value="">Select...</option>
                                             {% for option in field.options.split(',') %}
-                                            <option value="{{ option.strip() }}">{{ option.strip() }}</option>
+                                            <option value="{{ option.strip() }}" {% if
+                                                option.strip()==dynamic_values_map.get(field.id, '' ) %}selected{% endif
+                                                %}>{{ option.strip() }}</option>
                                             {% endfor %}
                                         </select>
                                         {% elif field.field_type == 'checkbox' %}
                                         <div class="custom-control custom-checkbox mt-2">
                                             <input type="checkbox" class="custom-control-input"
                                                 id="dyn_field_{{ field.id }}" name="dynamic_field_{{ field.id }}"
-                                                value="Yes">
+                                                value="Yes" {% if dynamic_values_map.get(field.id)=='Yes' %}checked{%
+                                                endif %}>
                                             <label class="custom-control-label"
                                                 for="dyn_field_{{ field.id }}">Yes</label>
                                         </div>
@@ -538,24 +558,29 @@
                                         {% if field.is_required %}<span class="text-danger">*</span>{% endif %}</label>
                                     {% if field.field_type == 'text' %}
                                     <input type="text" name="dynamic_field_{{ field.id }}"
-                                        class="form-control form-control-sm" {% if field.is_required %}required{% endif
-                                        %}>
+                                        class="form-control form-control-sm"
+                                        value="{{ dynamic_values_map.get(field.id, '') }}" {% if field.is_required
+                                        %}required{% endif %}>
                                     {% elif field.field_type == 'textarea' %}
                                     <textarea name="dynamic_field_{{ field.id }}" class="form-control form-control-sm"
-                                        rows="3" {% if field.is_required %}required{% endif %}></textarea>
+                                        rows="3" {% if field.is_required %}required{% endif
+                                        %}>{{ dynamic_values_map.get(field.id, '') }}</textarea>
                                     {% elif field.field_type == 'select' %}
                                     <select name="dynamic_field_{{ field.id }}" class="form-control form-control-sm" {%
                                         if field.is_required %}required{% endif %}>
                                         <option value="">Select...</option>
                                         {% for option in field.options.split(',') %}
-                                        <option value="{{ option.strip() }}">{{ option.strip() }}</option>
+                                        <option value="{{ option.strip() }}" {% if
+                                            option.strip()==dynamic_values_map.get(field.id, '' ) %}selected{% endif %}>
+                                            {{ option.strip() }}</option>
                                         {% endfor %}
                                     </select>
                                     {% elif field.field_type == 'checkbox' %}
                                     <div class="custom-control custom-checkbox mt-2">
                                         <input type="checkbox" class="custom-control-input"
                                             id="dyn_field_{{ field.id }}" name="dynamic_field_{{ field.id }}"
-                                            value="Yes">
+                                            value="Yes" {% if dynamic_values_map.get(field.id)=='Yes' %}checked{% endif
+                                            %}>
                                         <label class="custom-control-label" for="dyn_field_{{ field.id }}">Yes</label>
                                     </div>
                                     {% endif %}
@@ -580,24 +605,29 @@
                                         {% if field.is_required %}<span class="text-danger">*</span>{% endif %}</label>
                                     {% if field.field_type == 'text' %}
                                     <input type="text" name="dynamic_field_{{ field.id }}"
-                                        class="form-control form-control-sm" {% if field.is_required %}required{% endif
-                                        %}>
+                                        class="form-control form-control-sm"
+                                        value="{{ dynamic_values_map.get(field.id, '') }}" {% if field.is_required
+                                        %}required{% endif %}>
                                     {% elif field.field_type == 'textarea' %}
                                     <textarea name="dynamic_field_{{ field.id }}" class="form-control form-control-sm"
-                                        rows="3" {% if field.is_required %}required{% endif %}></textarea>
+                                        rows="3" {% if field.is_required %}required{% endif
+                                        %}>{{ dynamic_values_map.get(field.id, '') }}</textarea>
                                     {% elif field.field_type == 'select' %}
                                     <select name="dynamic_field_{{ field.id }}" class="form-control form-control-sm" {%
                                         if field.is_required %}required{% endif %}>
                                         <option value="">Select...</option>
                                         {% for option in field.options.split(',') %}
-                                        <option value="{{ option.strip() }}">{{ option.strip() }}</option>
+                                        <option value="{{ option.strip() }}" {% if
+                                            option.strip()==dynamic_values_map.get(field.id, '' ) %}selected{% endif %}>
+                                            {{ option.strip() }}</option>
                                         {% endfor %}
                                     </select>
                                     {% elif field.field_type == 'checkbox' %}
                                     <div class="custom-control custom-checkbox mt-2">
                                         <input type="checkbox" class="custom-control-input"
                                             id="dyn_field_{{ field.id }}" name="dynamic_field_{{ field.id }}"
-                                            value="Yes">
+                                            value="Yes" {% if dynamic_values_map.get(field.id)=='Yes' %}checked{% endif
+                                            %}>
                                         <label class="custom-control-label" for="dyn_field_{{ field.id }}">Yes</label>
                                     </div>
                                     {% endif %}

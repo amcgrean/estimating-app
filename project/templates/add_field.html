@@ -57,6 +57,13 @@
                     </div>
 
                     <div class="form-group mb-4">
+                        {{ form.default_value.label(class="font-weight-bold small text-uppercase text-muted") }}
+                        {{ form.default_value(class="form-control form-control-lg input-premium", placeholder="Optional
+                        pre-filled value") }}
+                        <small class="text-muted">For Dropdowns, this must match one of the options exactly.</small>
+                    </div>
+
+                    <div class="form-group mb-4">
                         {{ form.branch_ids.label(class="font-weight-bold small text-uppercase text-muted") }}
                         {{ form.branch_ids(class="form-control input-premium select2-enable", multiple="multiple") }}
                         <small class="text-muted">Leave empty to show for ALL branches.</small>

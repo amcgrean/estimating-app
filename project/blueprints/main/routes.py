@@ -909,6 +909,12 @@ def add_bid():
             except:
                 pass # JSON parse error, skip or include? Default skip.
 
+    # Map defaults: field_id -> default_value
+    dynamic_values_map = {}
+    for f in dynamic_fields:
+        if f.default_value:
+            dynamic_values_map[f.id] = f.default_value
+
     # Create Customer -> Sales Rep ID mapping for JS
     # Logic: Match Customer.sales_agent (string) to SalesRep.username (string)
     # This is a bit fuzzy, assuming names match.
@@ -1050,7 +1056,7 @@ def add_bid():
             flash(f'An error occurred while saving the bid: {str(e)}', 'danger')
             if selected_branch_id:
                 form.branch_id.data = selected_branch_id
-            return render_template('add_bid.html', form=form, dynamic_fields=dynamic_fields, customer_sales_rep_map=customer_sales_rep_map)
+            return render_template('add_bid.html', form=form, dynamic_fields=dynamic_fields, customer_sales_rep_map=customer_sales_rep_map, dynamic_values_map=dynamic_values_map)
 
     else:
         if request.method == 'POST':
@@ -1062,7 +1068,7 @@ def add_bid():
 
     if selected_branch_id:
         form.branch_id.data = selected_branch_id
-    return render_template('add_bid.html', form=form, dynamic_fields=dynamic_fields, customer_sales_rep_map=customer_sales_rep_map)
+    return render_template('add_bid.html', form=form, dynamic_fields=dynamic_fields, customer_sales_rep_map=customer_sales_rep_map, dynamic_values_map=dynamic_values_map)
 
 
 @main.route('/bid/<int:bid_id>/download/<file_type>')

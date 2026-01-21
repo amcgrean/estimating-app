@@ -365,10 +365,11 @@ class BidFieldForm(FlaskForm):
         ('checkbox', 'Checkbox')
     ], validators=[DataRequired()])
     options = TextAreaField('Options (for Dropdown)', validators=[Optional()])
-    branch_ids = SelectField('Limit to Branch', choices=[], validators=[Optional()], id='branch_ids') # Populated in view, usually multiselect which requires adjustment if SelectMultipleField
+    branch_ids = SelectMultipleField('Limit to Branch', choices=[], coerce=int, validators=[Optional()], id='branch_ids') # Populated in view, usually multiselect which requires adjustment if SelectMultipleField
     # Note: For multi-select with Select2, capturing data might require SelectMultipleField or specific handling. 
     # For now, we'll try SelectMultipleField if possible, or just text handling. 
     # Let's use SelectMultipleField for branch_ids.
     is_required = BooleanField('Required Field')
+    default_value = StringField('Default Value', validators=[Optional()])
     sort_order = StringField('Sort Order', default="0")
     submit = SubmitField('Save Field')
