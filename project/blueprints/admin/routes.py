@@ -762,17 +762,29 @@ def edit_field(field_id):
         abort(403)
     
     field = BidField.query.get_or_404(field_id)
-    form = BidFieldForm(obj=field)
+    # Create form without binding object to prevent bad data causing crash on init
+    form = BidFieldForm() 
     
     # Populate branches
     branches = Branch.query.all()
     form.branch_ids.choices = [(b.branch_id, b.branch_name) for b in branches]
 
     if request.method == 'GET':
-        # Pre-select branches
+        # Manually populate fields
+        form.name.data = field.name
+        form.category.data = field.category
+        form.field_type.data = field.field_type
+        form.is_required.data = field.is_required
+        form.options.data = field.options
+        form.default_value.data = field.default_value
+        form.sort_order.data = str(field.sort_order)
+
+        # Pre-select branches with safety check
         if field.branch_ids:
             try:
-                form.branch_ids.data = json.loads(field.branch_ids)
+                data = json.loads(field.branch_ids)
+                # Ensure it's a list (handle case where DB has "123" string or other weirdness)
+                form.branch_ids.data = data if isinstance(data, list) else []
             except:
                 form.branch_ids.data = []
         else:
