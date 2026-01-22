@@ -775,6 +775,8 @@ def edit_field(field_id):
                 form.branch_ids.data = json.loads(field.branch_ids)
             except:
                 form.branch_ids.data = []
+        else:
+            form.branch_ids.data = [] 
 
     if form.validate_on_submit():
         field.name = form.name.data
