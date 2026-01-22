@@ -150,18 +150,10 @@
                         </div>
                     </div>
 
-                    <!-- Specs Toggle -->
-                    <div class="form-group mt-2">
-                        <div class="custom-control custom-switch">
-                            {{ form.include_specs(class="custom-control-input", id="includeSpecsToggle") }}
-                            <label class="custom-control-label font-weight-bold ml-2 pt-1"
-                                for="includeSpecsToggle">Include
-                                Detailed Specifications</label>
-                        </div>
-                    </div>
+                    <!-- Specs Toggle Removed -->
 
                     <!-- Full Width Section: Module Notes (Hidden by default) -->
-                    <div class="col-12 mt-3 pt-3 border-top" id="specs-section" style="display: none;">
+                    <div class="col-12 mt-3 pt-3 border-top" id="specs-section">
                         <h5 class="mb-4 text-primary d-flex align-items-center"
                             style="font-size: 1rem; letter-spacing: 0.5px;">
                             <i class="fas fa-list-alt mr-2 small"></i> MODULE SPECIFICATIONS
@@ -681,19 +673,7 @@
         }
     });
 
-    const specsToggle = document.getElementById('includeSpecsToggle');
-    const specsSection = document.getElementById('specs-section');
-
-    function toggleSpecs() {
-        if (specsToggle && specsSection) {
-            specsSection.style.display = specsToggle.checked ? 'block' : 'none';
-        }
-    }
-
-    if (specsToggle) {
-        specsToggle.addEventListener('change', toggleSpecs);
-        toggleSpecs();
-    }
+    // Master Toggle Removed
 
     // Toggle Flexible Bid Date
     const bidDateInput = document.getElementById('bid_date');
