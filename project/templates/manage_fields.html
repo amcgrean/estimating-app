@@ -144,6 +144,32 @@
 {% block scripts %}
 <!-- SortableJS for Drag and Drop -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Sortable/1.14.0/Sortable.min.js"></script>
+<!-- DataTables -->
+<link rel="stylesheet" href="https://cdn.datatables.net/1.11.5/css/dataTables.bootstrap4.min.css">
+<script src="https://cdn.datatables.net/1.11.5/js/jquery.dataTables.min.js"></script>
+<script src="https://cdn.datatables.net/1.11.5/js/dataTables.bootstrap4.min.js"></script>
+<style>
+    .dataTables_filter {
+        text-align: right;
+    }
+
+    .dataTables_filter label {
+        font-weight: 600;
+        color: #6e707e;
+    }
+
+    .dataTables_filter input {
+        border-radius: 0.35rem;
+        padding: 0.375rem 0.75rem;
+        border: 1px solid #d1d3e2;
+        margin-left: 0.5rem;
+    }
+
+    .sortable-disabled .fa-grip-vertical {
+        opacity: 0.2;
+        cursor: not-allowed;
+    }
+</style>
 
 <script>
     $(document).ready(function () {
@@ -198,28 +224,21 @@
         // --- 2. SortableJS Logic ---
         var el = document.getElementById('sortableRows');
         var sortable = Sortable.create(el, {
-            handle: '.fa-grip-vertical', // Drag handle selector within list items
+            handle: '.fa-grip-vertical',
             animation: 150,
             onEnd: function (evt) {
-                // Get all IDs in new order
                 var order = [];
                 $('#sortableRows tr').each(function () {
                     order.push($(this).data('id'));
                 });
 
-                // Send to server
                 $.ajax({
                     url: "{{ url_for('admin.reorder_fields') }}",
                     method: 'POST',
                     contentType: 'application/json',
                     data: JSON.stringify({ field_ids: order }),
-                    headers: {
-                        'X-CSRFToken': "{{ form.csrf_token.current_token }}" // Assuming Flask-WTF csrf protection
-                    },
-                    success: function (response) {
-                        console.log('Order updated');
-                        // Optional: Show a subtle toast or flash message
-                    },
+                    headers: { 'X-CSRFToken': "{{ form.csrf_token.current_token }}" },
+                    success: function (response) { console.log('Order updated'); },
                     error: function (err) {
                         alert('Error updating order. Please refresh.');
                         console.error(err);
@@ -227,6 +246,134 @@
                 });
             }
         });
+
+        // --- 3. DataTables Initialization ---
+        var table = $('#fieldsTable').DataTable({
+            paging: false,
+            searching: true,
+            ordering: true,
+            info: false,
+            columnDefs: [
+                { orderable: false, targets: [0, 1, 7] } // Disable sort on Checkbox, Drag Handle, Actions
+            ],
+            order: [], // Disable initial sort
+            language: {
+                search: "",
+                searchPlaceholder: "Search fields..."
+            }
+        });
+
+        // --- 4. Conflict Resolution (DataTables vs SortableJS) ---
+        function checkSortableState() {
+            var dtState = table.state.loaded(); // This might be null if stateSave is false (default)
+            // But we can check current order and search
+            var currentOrder = table.order();
+            var currentSearch = table.search();
+
+            // Default order is usually empty or index 0 asc if we didn't set it?
+            // Actually, if user sorts, order array has length.
+            // But 'index' sorting (original order) is tough to track unless we add an index column.
+            // Simpler check: If search is active OR order is active (and not just initial load default)
+
+            // Actually simpler: If ANY search text exists, disable.
+            // If order is NOT by the invisible original index (which DataTables doesn't really track easily without a hidden col), disable.
+
+            // Let's rely on event listeners.
+            var isFiltered = table.search() !== "";
+            // Check if sorted by anything other than original index? 
+            // DataTables doesn't easily let us know "original index".
+            // So we will assume if ANY sort is applied by user interaction, we disable.
+            // However, on load, it might apply default sort.
+            // We didn't set 'order' option, so it defaults to first column [0, 'asc'], but we disabled sort on col 0.
+            // So it effectively doesn't sort?
+
+            var isSorted = false;
+            if (currentOrder && currentOrder.length > 0) {
+                // If sorting by anything valid...
+                // But wait, we disabled sort on 0, 1, 7.
+                // If user sorts by Name (2), Category (3) etc.
+                isSorted = true;
+            }
+
+            // Refined Logic:
+            // Since we can't easily detect "unsorted" state in DataTables without plugins,
+            // we will create a UI hint.
+            // Actually, we can check if the rows are still in DOM order? No DataTables reorders DOM.
+
+            var blocked = isFiltered || isSorted;
+
+            // Wait, enabling 'ordering: true' usually applies a default sort on col 0.
+            // We disabled col 0 sort.
+
+            if (isFiltered) {
+                disableSortable("Search active. Clear search to reorder.");
+            } else {
+                // For now, if user clicks headers, we consider it sorted.
+                // We can allow re-enabling if they somehow reset it, but DataTables UI doesn't have a "Reset Sort" button easily.
+                // So we just say: "Reload page to reset sort and reorder" if they sort?
+                // Or we can try to detect if it's matches 'data-id' array? Too expensive.
+
+                // Let's just block on search for now as the main conflict. 
+                // And block on Sort if we detect a sort event.
+            }
+        }
+
+        // Simpler approach: Listen to 'order.dt' and 'search.dt'
+        table.on('search.dt', function () {
+            var term = table.search();
+            if (term && term.length > 0) {
+                disableSortable("Search is active");
+            } else {
+                // If search cleared, and NOT sorted...
+                // But we don't know if it's sorted easily. 
+                // Let's check the header classes?
+                checkSortStatus();
+            }
+        });
+
+        table.on('order.dt', function () {
+            checkSortStatus();
+        });
+
+        function checkSortStatus() {
+            // Check if any header has purely 'sorting_asc' or 'sorting_desc'
+            // The classes are 'sorting', 'sorting_asc', 'sorting_desc', 'sorting_disabled'
+            // If we find an 'asc' or 'desc' on a sortable column, we assume sorted.
+            var isSorted = false;
+            $('#fieldsTable thead th').each(function () {
+                if ($(this).hasClass('sorting_asc') || $(this).hasClass('sorting_desc')) {
+                    // Ignore if it's our default? We didn't set a default.
+                    // But if we didn't set a default, DataTables might default col 0. We disabled col 0.
+                    isSorted = true;
+                }
+            });
+
+            var isFiltered = table.search() !== "";
+
+            if (isSorted || isFiltered) {
+                disableSortable();
+            } else {
+                enableSortable();
+            }
+        }
+
+        function disableSortable() {
+            sortable.option("disabled", true);
+            $('#fieldsTable').addClass('sortable-disabled');
+            $('.fa-grip-vertical').attr('title', 'Clear search and sort to reorder');
+        }
+
+        function enableSortable() {
+            sortable.option("disabled", false);
+            $('#fieldsTable').removeClass('sortable-disabled');
+            $('.fa-grip-vertical').attr('title', 'Drag to reorder');
+        }
+
+        // Initial check
+        // checkSortStatus(); 
+        // Force enable on load if we assume server order is correct? 
+        // DataTables might apply initial sort if we aren't careful.
+        // Let's set order: [] to prevent initial sort
     });
 </script>
 {% endblock %}
