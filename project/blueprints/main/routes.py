@@ -942,6 +942,13 @@ def add_bid():
     if request.method == 'GET':
         days_offset = 7 if selected_branch_id == 3 else 14
         form.due_date.data = (datetime.utcnow() + timedelta(days=days_offset)).date()
+        
+        # Default Estimator for Coralville (Branch 3) -> Jason R (ID 10)
+        if selected_branch_id == 3:
+            # Check if current user is not setting it explicitly? 
+            # Actually just default it if not set (which for GET is usually safe or if form.estimator_id.data is None/0)
+            if not form.estimator_id.data or form.estimator_id.data == 0:
+                form.estimator_id.data = 10
 
     if form.validate_on_submit():
         plan_type = form.plan_type.data
@@ -1209,6 +1216,11 @@ def manage_bid(bid_id):
     
     # Map existing values: field_id -> value
     dynamic_values_map = {v.field_id: v.value for v in bid.dynamic_values}
+    
+    # Default Estimator for Coralville (Branch 3) -> Jason R (ID 10)
+    if request.method == 'GET' and bid.branch_id == 3:
+        if not form.estimator_id.data or form.estimator_id.data == 0:
+            form.estimator_id.data = 10
 
     if form.validate_on_submit():
         if current_user.usertype.name == 'Sales Rep':
