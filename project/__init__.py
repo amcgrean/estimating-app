@@ -1,5 +1,6 @@
 import os
 import sys
+import json
 import logging
 from logging.handlers import RotatingFileHandler
 from datetime import timedelta
@@ -129,6 +130,15 @@ def create_app():
     app.register_blueprint(auth_blueprint)
     app.register_blueprint(admin_blueprint)
     app.register_blueprint(debug_bp)
+
+    @app.template_filter('from_json_safe')
+    def from_json_safe(value):
+        if not value:
+            return []
+        try:
+            return json.loads(value)
+        except (ValueError, TypeError):
+            return []
 
     # Logging (stdout is safest on serverless)
     if not app.debug:
