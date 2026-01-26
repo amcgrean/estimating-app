@@ -527,5 +527,6 @@
         });
     });
 
-    </script>
-{% endblock %}
+    </script> {
+        % endblock %
+    }
