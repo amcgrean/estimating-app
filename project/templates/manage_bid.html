@@ -8,9 +8,15 @@
         <div class="premium-card">
             <div class="d-flex justify-content-between align-items-center mb-4">
                 <h2 class="m-0 font-weight-bold" style="font-family: 'Outfit', sans-serif;">Manage Bid</h2>
-                <a href="{{ url_for('main.open_bids') }}" class="btn text-muted font-weight-600 small">
-                    <i class="fas fa-arrow-left mr-2"></i> Back to Open Bids
-                </a>
+                <div>
+                    <a href="{{ url_for('main.download_spec_sheet', bid_id=bid.id) }}"
+                        class="btn btn-sm btn-outline-primary mr-2" target="_blank">
+                        <i class="fas fa-file-pdf mr-1"></i> Download Spec Sheet
+                    </a>
+                    <a href="{{ url_for('main.open_bids') }}" class="btn text-muted font-weight-600 small">
+                        <i class="fas fa-arrow-left mr-2"></i> Back to Open Bids
+                    </a>
+                </div>
             </div>
 
             {% set is_readonly = (current_user.usertype.name == 'Sales Rep') %}

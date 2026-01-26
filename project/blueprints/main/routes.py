@@ -15,6 +15,7 @@ import io
 import zipfile
 import calendar
 import chardet
+from project.utils.pdf_generator import generate_spec_sheet
 from sqlalchemy import func, cast, Date
 from flask_mail import Message
 from werkzeug.security import generate_password_hash
@@ -1098,6 +1099,21 @@ def download_bid_file(bid_id, file_type):
         return redirect(url_for('main.manage_bid', bid_id=bid_id))
         
     return redirect(url)
+
+@main.route('/bid/<int:bid_id>/spec_sheet')
+@login_required
+def download_spec_sheet(bid_id):
+    pdf = generate_spec_sheet(bid_id)
+    if not pdf:
+        flash('Bid not found or error generating PDF.', 'danger')
+        return redirect(url_for('main.manage_bid', bid_id=bid_id))
+    
+    return send_file(
+        pdf,
+        as_attachment=True,
+        download_name=f"SpecSheet_Bid_{bid_id}.pdf",
+        mimetype='application/pdf'
+    )
 
 @main.route('/bid/<int:bid_id>/download_all')
 @login_required
