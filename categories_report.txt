@@ -1,0 +1,13 @@
+Connecting to: sqlite:///bids.db
+
+--- Unique Categories ---
+'Deck': 5 fields
+'Door': 5 fields
+'Framing': 28 fields
+'General': 3 fields
+'Shingles': 3 fields
+'Siding': 14 fields
+'Trim': 11 fields
+'Window': 8 fields
+
+--- Whitespace / Case Check ---

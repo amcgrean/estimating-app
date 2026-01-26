@@ -56,7 +56,24 @@
     <div class="card-header py-3 bg-white d-flex flex-row align-items-center justify-content-between"
         style="border-top-left-radius: 12px; border-top-right-radius: 12px;">
         <h6 class="m-0 font-weight-bold text-primary">Existing Fields</h6>
-        <span class="small text-muted"><i class="fas fa-arrows-alt mr-1"></i> Drag row handle to reorder</span>
+        <h6 class="m-0 font-weight-bold text-primary">Existing Fields</h6>
+
+        <!-- Field Filters -->
+        <div class="d-flex align-items-center">
+            <select id="categoryFilter" class="form-control form-control-sm mr-2" style="width: 150px;">
+                <option value="">All Categories</option>
+                <!-- Dynamically populated or static common ones -->
+                <option value="General">General</option>
+                <option value="Framing">Framing</option>
+                <option value="Siding">Siding</option>
+                <option value="Shingles">Shingles</option>
+                <option value="Deck">Deck</option>
+                <option value="Trim">Trim</option>
+                <option value="Window">Window</option>
+                <option value="Door">Door</option>
+            </select>
+            <span class="small text-muted"><i class="fas fa-arrows-alt mr-1"></i> Drag to reorder</span>
+        </div>
     </div>
     <div class="card-body p-0">
         <div class="table-responsive">
@@ -71,6 +88,8 @@
                             </div>
                         </th>
                         <th class="px-2 py-3 border-0 text-center" style="width: 40px;"></th> <!-- Drag Handle -->
+                        <th class="border-0 px-3 py-3 text-uppercase small text-muted font-weight-bold">#</th>
+                        <!-- Order -->
                         <th class="border-0 px-3 py-3 text-uppercase small text-muted font-weight-bold">
                             Name</th>
                         <th class="border-0 px-3 py-3 text-uppercase small text-muted font-weight-bold">Category</th>
@@ -95,8 +114,10 @@
                         <td class="px-2 py-3 align-middle text-center" style="cursor: move;">
                             <i class="fas fa-grip-vertical text-muted"></i>
                         </td>
+                        <td class="px-3 py-3 align-middle text-muted small">{{ field.sort_order }}</td>
                         <td class="px-3 py-3 align-middle font-weight-bold text-dark">{{ field.name }}</td>
-                        <td class="px-3 py-3 align-middle"><span class="badge badge-light border">{{ field.category
+                        <td class="px-3 py-3 align-middle" data-order="{{ field.category }}"><span
+                                class="badge badge-light border">{{ field.category
                                 }}</span></td>
                         <td class="px-3 py-3 align-middle text-muted small text-uppercase">{{ field.field_type }}</td>
                         <td class="px-3 py-3 align-middle">
@@ -254,13 +275,23 @@
             ordering: true,
             info: false,
             columnDefs: [
-                { orderable: false, targets: [0, 1, 7] } // Disable sort on Checkbox, Drag Handle, Actions
+                { orderable: false, targets: [0, 1, 8] } // Disable sort on Checkbox(0), Drag(1), Actions(8) -- Order is 2, Name 3...
             ],
             order: [], // Disable initial sort
             language: {
                 search: "",
                 searchPlaceholder: "Search fields..."
             }
+        });
+
+        // --- 3.5 Category Filter Logic ---
+        $('#categoryFilter').on('change', function () {
+            var val = $.fn.dataTable.util.escapeRegex($(this).val());
+            // Category is column index 4 (0:check, 1:drag, 2:order, 3:name, 4:category)
+            table.column(4).search(val ? val : '', true, false).draw();
+
+            // Check status for Sortable disabling
+            checkSortStatus();
         });
 
         // --- 4. Conflict Resolution (DataTables vs SortableJS) ---

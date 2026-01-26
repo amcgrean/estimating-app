@@ -1,0 +1,13 @@
+Connecting to: postgresql://neondb_owner:npg_1E4CvgZbaVBW@ep-fragrant-waterfall-ad8fjcey-pooler.c-2.us-east-1.aws.neon.tech/neondb?sslmode=require
+
+--- Unique Categories ---
+'Deck': 5 fields
+'Door': 5 fields
+'Framing': 20 fields
+'General': 2 fields
+'Shingles': 4 fields
+'Siding': 14 fields
+'Trim': 11 fields
+'Window': 8 fields
+
+--- Whitespace / Case Check ---
