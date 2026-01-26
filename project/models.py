@@ -115,6 +115,7 @@ class BidField(db.Model):
     options = db.Column(db.Text, nullable=True) # JSON or comma-separated for select
     default_value = db.Column(db.String(255), nullable=True)
     sort_order = db.Column(db.Integer, default=0)
+    is_active = db.Column(db.Boolean, default=True, nullable=False)
     
     # Store branch_ids as JSON string or simpler comma-separated list for compatibility
     # If null/empty -> All Branches

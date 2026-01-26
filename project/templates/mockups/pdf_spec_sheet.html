@@ -1,0 +1,276 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bid Specification Sheet - Mockup</title>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Roboto', sans-serif;
+            font-size: 11px;
+            /* Condensed font size for print */
+            color: #333;
+            max-width: 1000px;
+            /* Force desktop width for PDF approx */
+            margin: 0 auto;
+            padding: 20px;
+            background: white;
+        }
+
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-end;
+            border-bottom: 2px solid #333;
+            padding-bottom: 10px;
+            margin-bottom: 15px;
+        }
+
+        .header h1 {
+            margin: 0;
+            font-size: 24px;
+            text-transform: uppercase;
+        }
+
+        .header-info {
+            text-align: right;
+        }
+
+        .section {
+            margin-bottom: 15px;
+            /* Squeezed spacing */
+            break-inside: avoid;
+            /* Prevent print break inside section */
+        }
+
+        .section-title {
+            background: #eee;
+            padding: 4px 8px;
+            font-weight: 700;
+            text-transform: uppercase;
+            font-size: 12px;
+            border-bottom: 1px solid #ccc;
+            margin-bottom: 8px;
+            display: flex;
+            justify-content: space-between;
+        }
+
+        .grid-container {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            /* 4 Columns per row */
+            gap: 4px 15px;
+            /* Tiny vertical gap, moderate horizontal gap */
+        }
+
+        .field-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: baseline;
+            border-bottom: 1px dotted #e0e0e0;
+            padding-bottom: 2px;
+        }
+
+        .field-label {
+            color: #666;
+            font-weight: 500;
+            margin-right: 5px;
+            white-space: nowrap;
+        }
+
+        .field-value {
+            font-weight: 700;
+            color: #000;
+            text-align: right;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .notes-block {
+            background: #fdfdfd;
+            border: 1px solid #eee;
+            padding: 5px;
+            margin-top: 5px;
+            font-style: italic;
+            color: #555;
+            grid-column: 1 / -1;
+            /* Span all columns */
+        }
+
+        /* Print Optimization */
+        @media print {
+            body {
+                padding: 0;
+                max-width: 100%;
+            }
+
+            .section {
+                page-break-inside: avoid;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="header">
+        <div>
+            <h1>Bid Specifications</h1>
+            <div>Project: <strong>Sample Project A</strong></div>
+            <div>Customer: <strong>Acme Builders</strong></div>
+        </div>
+        <div class="header-info">
+            <div>Bid Date: <strong>10/24/2023</strong></div>
+            <div>Estimator: <strong>Jason R</strong></div>
+        </div>
+    </div>
+
+    <!-- Framing Section -->
+    <div class="section">
+        <div class="section-title">
+            <span>Framing</span>
+            <i class="fas fa-hammer"></i>
+        </div>
+        <div class="grid-container">
+            <!-- Mock Fields (Standard ones usually found in Framing) -->
+            <div class="field-item"><span class="field-label">Level:</span> <span class="field-value">2 Story</span>
+            </div>
+            <div class="field-item"><span class="field-label">Plates:</span> <span class="field-value">2x6
+                    Treated</span></div>
+            <div class="field-item"><span class="field-label">Studs:</span> <span class="field-value">2x6 SPF @
+                    16"</span></div>
+            <div class="field-item"><span class="field-label">Sheathing:</span> <span class="field-value">7/16
+                    OSB</span></div>
+
+            <div class="field-item"><span class="field-label">Joists:</span> <span class="field-value">11-7/8
+                    I-Joist</span></div>
+            <div class="field-item"><span class="field-label">Spacing:</span> <span class="field-value">16" OC</span>
+            </div>
+            <div class="field-item"><span class="field-label">Subfloor:</span> <span
+                    class="field-value">Advantech</span></div>
+            <div class="field-item"><span class="field-label">Glue:</span> <span class="field-value">Subfloor
+                    Glue</span></div>
+
+            <div class="field-item"><span class="field-label">Ceiling:</span> <span class="field-value">2x6
+                    Rafters</span></div>
+            <div class="field-item"><span class="field-label">Height:</span> <span class="field-value">9 Feet</span>
+            </div>
+            <div class="field-item"><span class="field-label">Backing:</span> <span class="field-value">Standard</span>
+            </div>
+            <div class="field-item"><span class="field-label">Post:</span> <span class="field-value">6x6 Treated</span>
+            </div>
+
+            <div class="notes-block">
+                <strong>Notes:</strong> Please ensure all treated lumber is ground contact rated. Double check joist
+                alignment with plumber.
+            </div>
+        </div>
+    </div>
+
+    <!-- Siding Section -->
+    <div class="section">
+        <div class="section-title">Siding</div>
+        <div class="grid-container">
+            <div class="field-item"><span class="field-label">Brand:</span> <span class="field-value">LP
+                    SmartSide</span></div>
+            <div class="field-item"><span class="field-label">Profile:</span> <span class="field-value">Lap 8"</span>
+            </div>
+            <div class="field-item"><span class="field-label">Texture:</span> <span class="field-value">Cedar</span>
+            </div>
+            <div class="field-item"><span class="field-label">Color:</span> <span class="field-value">Pre-finished
+                    Tan</span></div>
+
+            <div class="field-item"><span class="field-label">Corners:</span> <span class="field-value">5/4x4
+                    Trim</span></div>
+            <div class="field-item"><span class="field-label">Soffit:</span> <span class="field-value">Vented
+                    Aluminum</span></div>
+            <div class="field-item"><span class="field-label">Fascia:</span> <span class="field-value">6"
+                    Aluminum</span></div>
+            <div class="field-item"><span class="field-label">Housewrap:</span> <span class="field-value">Tyvek</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Shingle/Roof Section -->
+    <div class="section">
+        <div class="section-title">Shingles</div>
+        <div class="grid-container">
+            <div class="field-item"><span class="field-label">Brand:</span> <span class="field-value">Owens
+                    Corning</span></div>
+            <div class="field-item"><span class="field-label">Style:</span> <span class="field-value">Duration</span>
+            </div>
+            <div class="field-item"><span class="field-label">Color:</span> <span class="field-value">Driftwood</span>
+            </div>
+            <div class="field-item"><span class="field-label">Pitch:</span> <span class="field-value">6/12</span></div>
+
+            <div class="field-item"><span class="field-label">Ice/Water:</span> <span class="field-value">2 Rows</span>
+            </div>
+            <div class="field-item"><span class="field-label">Felt:</span> <span class="field-value">Synthetic</span>
+            </div>
+            <div class="field-item"><span class="field-label">Venting:</span> <span class="field-value">Ridge
+                    Vent</span></div>
+            <div class="field-item"><span class="field-label">Drip Edge:</span> <span class="field-value">White</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Windows & Doors (Combined Row Logic) -->
+    <div style="display: flex; gap: 20px;">
+        <div class="section" style="flex: 1;">
+            <div class="section-title">Windows</div>
+            <div class="grid-container" style="grid-template-columns: repeat(2, 1fr);">
+                <!-- Squeeze to 2 col inside half width -->
+                <div class="field-item"><span class="field-label">Brand:</span> <span
+                        class="field-value">Anderson</span></div>
+                <div class="field-item"><span class="field-label">Series:</span> <span class="field-value">400
+                        Series</span></div>
+                <div class="field-item"><span class="field-label">Color:</span> <span class="field-value">Black
+                        Ext</span></div>
+                <div class="field-item"><span class="field-label">Jambs:</span> <span class="field-value">6-9/16"</span>
+                </div>
+                <div class="field-item"><span class="field-label">Screens:</span> <span class="field-value">Full</span>
+                </div>
+                <div class="field-item"><span class="field-label">Grilles:</span> <span class="field-value">None</span>
+                </div>
+            </div>
+        </div>
+        <div class="section" style="flex: 1;">
+            <div class="section-title">Doors</div>
+            <div class="grid-container" style="grid-template-columns: repeat(2, 1fr);">
+                <div class="field-item"><span class="field-label">Ext Brand:</span> <span
+                        class="field-value">Therma-Tru</span></div>
+                <div class="field-item"><span class="field-label">Material:</span> <span
+                        class="field-value">Fiberglass</span></div>
+                <div class="field-item"><span class="field-label">Style:</span> <span class="field-value">2 Panel</span>
+                </div>
+                <div class="field-item"><span class="field-label">Hardware:</span> <span class="field-value">Oil
+                        Rubbed</span></div>
+                <div class="field-item"><span class="field-label">Int Brand:</span> <span
+                        class="field-value">Masonite</span></div>
+                <div class="field-item"><span class="field-label">Core:</span> <span class="field-value">Solid</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Deck Section -->
+    <div class="section">
+        <div class="section-title">Deck</div>
+        <div class="grid-container">
+            <div class="field-item"><span class="field-label">Decking:</span> <span class="field-value">Trex
+                    Transcend</span></div>
+            <div class="field-item"><span class="field-label">Color:</span> <span class="field-value">Spiced Rum</span>
+            </div>
+            <div class="field-item"><span class="field-label">Railing:</span> <span class="field-value">Alum -
+                    Black</span></div>
+            <div class="field-item"><span class="field-label">Fasteners:</span> <span class="field-value">Hidden</span>
+            </div>
+        </div>
+    </div>
+
+</body>
+
+</html>

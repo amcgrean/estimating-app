@@ -1209,7 +1209,7 @@ def manage_bid(bid_id):
     form.sales_rep_id.choices = [(0, 'Select Sales Rep')] + [(rep.id, rep.username) for rep in sales_reps]
 
     # Fetch Dynamic Fields for Rendering
-    dynamic_fields = BidField.query.order_by(BidField.sort_order).all()
+    dynamic_fields = BidField.query.filter_by(is_active=True).order_by(BidField.sort_order).all()
     # Filter by branch if restricted
     if bid.branch_id:
         dynamic_fields = [f for f in dynamic_fields if not f.branch_ids or str(bid.branch_id) in json.loads(f.branch_ids or '[]')]
@@ -2049,4 +2049,9 @@ def manage_project(project_id):
         window_form=window_form,
         trim_form=trim_form
     )
+
+@main.route('/mockup/spec_sheet')
+def mockup_spec_sheet():
+    return render_template('mockups/pdf_spec_sheet.html')
+
 

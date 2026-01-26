@@ -1,0 +1,3 @@
+Connecting to database: postgresql://neondb_owner:npg_1E4CvgZbaVBW@ep-fragrant-waterfall-ad8fjcey-pooler.c-2.us-east-1.aws.neon.tech/neondb?sslmode=require
+Attempting to add 'is_active' column to 'bid_field' table...
+Column 'is_active' added successfully.

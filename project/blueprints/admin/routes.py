@@ -715,9 +715,21 @@ import json
 def manage_fields():
     if not current_user.is_admin:
         abort(403)
-    fields = BidField.query.order_by(BidField.sort_order).all()
+    fields = BidField.query.order_by(BidField.is_active.desc(), BidField.sort_order).all()
     form = BidFieldForm() # For CSRF token in deletion forms
     return render_template('manage_fields.html', fields=fields, form=form)
+
+@admin.route('/toggle_field_status/<int:field_id>', methods=['POST'])
+@login_required
+def toggle_field_status(field_id):
+    if not current_user.is_admin:
+        abort(403)
+    field = BidField.query.get_or_404(field_id)
+    field.is_active = not field.is_active
+    db.session.commit()
+    status = "Active" if field.is_active else "Inactive"
+    flash(f'Field "{field.name}" is now {status}.', 'success')
+    return redirect(url_for('admin.manage_fields'))
 
 @admin.route('/add_field', methods=['GET', 'POST'])
 @login_required
