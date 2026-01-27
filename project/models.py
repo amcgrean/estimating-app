@@ -53,14 +53,7 @@ class Bid(db.Model):
     door_notes = db.Column(db.Text, nullable=True)
     shingle_notes = db.Column(db.Text, nullable=True)
     
-    # Detailed Specs Relationships (One-to-One)
-    framing = db.relationship('Framing', backref='bid', uselist=False, cascade="all, delete-orphan")
-    siding = db.relationship('Siding', backref='bid', uselist=False, cascade="all, delete-orphan")
-    shingle = db.relationship('Shingle', backref='bid', uselist=False, cascade="all, delete-orphan")
-    deck = db.relationship('Deck', backref='bid', uselist=False, cascade="all, delete-orphan")
-    trim = db.relationship('Trim', backref='bid', uselist=False, cascade="all, delete-orphan")
-    window = db.relationship('Window', backref='bid', uselist=False, cascade="all, delete-orphan")
-    door = db.relationship('Door', backref='bid', uselist=False, cascade="all, delete-orphan")
+
     
     # File Upload Paths (S3 Keys)
     plan_filename = db.Column(db.String(255), nullable=True)
