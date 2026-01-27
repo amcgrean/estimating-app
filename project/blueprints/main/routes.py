@@ -3,8 +3,7 @@ from flask_login import login_user, login_required, logout_user, current_user
 from project import mail, db
 from project.models import (
     Bid, Customer, Estimator, Design, User, EWP, UserType, UserSecurity,
-    Branch, LoginActivity, ITService, Project, Framing, Siding,
-    Shingle, Deck, Door, Window, Trim, BidActivity, BidFile, NotificationRule,
+    Branch, LoginActivity, ITService, Project, BidActivity, BidFile, NotificationRule,
     BidField, BidValue
 )
 import csv
