@@ -235,8 +235,9 @@
 
                                                 {% if field.field_type == 'select' %}
                                                 <select name="dynamic_field_{{ field.id }}"
-                                                    class="form-control form-control-sm" {% if field.is_required
-                                                    %}required{% endif %}>
+                                                    class="form-control form-control-sm"
+                                                    data-original-required="{{ 'true' if field.is_required else 'false' }}"
+                                                    {% if field.is_required %}required{% endif %}>
                                                     <option value="">Select {{ field.name }}</option>
                                                     {% set options = field.options|from_json_safe %}
                                                     {% for opt in options %}
@@ -246,13 +247,15 @@
                                                 </select>
                                                 {% elif field.field_type == 'textarea' %}
                                                 <textarea name="dynamic_field_{{ field.id }}"
-                                                    class="form-control form-control-sm" rows="2" {% if
-                                                    field.is_required %}required{% endif
+                                                    class="form-control form-control-sm" rows="2"
+                                                    data-original-required="{{ 'true' if field.is_required else 'false' }}"
+                                                    {% if field.is_required %}required{% endif
                                                     %}>{{ existing_val }}</textarea>
                                                 {% else %}
                                                 <input type="text" name="dynamic_field_{{ field.id }}"
-                                                    class="form-control form-control-sm" value="{{ existing_val }}" {%
-                                                    if field.is_required %}required{% endif %}>
+                                                    class="form-control form-control-sm" value="{{ existing_val }}"
+                                                    data-original-required="{{ 'true' if field.is_required else 'false' }}"
+                                                    {% if field.is_required %}required{% endif %}>
                                                 {% endif %}
                                             </div>
                                             {% endif %}
@@ -295,8 +298,9 @@
 
                                                 {% if field.field_type == 'select' %}
                                                 <select name="dynamic_field_{{ field.id }}"
-                                                    class="form-control form-control-sm" {% if field.is_required
-                                                    %}required{% endif %}>
+                                                    class="form-control form-control-sm"
+                                                    data-original-required="{{ 'true' if field.is_required else 'false' }}"
+                                                    {% if field.is_required %}required{% endif %}>
                                                     <option value="">Select {{ field.name }}</option>
                                                     {% set options = field.options|from_json_safe %}
                                                     {% for opt in options %}
@@ -306,13 +310,15 @@
                                                 </select>
                                                 {% elif field.field_type == 'textarea' %}
                                                 <textarea name="dynamic_field_{{ field.id }}"
-                                                    class="form-control form-control-sm" rows="2" {% if
-                                                    field.is_required %}required{% endif
+                                                    class="form-control form-control-sm" rows="2"
+                                                    data-original-required="{{ 'true' if field.is_required else 'false' }}"
+                                                    {% if field.is_required %}required{% endif
                                                     %}>{{ existing_val }}</textarea>
                                                 {% else %}
                                                 <input type="text" name="dynamic_field_{{ field.id }}"
-                                                    class="form-control form-control-sm" value="{{ existing_val }}" {%
-                                                    if field.is_required %}required{% endif %}>
+                                                    class="form-control form-control-sm" value="{{ existing_val }}"
+                                                    data-original-required="{{ 'true' if field.is_required else 'false' }}"
+                                                    {% if field.is_required %}required{% endif %}>
                                                 {% endif %}
                                             </div>
                                             {% endif %}
@@ -353,8 +359,9 @@
 
                                                 {% if field.field_type == 'select' %}
                                                 <select name="dynamic_field_{{ field.id }}"
-                                                    class="form-control form-control-sm" {% if field.is_required
-                                                    %}required{% endif %}>
+                                                    class="form-control form-control-sm"
+                                                    data-original-required="{{ 'true' if field.is_required else 'false' }}"
+                                                    {% if field.is_required %}required{% endif %}>
                                                     <option value="">Select {{ field.name }}</option>
                                                     {% set options = field.options|from_json_safe %}
                                                     {% for opt in options %}
@@ -364,13 +371,15 @@
                                                 </select>
                                                 {% elif field.field_type == 'textarea' %}
                                                 <textarea name="dynamic_field_{{ field.id }}"
-                                                    class="form-control form-control-sm" rows="2" {% if
-                                                    field.is_required %}required{% endif
+                                                    class="form-control form-control-sm" rows="2"
+                                                    data-original-required="{{ 'true' if field.is_required else 'false' }}"
+                                                    {% if field.is_required %}required{% endif
                                                     %}>{{ existing_val }}</textarea>
                                                 {% else %}
                                                 <input type="text" name="dynamic_field_{{ field.id }}"
-                                                    class="form-control form-control-sm" value="{{ existing_val }}" {%
-                                                    if field.is_required %}required{% endif %}>
+                                                    class="form-control form-control-sm" value="{{ existing_val }}"
+                                                    data-original-required="{{ 'true' if field.is_required else 'false' }}"
+                                                    {% if field.is_required %}required{% endif %}>
                                                 {% endif %}
                                             </div>
                                             {% endif %}
@@ -411,8 +420,9 @@
 
                                                 {% if field.field_type == 'select' %}
                                                 <select name="dynamic_field_{{ field.id }}"
-                                                    class="form-control form-control-sm" {% if field.is_required
-                                                    %}required{% endif %}>
+                                                    class="form-control form-control-sm"
+                                                    data-original-required="{{ 'true' if field.is_required else 'false' }}"
+                                                    {% if field.is_required %}required{% endif %}>
                                                     <option value="">Select {{ field.name }}</option>
                                                     {% set options = field.options|from_json_safe %}
                                                     {% for opt in options %}
@@ -422,13 +432,15 @@
                                                 </select>
                                                 {% elif field.field_type == 'textarea' %}
                                                 <textarea name="dynamic_field_{{ field.id }}"
-                                                    class="form-control form-control-sm" rows="2" {% if
-                                                    field.is_required %}required{% endif
+                                                    class="form-control form-control-sm" rows="2"
+                                                    data-original-required="{{ 'true' if field.is_required else 'false' }}"
+                                                    {% if field.is_required %}required{% endif
                                                     %}>{{ existing_val }}</textarea>
                                                 {% else %}
                                                 <input type="text" name="dynamic_field_{{ field.id }}"
-                                                    class="form-control form-control-sm" value="{{ existing_val }}" {%
-                                                    if field.is_required %}required{% endif %}>
+                                                    class="form-control form-control-sm" value="{{ existing_val }}"
+                                                    data-original-required="{{ 'true' if field.is_required else 'false' }}"
+                                                    {% if field.is_required %}required{% endif %}>
                                                 {% endif %}
                                             </div>
                                             {% endif %}
@@ -469,8 +481,9 @@
 
                                                 {% if field.field_type == 'select' %}
                                                 <select name="dynamic_field_{{ field.id }}"
-                                                    class="form-control form-control-sm" {% if field.is_required
-                                                    %}required{% endif %}>
+                                                    class="form-control form-control-sm"
+                                                    data-original-required="{{ 'true' if field.is_required else 'false' }}"
+                                                    {% if field.is_required %}required{% endif %}>
                                                     <option value="">Select {{ field.name }}</option>
                                                     {% set options = field.options|from_json_safe %}
                                                     {% for opt in options %}
@@ -480,13 +493,15 @@
                                                 </select>
                                                 {% elif field.field_type == 'textarea' %}
                                                 <textarea name="dynamic_field_{{ field.id }}"
-                                                    class="form-control form-control-sm" rows="2" {% if
-                                                    field.is_required %}required{% endif
+                                                    class="form-control form-control-sm" rows="2"
+                                                    data-original-required="{{ 'true' if field.is_required else 'false' }}"
+                                                    {% if field.is_required %}required{% endif
                                                     %}>{{ existing_val }}</textarea>
                                                 {% else %}
                                                 <input type="text" name="dynamic_field_{{ field.id }}"
-                                                    class="form-control form-control-sm" value="{{ existing_val }}" {%
-                                                    if field.is_required %}required{% endif %}>
+                                                    class="form-control form-control-sm" value="{{ existing_val }}"
+                                                    data-original-required="{{ 'true' if field.is_required else 'false' }}"
+                                                    {% if field.is_required %}required{% endif %}>
                                                 {% endif %}
                                             </div>
                                             {% endif %}
@@ -525,8 +540,9 @@
 
                                             {% if field.field_type == 'select' %}
                                             <select name="dynamic_field_{{ field.id }}"
-                                                class="form-control form-control-sm" {% if field.is_required
-                                                %}required{% endif %}>
+                                                class="form-control form-control-sm"
+                                                data-original-required="{{ 'true' if field.is_required else 'false' }}"
+                                                {% if field.is_required %}required{% endif %}>
                                                 <option value="">Select {{ field.name }}</option>
                                                 {% set options = field.options|from_json_safe %}
                                                 {% for opt in options %}
@@ -536,12 +552,15 @@
                                             </select>
                                             {% elif field.field_type == 'textarea' %}
                                             <textarea name="dynamic_field_{{ field.id }}"
-                                                class="form-control form-control-sm" rows="2" {% if field.is_required
-                                                %}required{% endif %}>{{ existing_val }}</textarea>
+                                                class="form-control form-control-sm" rows="2"
+                                                data-original-required="{{ 'true' if field.is_required else 'false' }}"
+                                                {% if field.is_required %}required{% endif
+                                                %}>{{ existing_val }}</textarea>
                                             {% else %}
                                             <input type="text" name="dynamic_field_{{ field.id }}"
-                                                class="form-control form-control-sm" value="{{ existing_val }}" {% if
-                                                field.is_required %}required{% endif %}>
+                                                class="form-control form-control-sm" value="{{ existing_val }}"
+                                                data-original-required="{{ 'true' if field.is_required else 'false' }}"
+                                                {% if field.is_required %}required{% endif %}>
                                             {% endif %}
                                         </div>
                                         {% endif %}
@@ -575,8 +594,9 @@
 
                                             {% if field.field_type == 'select' %}
                                             <select name="dynamic_field_{{ field.id }}"
-                                                class="form-control form-control-sm" {% if field.is_required
-                                                %}required{% endif %}>
+                                                class="form-control form-control-sm"
+                                                data-original-required="{{ 'true' if field.is_required else 'false' }}"
+                                                {% if field.is_required %}required{% endif %}>
                                                 <option value="">Select {{ field.name }}</option>
                                                 {% set options = field.options|from_json_safe %}
                                                 {% for opt in options %}
@@ -586,12 +606,15 @@
                                             </select>
                                             {% elif field.field_type == 'textarea' %}
                                             <textarea name="dynamic_field_{{ field.id }}"
-                                                class="form-control form-control-sm" rows="2" {% if field.is_required
-                                                %}required{% endif %}>{{ existing_val }}</textarea>
+                                                class="form-control form-control-sm" rows="2"
+                                                data-original-required="{{ 'true' if field.is_required else 'false' }}"
+                                                {% if field.is_required %}required{% endif
+                                                %}>{{ existing_val }}</textarea>
                                             {% else %}
                                             <input type="text" name="dynamic_field_{{ field.id }}"
-                                                class="form-control form-control-sm" value="{{ existing_val }}" {% if
-                                                field.is_required %}required{% endif %}>
+                                                class="form-control form-control-sm" value="{{ existing_val }}"
+                                                data-original-required="{{ 'true' if field.is_required else 'false' }}"
+                                                {% if field.is_required %}required{% endif %}>
                                             {% endif %}
                                         </div>
                                         {% endif %}
@@ -666,6 +689,21 @@
                 // Full width rows
                 section.style.display = toggle.checked ? 'flex' : 'none';
             }
+
+            // Manage Required Properties based on visibility
+            // This prevents validation errors for hidden fields
+            const inputs = section.querySelectorAll('input, select, textarea');
+            inputs.forEach(input => {
+                if (toggle.checked) {
+                    // Restoring, check if it was originally required
+                    if (input.dataset.originalRequired === 'true') {
+                        input.setAttribute('required', 'required');
+                    }
+                } else {
+                    // Hiding, remove required
+                    input.removeAttribute('required');
+                }
+            });
         }
     }
 
