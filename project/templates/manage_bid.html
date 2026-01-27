@@ -231,7 +231,7 @@
                                                     %}
                                                 </label>
 
-                                                {% set existing_val = dynamic_values_map.get(field.id, '') %}
+                                                {% set existing_val = dynamic_values_map.get(field.id|string, '') %}
 
                                                 {% if field.field_type == 'select' %}
                                                 <select name="dynamic_field_{{ field.id }}"
@@ -291,7 +291,7 @@
                                                     %}
                                                 </label>
 
-                                                {% set existing_val = dynamic_values_map.get(field.id, '') %}
+                                                {% set existing_val = dynamic_values_map.get(field.id|string, '') %}
 
                                                 {% if field.field_type == 'select' %}
                                                 <select name="dynamic_field_{{ field.id }}"
@@ -341,7 +341,7 @@
                                             {# Legacy fields removed #}
                                             {# --- DYNAMIC SHINGLE FIELDS --- #}
                                             {% for field in dynamic_fields %}
-                                            {% if field.category == 'Shingle' %}
+                                            {% if field.category == 'Shingles' %}
                                             <div class="col-md-12 mb-2">
                                                 <label class="font-weight-600 small text-uppercase text-muted mb-1">
                                                     {{ field.name }}
@@ -349,7 +349,7 @@
                                                     %}
                                                 </label>
 
-                                                {% set existing_val = dynamic_values_map.get(field.id, '') %}
+                                                {% set existing_val = dynamic_values_map.get(field.id|string, '') %}
 
                                                 {% if field.field_type == 'select' %}
                                                 <select name="dynamic_field_{{ field.id }}"
@@ -407,7 +407,7 @@
                                                     %}
                                                 </label>
 
-                                                {% set existing_val = dynamic_values_map.get(field.id, '') %}
+                                                {% set existing_val = dynamic_values_map.get(field.id|string, '') %}
 
                                                 {% if field.field_type == 'select' %}
                                                 <select name="dynamic_field_{{ field.id }}"
@@ -465,7 +465,7 @@
                                                     %}
                                                 </label>
 
-                                                {% set existing_val = dynamic_values_map.get(field.id, '') %}
+                                                {% set existing_val = dynamic_values_map.get(field.id|string, '') %}
 
                                                 {% if field.field_type == 'select' %}
                                                 <select name="dynamic_field_{{ field.id }}"
@@ -521,7 +521,7 @@
                                                 {% if field.is_required %}<span class="text-danger">*</span>{% endif %}
                                             </label>
 
-                                            {% set existing_val = dynamic_values_map.get(field.id, '') %}
+                                            {% set existing_val = dynamic_values_map.get(field.id|string, '') %}
 
                                             {% if field.field_type == 'select' %}
                                             <select name="dynamic_field_{{ field.id }}"
@@ -571,7 +571,7 @@
                                                 {% if field.is_required %}<span class="text-danger">*</span>{% endif %}
                                             </label>
 
-                                            {% set existing_val = dynamic_values_map.get(field.id, '') %}
+                                            {% set existing_val = dynamic_values_map.get(field.id|string, '') %}
 
                                             {% if field.field_type == 'select' %}
                                             <select name="dynamic_field_{{ field.id }}"
