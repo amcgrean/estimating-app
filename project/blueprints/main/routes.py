@@ -1231,7 +1231,11 @@ def manage_bid(bid_id):
         dynamic_fields = [f for f in dynamic_fields if not f.branch_ids or str(bid.branch_id) in json.loads(f.branch_ids or '[]')]
     
     # Map existing values: field_id -> value
-    dynamic_values_map = {v.field_id: v.value for v in bid.dynamic_values}
+    # Map existing values: field_id -> value
+    # dynamic_values_map = {v.field_id: v.value for v in bid.dynamic_values}
+    # Use explicit query to ensure data is fresh and attached
+    current_values = BidValue.query.filter_by(bid_id=bid.id).all()
+    dynamic_values_map = {v.field_id: v.value for v in current_values}
     
     # Default Estimator for Coralville (Branch 3) -> Jason R (ID 10)
     if request.method == 'GET' and bid.branch_id == 3:
