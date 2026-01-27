@@ -1227,7 +1227,7 @@ def manage_bid(bid_id):
     dynamic_fields = BidField.query.filter_by(is_active=True).order_by(BidField.sort_order).all()
     # Filter by branch if restricted
     if bid.branch_id:
-        dynamic_fields = [f for f in dynamic_fields if not f.branch_ids or str(bid.branch_id) in json.loads(f.branch_ids or '[]')]
+        dynamic_fields = [f for f in dynamic_fields if not f.branch_ids or f.branch_ids == '[]' or str(bid.branch_id) in json.loads(f.branch_ids or '[]')]
     
     # Map existing values: field_id -> value
     # Map existing values: field_id -> value
