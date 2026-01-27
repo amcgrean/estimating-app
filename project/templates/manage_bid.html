@@ -231,7 +231,7 @@
                                                     %}
                                                 </label>
 
-                                                {% set existing_val = dynamic_values_map.get(field.id|string, '') %}
+                                                {% set existing_val = dynamic_values_map.get(field.id, '') %}
 
                                                 {% if field.field_type == 'select' %}
                                                 <select name="dynamic_field_{{ field.id }}"
@@ -294,7 +294,7 @@
                                                     %}
                                                 </label>
 
-                                                {% set existing_val = dynamic_values_map.get(field.id|string, '') %}
+                                                {% set existing_val = dynamic_values_map.get(field.id, '') %}
 
                                                 {% if field.field_type == 'select' %}
                                                 <select name="dynamic_field_{{ field.id }}"
@@ -355,7 +355,7 @@
                                                     %}
                                                 </label>
 
-                                                {% set existing_val = dynamic_values_map.get(field.id|string, '') %}
+                                                {% set existing_val = dynamic_values_map.get(field.id, '') %}
 
                                                 {% if field.field_type == 'select' %}
                                                 <select name="dynamic_field_{{ field.id }}"
@@ -416,7 +416,7 @@
                                                     %}
                                                 </label>
 
-                                                {% set existing_val = dynamic_values_map.get(field.id|string, '') %}
+                                                {% set existing_val = dynamic_values_map.get(field.id, '') %}
 
                                                 {% if field.field_type == 'select' %}
                                                 <select name="dynamic_field_{{ field.id }}"
@@ -477,7 +477,7 @@
                                                     %}
                                                 </label>
 
-                                                {% set existing_val = dynamic_values_map.get(field.id|string, '') %}
+                                                {% set existing_val = dynamic_values_map.get(field.id, '') %}
 
                                                 {% if field.field_type == 'select' %}
                                                 <select name="dynamic_field_{{ field.id }}"
@@ -536,7 +536,7 @@
                                                 {% if field.is_required %}<span class="text-danger">*</span>{% endif %}
                                             </label>
 
-                                            {% set existing_val = dynamic_values_map.get(field.id|string, '') %}
+                                            {% set existing_val = dynamic_values_map.get(field.id, '') %}
 
                                             {% if field.field_type == 'select' %}
                                             <select name="dynamic_field_{{ field.id }}"
@@ -590,7 +590,7 @@
                                                 {% if field.is_required %}<span class="text-danger">*</span>{% endif %}
                                             </label>
 
-                                            {% set existing_val = dynamic_values_map.get(field.id|string, '') %}
+                                            {% set existing_val = dynamic_values_map.get(field.id, '') %}
 
                                             {% if field.field_type == 'select' %}
                                             <select name="dynamic_field_{{ field.id }}"
