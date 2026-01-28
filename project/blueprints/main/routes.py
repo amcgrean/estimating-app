@@ -1235,6 +1235,35 @@ def manage_bid(bid_id):
     # Use explicit query to ensure data is fresh and attached
     current_values = BidValue.query.filter_by(bid_id=bid.id).all()
     dynamic_values_map = {v.field_id: v.value for v in current_values}
+
+    # Auto-toggle spec sections if data exists (Fix for persistent visibility issue)
+    if request.method == 'GET':
+        # Identify fields with actual data
+        active_field_ids = {v.field_id for v in current_values if v.value and str(v.value).strip()}
+        
+        # Identify categories that have active fields corresponding to VISIBLE dynamic_fields
+        active_categories = set()
+        field_category_map = {f.id: f.category.lower() for f in dynamic_fields}
+        
+        for fid in active_field_ids:
+            if fid in field_category_map:
+                active_categories.add(field_category_map[fid])
+
+        # Map categories to form BooleanFields
+        # Handles both singular and plural variations safely
+        cat_form_map = {
+            'framing': 'include_framing',
+            'siding': 'include_siding',
+            'shingle': 'include_shingle', 'shingles': 'include_shingle',
+            'deck': 'include_deck',
+            'trim': 'include_trim',
+            'window': 'include_window', 'windows': 'include_window',
+            'door': 'include_door', 'doors': 'include_door'
+        }
+
+        for cat, form_attr in cat_form_map.items():
+            if cat in active_categories and hasattr(form, form_attr):
+                getattr(form, form_attr).data = True
     
     # Default Estimator for Coralville (Branch 3) -> Jason R (ID 10)
     if request.method == 'GET' and bid.branch_id == 3:
