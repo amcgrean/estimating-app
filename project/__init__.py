@@ -138,6 +138,9 @@ def create_app():
         try:
             return json.loads(value)
         except (ValueError, TypeError):
+            # Fallback for CSV strings
+            if isinstance(value, str):
+                 return [x.strip() for x in value.split(',')]
             return []
 
     # Logging (stdout is safest on serverless)
