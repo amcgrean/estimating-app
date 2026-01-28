@@ -223,7 +223,7 @@
                                             {# Legacy fields removed #}
                                             {# --- DYNAMIC FRAMING FIELDS --- #}
                                             {% for field in dynamic_fields %}
-                                            {% if field.category == 'Framing' %}
+                                            {% if field.category|lower == 'framing' %}
                                             <div class="col-md-4 mb-3">
                                                 <label class="font-weight-600 small text-uppercase text-muted mb-1">
                                                     {{ field.name }}
@@ -286,7 +286,7 @@
                                             {# Legacy fields removed #}
                                             {# --- DYNAMIC SIDING FIELDS --- #}
                                             {% for field in dynamic_fields %}
-                                            {% if field.category == 'Siding' %}
+                                            {% if field.category|lower == 'siding' %}
                                             <div class="col-md-4 mb-3">
                                                 <label class="font-weight-600 small text-uppercase text-muted mb-1">
                                                     {{ field.name }}
@@ -347,7 +347,7 @@
                                             {# Legacy fields removed #}
                                             {# --- DYNAMIC SHINGLE FIELDS --- #}
                                             {% for field in dynamic_fields %}
-                                            {% if field.category == 'Shingles' %}
+                                            {% if field.category|lower == 'shingles' %}
                                             <div class="col-md-12 mb-2">
                                                 <label class="font-weight-600 small text-uppercase text-muted mb-1">
                                                     {{ field.name }}
@@ -408,7 +408,7 @@
                                             {# Legacy fields removed #}
                                             {# --- DYNAMIC DECK FIELDS --- #}
                                             {% for field in dynamic_fields %}
-                                            {% if field.category == 'Deck' %}
+                                            {% if field.category|lower == 'deck' %}
                                             <div class="col-md-4 mb-3">
                                                 <label class="font-weight-600 small text-uppercase text-muted mb-1">
                                                     {{ field.name }}
@@ -469,7 +469,7 @@
                                             {# Legacy fields removed #}
                                             {# --- DYNAMIC TRIM FIELDS --- #}
                                             {% for field in dynamic_fields %}
-                                            {% if field.category == 'Trim' %}
+                                            {% if field.category|lower == 'trim' %}
                                             <div class="col-md-4 mb-3">
                                                 <label class="font-weight-600 small text-uppercase text-muted mb-1">
                                                     {{ field.name }}
@@ -529,7 +529,7 @@
                                         {# Legacy fields removed #}
                                         {# --- DYNAMIC WINDOW FIELDS --- #}
                                         {% for field in dynamic_fields %}
-                                        {% if field.category == 'Window' %}
+                                        {% if field.category|lower == 'window' %}
                                         <div class="form-group mb-2">
                                             <label class="font-weight-600 small text-uppercase text-muted mb-1">
                                                 {{ field.name }}
@@ -583,7 +583,7 @@
                                         {# Legacy fields removed #}
                                         {# --- DYNAMIC DOOR FIELDS --- #}
                                         {% for field in dynamic_fields %}
-                                        {% if field.category == 'Door' %}
+                                        {% if field.category|lower == 'door' %}
                                         <div class="form-group mb-2">
                                             <label class="font-weight-600 small text-uppercase text-muted mb-1">
                                                 {{ field.name }}
