@@ -124,7 +124,7 @@ class BidValue(db.Model):
     value = db.Column(db.Text, nullable=True)
 
     bid = db.relationship('Bid', backref=db.backref('dynamic_values', lazy=True, cascade="all, delete-orphan"))
-    field = db.relationship('BidField', backref=db.backref('values', lazy=True))
+    field = db.relationship('BidField', backref=db.backref('values', lazy=True, cascade="all, delete-orphan"))
 
     def __repr__(self):
         return f'<BidValue Bid:{self.bid_id} Field:{self.field_id} Val:{self.value}>'
