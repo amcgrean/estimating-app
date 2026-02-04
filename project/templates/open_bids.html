@@ -118,10 +118,9 @@
             <label class="font-weight-600 small text-uppercase tracking-wider">Type</label>
             <select name="plan_type" id="plan_type" class="input-modern" style="min-width: 150px;">
                 <option value="all" {% if current_plan_type=='all' %}selected{% endif %}>All Types</option>
-                <option value="Residential" {% if current_plan_type=='Residential' %}selected{% endif %}>Residential
-                </option>
-                <option value="Commercial" {% if current_plan_type=='Commercial' %}selected{% endif %}>Commercial
-                </option>
+                {% for pt in plan_types %}
+                <option value="{{ pt }}" {% if current_plan_type==pt %}selected{% endif %}>{{ pt }}</option>
+                {% endfor %}
             </select>
         </div>
         <div>
@@ -153,13 +152,61 @@
             <table class="table-premium mb-0">
                 <thead>
                     <tr>
-                        <th>Customer Name</th>
-                        <th>Project Name</th>
+                        <th>
+                            <a href="{{ url_for('main.open_bids', sort='customer_name', direction='desc' if sort_column=='customer_name' and sort_direction=='asc' else 'asc', **request.args) }}"
+                                class="text-muted text-decoration-none">
+                                Customer Name
+                                {% if sort_column == 'customer_name' %}
+                                <i class="fas fa-sort-{{ 'up' if sort_direction == 'asc' else 'down' }} ml-1"></i>
+                                {% endif %}
+                            </a>
+                        </th>
+                        <th>
+                            <a href="{{ url_for('main.open_bids', sort='project_name', direction='desc' if sort_column=='project_name' and sort_direction=='asc' else 'asc', **request.args) }}"
+                                class="text-muted text-decoration-none">
+                                Project Name
+                                {% if sort_column == 'project_name' %}
+                                <i class="fas fa-sort-{{ 'up' if sort_direction == 'asc' else 'down' }} ml-1"></i>
+                                {% endif %}
+                            </a>
+                        </th>
                         <th>Files</th>
-                        <th>Notes</th>
-                        <th>Estimator</th>
-                        <th>Log Date</th>
-                        <th>Due Date</th>
+                        <th>
+                            <a href="{{ url_for('main.open_bids', sort='notes', direction='desc' if sort_column=='notes' and sort_direction=='asc' else 'asc', **request.args) }}"
+                                class="text-muted text-decoration-none">
+                                Notes
+                                {% if sort_column == 'notes' %}
+                                <i class="fas fa-sort-{{ 'up' if sort_direction == 'asc' else 'down' }} ml-1"></i>
+                                {% endif %}
+                            </a>
+                        </th>
+                        <th>
+                            <a href="{{ url_for('main.open_bids', sort='estimator', direction='desc' if sort_column=='estimator' and sort_direction=='asc' else 'asc', **request.args) }}"
+                                class="text-muted text-decoration-none">
+                                Estimator
+                                {% if sort_column == 'estimator' %}
+                                <i class="fas fa-sort-{{ 'up' if sort_direction == 'asc' else 'down' }} ml-1"></i>
+                                {% endif %}
+                            </a>
+                        </th>
+                        <th>
+                            <a href="{{ url_for('main.open_bids', sort='log_date', direction='desc' if sort_column=='log_date' and sort_direction=='asc' else 'asc', **request.args) }}"
+                                class="text-muted text-decoration-none">
+                                Log Date
+                                {% if sort_column == 'log_date' %}
+                                <i class="fas fa-sort-{{ 'up' if sort_direction == 'asc' else 'down' }} ml-1"></i>
+                                {% endif %}
+                            </a>
+                        </th>
+                        <th>
+                            <a href="{{ url_for('main.open_bids', sort='due_date', direction='desc' if sort_column=='due_date' and sort_direction=='asc' else 'asc', **request.args) }}"
+                                class="text-muted text-decoration-none">
+                                Due Date
+                                {% if sort_column == 'due_date' %}
+                                <i class="fas fa-sort-{{ 'up' if sort_direction == 'asc' else 'down' }} ml-1"></i>
+                                {% endif %}
+                            </a>
+                        </th>
                     </tr>
                 </thead>
                 <tbody id="bids-table-body">
