@@ -175,6 +175,7 @@ class Design(db.Model):  # New table
     customer = db.relationship('Customer', backref=db.backref('designs', lazy=True))
     designer = db.relationship('Estimator', backref=db.backref('designs', lazy=True))
     branch = db.relationship('Branch', backref=db.backref('designs', lazy=True))
+    square_footage = db.Column(db.Integer, nullable=True)
 
 class UserType(db.Model):
     id = db.Column(db.Integer, primary_key=True)

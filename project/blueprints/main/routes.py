@@ -1690,7 +1690,7 @@ def generate_next_plan_number():
     # Ideally use SQL LIKE
     last_design = Design.query.filter(Design.planNumber.like(f'%-%{current_year_suffix}')).order_by(Design.id.desc()).first()
     
-    next_sequence = 1
+    next_sequence = 1001
     if last_design:
         # Extract the numeric part before the hyphen
         match = re.match(r'(\d+)-', last_design.planNumber)
@@ -1743,6 +1743,7 @@ def add_design():
             designer_id=form.designer_id.data if form.designer_id.data != 0 else None, 
             status=form.status.data, 
             plan_description=form.plan_description.data, 
+            square_footage=form.square_footage.data,
             notes=form.notes.data,
             branch_id=form.branch_id.data
         )

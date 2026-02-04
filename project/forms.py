@@ -1,5 +1,5 @@
 from flask_wtf import FlaskForm
-from wtforms import StringField, SelectField, BooleanField, TextAreaField, SubmitField, FileField, PasswordField, HiddenField, DateField, FormField, SelectMultipleField
+from wtforms import StringField, SelectField, BooleanField, TextAreaField, SubmitField, FileField, PasswordField, HiddenField, DateField, FormField, SelectMultipleField, IntegerField
 from wtforms.validators import DataRequired, Optional, Regexp, EqualTo, ValidationError
 from flask_wtf.file import FileAllowed
 from flask_login import current_user
@@ -164,10 +164,14 @@ class DesignForm(BaseForm):
         ('Completed', 'Completed'),
         ('On Hold', 'On Hold')
     ])
-    plan_description = SelectField('Type', choices=[
-        ('New Design', 'New Design'),
-        ('Redesign', 'Redesign')
+    plan_description = SelectField('Project Type', choices=[
+        ('New Construction', 'New Construction'),
+        ('Stock Plan Modification', 'Stock Plan Modification'),
+        ('Addition', 'Addition'),
+        ('Garage/Out Building', 'Garage/Out Building'),
+        ('Deck', 'Deck')
     ])
+    square_footage = IntegerField('Square Footage', validators=[DataRequired()])
     notes = TextAreaField('Notes')
     branch_id = SelectField('Branch', coerce=int, choices=[])
     submit = SubmitField('Create Design')
