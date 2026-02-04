@@ -1678,6 +1678,31 @@ def completed_bids():
                            branches=branches,
                            current_branch_id=branch_id)
 
+def generate_next_plan_number():
+    from datetime import datetime
+    import re
+    
+    current_year_suffix = datetime.now().strftime('%y')
+    pattern = f"-{current_year_suffix}$"
+    
+    # Find all designs ending with current year suffix
+    # Note: This is a bit inefficient if table is huge, but with 10 char limit it should be okay.
+    # Ideally use SQL LIKE
+    last_design = Design.query.filter(Design.planNumber.like(f'%-%{current_year_suffix}')).order_by(Design.id.desc()).first()
+    
+    next_sequence = 1
+    if last_design:
+        # Extract the numeric part before the hyphen
+        match = re.match(r'(\d+)-', last_design.planNumber)
+        if match:
+            try:
+                next_sequence = int(match.group(1)) + 1
+            except ValueError:
+                pass
+    
+    return f"{next_sequence:04d}-{current_year_suffix}"
+
+
 @main.route('/debug_bids', methods=['GET'])
 def debug_bids():
     incomplete_bids = Bid.query.filter_by(status='incomplete').all()
@@ -1703,8 +1728,13 @@ def add_design():
     if not form.branch_id.data:
         form.branch_id.data = selected_branch_id
 
+    # Pre-fill plan number if not present (only on initial load preferably)
+    if not form.plan_number.data:
+        form.plan_number.data = generate_next_plan_number()
+
     if form.validate_on_submit():
         new_design = Design(
+            planNumber=form.plan_number.data,
             plan_name=form.plan_name.data, 
             customer_id=form.customer_id.data if form.customer_id.data != 0 else None, 
             project_address=form.project_address.data, 

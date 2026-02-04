@@ -150,6 +150,7 @@ class UserSecurityForm(FlaskForm):
         setattr(self, f'security_20_{usertype.id}', BooleanField(default=security.security_20))
 
 class DesignForm(BaseForm):
+    plan_number = StringField('Plan Number', render_kw={'readonly': True})
     plan_name = StringField('Plan Name', validators=[DataRequired()])
     project_address = StringField('Project Address', validators=[DataRequired()])
     contractor = StringField('Contractor')
@@ -355,8 +356,8 @@ class BidFieldForm(FlaskForm):
         ('Shingles', 'Shingles'), 
         ('Deck', 'Deck'), 
         ('Trim', 'Trim'), 
-        ('Windows', 'Windows'), 
-        ('Doors', 'Doors')
+        ('Window', 'Window'), 
+        ('Door', 'Door')
     ], validators=[DataRequired()])
     field_type = SelectField('Input Type', choices=[
         ('text', 'Text Input'), 
