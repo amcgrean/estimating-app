@@ -1763,8 +1763,7 @@ def add_design():
             plan_description=form.plan_description.data, 
             square_footage=form.square_footage.data,
             notes=form.notes.data,
-            square_footage=form.square_footage.data,
-            notes=form.notes.data,
+
             branch_id=form.branch_id.data,
             job_id=form.job_id.data if form.job_id.data and form.job_id.data != 0 else None
         )
