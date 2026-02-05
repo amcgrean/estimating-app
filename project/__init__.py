@@ -155,7 +155,7 @@ def create_app():
     if is_vercel:
         try:
             from .manual_schema_fix import fix_schema
-            fix_schema()
+            fix_schema(app)
         except Exception as e:
             app.logger.error(f"Schema Fix Failed: {e}")
 

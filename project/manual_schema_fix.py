@@ -1,9 +1,12 @@
 
-from project import create_app, db
+from project import db
 from sqlalchemy import text
 
-def fix_schema():
-    app = create_app()
+def fix_schema(app=None):
+    if app is None:
+        from project import create_app
+        app = create_app()
+
     with app.app_context():
         print(f"Connecting to: {app.config['SQLALCHEMY_DATABASE_URI']}")
         with db.engine.connect() as conn:
