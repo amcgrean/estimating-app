@@ -112,6 +112,13 @@
                         </div>
                     </div>
                     <div class="col-md-6">
+                        <div class="form-group mb-4" id="ship-to-group" style="display: none;">
+                            <label class="font-weight-600 small text-uppercase tracking-wider mb-2">{{
+                                form.job_id.label.text }}</label>
+                            {{ form.job_id(class="input-modern select2-enable") }}
+                        </div>
+                    </div>
+                    <div class="col-md-6">
                         <div class="form-group mb-4">
                             <label class="font-weight-600 small text-uppercase tracking-wider mb-2">{{
                                 form.preliminary_set_date.label.text }}</label>
@@ -148,5 +155,132 @@
         url.searchParams.set('branch_id', branchId);
         window.location.href = url.toString();
     };
+
+    $(document).ready(function () {
+        $('.select2-enable').select2({
+            width: '100%',
+            placeholder: "Select a customer",
+            allowClear: true
+        });
+
+        // Ship To / Job Selection Logic
+        var customerSelect = $('#customer_id');
+        var jobSelect = $('#job_id');
+        var jobGroup = $('#ship-to-group');
+
+        function loadJobs(customerId) {
+            if (!customerId || customerId == 0) {
+                jobGroup.slideUp();
+                jobSelect.empty();
+                return;
+            }
+
+            jobSelect.prop('disabled', true);
+
+            $.ajax({
+                url: '/api/customer/' + customerId + '/jobs',
+                type: 'GET',
+                success: function (data) {
+                    jobSelect.empty();
+                    jobSelect.append(new Option('Select Ship To', 0));
+
+                    var defaultJobId = null;
+
+                    if (data.length > 0) {
+                        data.forEach(function (job) {
+                            var option = new Option(job.full_name, job.id);
+                            jobSelect.append(option);
+                            // Check for default (Reference 1)
+                            if (job.reference == '1' || job.reference == 1) {
+                                defaultJobId = job.id;
+                            }
+                        });
+
+                        jobSelect.prop('disabled', false);
+                        jobGroup.slideDown();
+
+                        // Select default if found
+                        if (defaultJobId) {
+                            jobSelect.val(defaultJobId).trigger('change');
+                        }
+                    } else {
+                        jobGroup.slideUp();
+                    }
+                },
+                error: function (err) {
+                    console.error('Error fetching jobs:', err);
+                    jobSelect.prop('disabled', false);
+                }
+            });
+        }
+
+        // Listen for change
+        customerSelect.on('change', function () {
+            var custId = $(this).val();
+            loadJobs(custId);
+        });
+
+        // Initial Load (if editing or validation fail)
+        if (customerSelect.val() && customerSelect.val() != 0) {
+            loadJobs(customerSelect.val());
+        }
+
+        // Ship To / Job Selection Logic
+        var customerSelect = $('#customer_id');
+        var jobSelect = $('#job_id');
+        var jobGroup = $('#ship-to-group');
+
+        function loadJobs(customerId) {
+            if (!customerId || customerId == 0) {
+                jobGroup.slideUp();
+                jobSelect.empty();
+                return;
+            }
+
+            jobSelect.prop('disabled', true);
+
+            $.ajax({
+                url: '/api/customer/' + customerId + '/jobs',
+                type: 'GET',
+                success: function (data) {
+                    jobSelect.empty();
+                    jobSelect.append(new Option('Select Ship To', 0));
+
+                    var defaultJobId = null;
+
+                    if (data.length > 0) {
+                        data.forEach(function (job) {
+                            var option = new Option(job.full_name, job.id);
+                            jobSelect.append(option);
+                            if (job.reference == '1' || job.reference == 1) {
+                                defaultJobId = job.id;
+                            }
+                        });
+
+                        jobSelect.prop('disabled', false);
+                        jobGroup.slideDown();
+
+                        if (defaultJobId) {
+                            jobSelect.val(defaultJobId).trigger('change');
+                        }
+                    } else {
+                        jobGroup.slideUp();
+                    }
+                },
+                error: function (err) {
+                    console.error('Error fetching jobs:', err);
+                    jobSelect.prop('disabled', false);
+                }
+            });
+        }
+
+        customerSelect.on('change', function () {
+            loadJobs($(this).val());
+        });
+
+        if (customerSelect.val() && customerSelect.val() != 0) {
+            loadJobs(customerSelect.val());
+        }
+    });
 </script>
 {% endblock %}

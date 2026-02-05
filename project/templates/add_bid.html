@@ -82,6 +82,16 @@
                     </div>
                 </div>
 
+                <div class="row">
+                    <div class="col-md-12">
+                        <div class="form-group mb-4" id="ship-to-group" style="display: none;">
+                            <label class="font-weight-600 small text-uppercase tracking-wider mb-2">{{
+                                form.job_id.label.text }}</label>
+                            {{ form.job_id(class="input-modern select2-enable") }}
+                        </div>
+                    </div>
+                </div>
+
                 <div class="form-group mb-4">
                     <label class="font-weight-600 small text-uppercase tracking-wider mb-2">{{ form.branch_id.label.text
                         }}</label>

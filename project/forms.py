@@ -154,7 +154,9 @@ class DesignForm(BaseForm):
     plan_name = StringField('Plan Name', validators=[DataRequired()])
     project_address = StringField('Project Address', validators=[DataRequired()])
     contractor = StringField('Contractor')
+    contractor = StringField('Contractor')
     customer_id = SelectField('Customer', coerce=int, validators=[Optional()])
+    job_id = SelectField('Ship To', coerce=int, validators=[Optional()])
     designer_id = SelectField('Designer', coerce=int, validators=[Optional()])
     preliminary_set_date = DateField('Preliminary Set Date', format='%Y-%m-%d', validators=[Optional()])
     status = SelectField('Status', choices=[
@@ -220,6 +222,7 @@ class DeckForm(BaseForm):
 class BidForm(BaseForm):
     plan_type = SelectField('Plan Type', choices=[('Residential', 'Residential'), ('Commercial', 'Commercial')], validators=[DataRequired()])
     customer_id = SelectField('Customer', coerce=int, validators=[DataRequired()])
+    job_id = SelectField('Ship To', coerce=int, validators=[Optional()])
     sales_rep_id = SelectField('Sales Rep', coerce=int, validators=[Optional()])
     estimator_id = SelectField('Estimator', coerce=int)
     status = SelectField('Status', choices=[('Incomplete', 'Incomplete'), ('Complete', 'Complete'), ('Hold', 'Hold')])

@@ -65,11 +65,15 @@ class Bid(db.Model):
 
     branch_id = db.Column(db.Integer, db.ForeignKey('branch.branch_id'), nullable=True)
     
-    customer = db.relationship('Customer', backref=db.backref('bid', lazy=True))
+    customer = db.relationship('Customer', backref=db.backref('bids', lazy=True))
     sales_rep = db.relationship('User', foreign_keys=[sales_rep_id], backref=db.backref('bids_as_rep', lazy=True))
-    estimator = db.relationship('Estimator', backref=db.backref('bid', lazy=True))
+    estimator = db.relationship('Estimator', backref=db.backref('bids', lazy=True))
     branch = db.relationship('Branch', backref=db.backref('bids', lazy=True))
     files = db.relationship('BidFile', backref='bid', cascade="all, delete-orphan", lazy=True)
+    
+    # New Relation
+    job_id = db.Column(db.Integer, db.ForeignKey('job.id'), nullable=True)
+    job = db.relationship('Job', backref=db.backref('bids', lazy=True))
 
     @staticmethod
     def before_update(mapper, connection, target):
@@ -154,6 +158,21 @@ class Customer(db.Model):
     branch = db.relationship('Branch', backref=db.backref('customers', lazy=True))
     sales_agent = db.Column(db.String(150), nullable=True)
 
+class Job(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    customer_id = db.Column(db.Integer, db.ForeignKey('customer.id'), nullable=False, index=True)
+    job_reference = db.Column(db.String(50), nullable=True) # e.g., "1", "2"
+    job_name = db.Column(db.String(255), nullable=False) # e.g., "General Purchases"
+    status = db.Column(db.String(50), default='Open')
+    
+    # For import matching logic (optional to store, but helpful)
+    # customer_code_ref = db.Column(db.String(100), nullable=True) 
+
+    customer = db.relationship('Customer', backref=db.backref('jobs', lazy=True))
+
+    def __repr__(self):
+        return f'<Job {self.job_reference}: {self.job_name}>'
+
 class Design(db.Model):  # New table
     id = db.Column(db.Integer, primary_key=True)
     planNumber = db.Column(db.String(10), nullable=False, unique=True)  # number that will autogenerate later on
@@ -176,6 +195,9 @@ class Design(db.Model):  # New table
     designer = db.relationship('Estimator', backref=db.backref('designs', lazy=True))
     branch = db.relationship('Branch', backref=db.backref('designs', lazy=True))
     square_footage = db.Column(db.Integer, nullable=True)
+    
+    job_id = db.Column(db.Integer, db.ForeignKey('job.id'), nullable=True)
+    job = db.relationship('Job', backref=db.backref('designs', lazy=True))
 
 class UserType(db.Model):
     id = db.Column(db.Integer, primary_key=True)

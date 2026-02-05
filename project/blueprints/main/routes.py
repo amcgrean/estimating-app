@@ -4,7 +4,7 @@ from project import mail, db
 from project.models import (
     Bid, Customer, Estimator, Design, User, EWP, UserType, UserSecurity,
     Branch, LoginActivity, ITService, Project, BidActivity, BidFile, NotificationRule,
-    BidField, BidValue
+    BidField, BidValue, Job
 )
 import csv
 import json
@@ -442,6 +442,21 @@ def get_branch_sales_reps(branch_id):
     
     reps = query.all()
     return [('', 'Select Sales Rep')] + [(rep.id, rep.username) for rep in reps]
+
+@main.route('/api/customer/<int:customer_id>/jobs', methods=['GET'])
+@login_required
+def get_customer_jobs(customer_id):
+    jobs = Job.query.filter_by(customer_id=customer_id, status='Open').order_by(Job.job_reference).all() # status=Active/Open? CSV said "Open".
+    # Return JSON: id, reference, name
+    # We want default to be the one with reference "1" but frontend handles that logic?
+    # Or we can pass a flag. Frontend can handle it.
+    job_list = [{
+        'id': j.id, 
+        'reference': j.job_reference, 
+        'name': j.job_name,
+        'full_name': f"{j.job_reference} - {j.job_name}"
+    } for j in jobs]
+    return jsonify(job_list)
 
 
 # Route to manage user types
@@ -1009,6 +1024,7 @@ def add_bid():
             trim_notes=form.trim_notes.data,
             window_notes=form.window_notes.data,
             door_notes=form.door_notes.data,
+            job_id=form.job_id.data if form.job_id.data and form.job_id.data != 0 else None,
             plan_filename=plan_key,
             email_filename=email_key
         )
@@ -1720,7 +1736,9 @@ def add_design():
     if selected_branch_id and selected_branch_id != 0:
         customer_query = customer_query.filter((Customer.branch_id == selected_branch_id) | (Customer.branch_id == None))
     
-    form.customer_id.choices = [(0, 'Select a customer')] + [(customer.id, customer.name) for customer in customer_query.all()]
+    # Sort by name
+    customers = customer_query.order_by(Customer.name).all()
+    form.customer_id.choices = [(0, 'Select a customer')] + [(customer.id, customer.name) for customer in customers]
     # Populate designer choices based on branch
     form.designer_id.choices = get_branch_estimators(selected_branch_id, estimator_type='designer')
     form.branch_id.choices = [(b.branch_id, b.branch_name) for b in Branch.query.all()]
@@ -1745,7 +1763,10 @@ def add_design():
             plan_description=form.plan_description.data, 
             square_footage=form.square_footage.data,
             notes=form.notes.data,
-            branch_id=form.branch_id.data
+            square_footage=form.square_footage.data,
+            notes=form.notes.data,
+            branch_id=form.branch_id.data,
+            job_id=form.job_id.data if form.job_id.data and form.job_id.data != 0 else None
         )
         db.session.add(new_design)
         db.session.commit()

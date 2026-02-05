@@ -75,6 +75,13 @@
             <span class="small text-muted"><i class="fas fa-arrows-alt mr-1"></i> Drag to reorder</span>
         </div>
     </div>
+    <div class="card-header py-2 bg-light border-bottom d-none" id="resetContainer">
+        <div class="d-flex justify-content-center">
+            <button class="btn btn-sm btn-outline-secondary" id="resetTableBtn">
+                <i class="fas fa-sync-alt mr-1"></i> Reset Sort & Filter (Enable Reordering)
+            </button>
+        </div>
+    </div>
     <div class="card-body p-0">
         <div class="table-responsive">
             <table class="table table-hover mb-0" id="fieldsTable"
@@ -118,8 +125,7 @@
                         <td class="px-3 py-3 align-middle text-muted small">{{ field.sort_order }}</td>
                         <td class="px-3 py-3 align-middle font-weight-bold text-dark">{{ field.name }}</td>
                         <td class="px-3 py-3 align-middle" data-order="{{ field.category }}"><span
-                                class="badge badge-light border">{{ field.category
-                                }}</span></td>
+                                class="badge badge-light border">{{ field.category }}</span></td>
                         <td class="px-3 py-3 align-middle text-muted small text-uppercase">{{ field.field_type }}</td>
                         <td class="px-3 py-3 align-middle">
                             {% if field.is_required %}
@@ -250,84 +256,84 @@
         filter: grayscale(100%);
         opacity: 0.5;
     }
+</style>
+<script>$(document).ready(function () {
+        // --- 1. Bulk Actions Logic ---
+        const $checkboxes = $('.row-checkbox');
+        const $checkAll = $('#checkAll');
+        const $bulkBtn = $('#bulkApplyBtn');
+        const $countSpan = $('#selectedCount');
+        const $bulkActionSelect = $('#bulkActionSelect');
+        const $bulkCategoryInput = $('#bulkCategoryInput');
+        const $bulkIdsContainer = $('#bulkIdsContainer');
+        const $bulkForm = $('#bulkForm');
 
-    <script>$(document).ready(function () {
-            // --- 1. Bulk Actions Logic ---
-            const $checkboxes =$('.row-checkbox');
-            const $checkAll =$('#checkAll');
-            const $bulkBtn =$('#bulkApplyBtn');
-            const $countSpan =$('#selectedCount');
-            const $bulkActionSelect =$('#bulkActionSelect');
-            const $bulkCategoryInput =$('#bulkCategoryInput');
-            const $bulkIdsContainer =$('#bulkIdsContainer');
-            const $bulkForm =$('#bulkForm');
+        function updateState() {
+            const count = $checkboxes.filter(':checked').length;
+            $countSpan.text(count);
+            $bulkBtn.prop('disabled', count === 0 || $bulkActionSelect.val() === '');
+        }
 
-            function updateState() {
-                const count=$checkboxes.filter(':checked').length;
-                $countSpan.text(count);
-                $bulkBtn.prop('disabled', count===0 || $bulkActionSelect.val()==='');
+        $checkAll.on('change', function () {
+            $checkboxes.prop('checked', this.checked);
+            updateState();
+        });
+
+        $checkboxes.on('change', updateState);
+
+        $bulkActionSelect.on('change', function () {
+
+            // Show category input if needed
+            if (this.value === 'change_category') {
+                $bulkCategoryInput.show().prop('required', true);
             }
 
-            $checkAll.on('change', function () {
-                    $checkboxes.prop('checked', this.checked);
-                    updateState();
+            else {
+                $bulkCategoryInput.hide().prop('required', false);
+            }
+
+            updateState();
+        });
+
+        $bulkForm.on('submit', function (e) {
+            // clear old hidden inputs
+            $bulkIdsContainer.empty();
+
+            // append current checked
+            $checkboxes.filter(':checked').each(function () {
+                $bulkIdsContainer.append(`<input type="hidden" name="field_ids" value="${this.value}" >`);
+            });
+
+            if ($bulkIdsContainer.children().length === 0) {
+                e.preventDefault();
+                alert('Please select at least one field.');
+            }
+        });
+
+
+        // --- 2. SortableJS Logic ---
+        var el = document.getElementById('sortableRows');
+
+        var sortable = Sortable.create(el, {
+
+            handle: '.fa-grip-vertical',
+            animation: 150,
+            onEnd: function (evt) {
+                var order = [];
+
+                $('#sortableRows tr').each(function () {
+                    order.push($(this).data('id'));
                 });
 
-            $checkboxes.on('change', updateState);
+                $.ajax({
 
-            $bulkActionSelect.on('change', function () {
+                    url: "{{ url_for('admin.reorder_fields') }}",
+                    method: 'POST',
+                    contentType: 'application/json',
+                    data: JSON.stringify({
+                        field_ids: order
 
-                    // Show category input if needed
-                    if (this.value==='change_category') {
-                        $bulkCategoryInput.show().prop('required', true);
-                    }
-
-                    else {
-                        $bulkCategoryInput.hide().prop('required', false);
-                    }
-
-                    updateState();
-                });
-
-            $bulkForm.on('submit', function (e) {
-                    // clear old hidden inputs
-                    $bulkIdsContainer.empty();
-
-                    // append current checked
-                    $checkboxes.filter(':checked').each(function () {
-                            $bulkIdsContainer.append(`<input type="hidden" name="field_ids" value="${this.value}" >`);
-                        });
-
-                    if ($bulkIdsContainer.children().length===0) {
-                        e.preventDefault();
-                        alert('Please select at least one field.');
-                    }
-                });
-
-
-            // --- 2. SortableJS Logic ---
-            var el=document.getElementById('sortableRows');
-
-            var sortable=Sortable.create(el, {
-
-                handle: '.fa-grip-vertical',
-                animation: 150,
-                onEnd: function (evt) {
-                    var order=[];
-
-                    $('#sortableRows tr').each(function () {
-                            order.push($(this).data('id'));
-                        });
-
-                    $.ajax({
-
-                        url: "{{ url_for('admin.reorder_fields') }}",
-                        method: 'POST',
-                        contentType: 'application/json',
-                        data: JSON.stringify({
-                            field_ids: order
-
-                        }),
+                    }),
                     headers: {
                         'X-CSRFToken': "{{ form.csrf_token.current_token }}"
                     }
@@ -343,101 +349,110 @@
                         console.error(err);
                     }
                 });
-        }
-    });
+            }
+        });
 
-    // --- 3. DataTables Initialization ---
-    var table=$('#fieldsTable').DataTable({
+        // --- 3. DataTables Initialization ---
+        var table = $('#fieldsTable').DataTable({
 
-        paging: false,
-        searching: true,
-        ordering: true,
-        info: false,
-        columnDefs: [ {
-            orderable: false, targets: [0, 1, 8]
-        }
+            paging: false,
+            searching: true,
+            ordering: true,
+            info: false,
+            columnDefs: [{
+                orderable: false, targets: [0, 1, 8]
+            }
 
-        // Disable sort on Checkbox(0), Drag(1), Actions(8) -- Order is 2, Name 3...
-        ],
-        order: [], // Disable initial sort
+                // Disable sort on Checkbox(0), Drag(1), Actions(8) -- Order is 2, Name 3...
+            ],
+            order: [], // Disable initial sort
 
-        language: {
-            search: "",
-            searchPlaceholder: "Search fields..."
-        }
-    });
+            language: {
+                search: "",
+                searchPlaceholder: "Search fields..."
+            }
+        });
 
-    // --- 3.5 Category Filter Logic ---
-    $('#categoryFilter').on('change', function () {
-            var val=$.fn.dataTable.util.escapeRegex($(this).val());
-            // Category is column index 4 (0:check, 1:drag, 2:order, 3:name, 4:category)
-            table.column(4).search(val ? val : '', true, false).draw();
-
-            // Check status for Sortable disabling
+        // --- 3.5 Category Filter Logic ---
+        $('#categoryFilter').on('change', function () {
+            var val = $.fn.dataTable.util.escapeRegex($(this).val());
+            // Use regex that allows surrounding whitespace just in case: ^\s*VAL\s*$
+            table.column(4).search(val ? '^\\s*' + val + '\\s*$' : '', true, false).draw();
             checkSortStatus();
         });
 
-    // --- 4. Conflict Resolution (DataTables vs SortableJS) ---
-    function checkSortableState() {
-        var dtState=table.state.loaded(); // This might be null if stateSave is false (default)
-        // But we can check current order and search
-        var currentOrder=table.order();
-        var currentSearch=table.search();
+        // --- 3.6 Reset Logic ---
+        $('#resetTableBtn').on('click', function () {
+            // Clear all searches
+            table.search('').columns().search('').draw();
+            // Clear sort (reset to default/none if possible, or just index 0 hidden)
+            table.order([]).draw();
+            // Reset dropdown
+            $('#categoryFilter').val('');
+            checkSortStatus();
+        });
 
-        // Default order is usually empty or index 0 asc if we didn't set it?
-        // Actually, if user sorts, order array has length.
-        // But 'index' sorting (original order) is tough to track unless we add an index column.
-        // Simpler check: If search is active OR order is active (and not just initial load default)
+        // --- 4. Conflict Resolution (DataTables vs SortableJS) ---
+        function checkSortableState() {
+            var dtState = table.state.loaded(); // This might be null if stateSave is false (default)
+            // But we can check current order and search
+            var currentOrder = table.order();
+            var currentSearch = table.search();
 
-        // Actually simpler: If ANY search text exists, disable.
-        // If order is NOT by the invisible original index (which DataTables doesn't really track easily without a hidden col), disable.
+            // Default order is usually empty or index 0 asc if we didn't set it?
+            // Actually, if user sorts, order array has length.
+            // But 'index' sorting (original order) is tough to track unless we add an index column.
+            // Simpler check: If search is active OR order is active (and not just initial load default)
 
-        // Let's rely on event listeners.
-        var isFiltered=table.search() !=="";
-        // Check if sorted by anything other than original index? 
-        // DataTables doesn't easily let us know "original index".
-        // So we will assume if ANY sort is applied by user interaction, we disable.
-        // However, on load, it might apply default sort.
-        // We didn't set 'order' option, so it defaults to first column [0, 'asc'], but we disabled sort on col 0.
-        // So it effectively doesn't sort?
+            // Actually simpler: If ANY search text exists, disable.
+            // If order is NOT by the invisible original index (which DataTables doesn't really track easily without a hidden col), disable.
 
-        var isSorted=false;
+            // Let's rely on event listeners.
+            var isFiltered = table.search() !== "";
+            // Check if sorted by anything other than original index? 
+            // DataTables doesn't easily let us know "original index".
+            // So we will assume if ANY sort is applied by user interaction, we disable.
+            // However, on load, it might apply default sort.
+            // We didn't set 'order' option, so it defaults to first column [0, 'asc'], but we disabled sort on col 0.
+            // So it effectively doesn't sort?
 
-        if (currentOrder && currentOrder.length > 0) {
-            // If sorting by anything valid...
-            // But wait, we disabled sort on 0, 1, 7.
-            // If user sorts by Name (2), Category (3) etc.
-            isSorted=true;
+            var isSorted = false;
+
+            if (currentOrder && currentOrder.length > 0) {
+                // If sorting by anything valid...
+                // But wait, we disabled sort on 0, 1, 7.
+                // If user sorts by Name (2), Category (3) etc.
+                isSorted = true;
+            }
+
+            // Refined Logic:
+            // Since we can't easily detect "unsorted" state in DataTables without plugins,
+            // we will create a UI hint.
+            // Actually, we can check if the rows are still in DOM order? No DataTables reorders DOM.
+
+            var blocked = isFiltered || isSorted;
+
+            // Wait, enabling 'ordering: true' usually applies a default sort on col 0.
+            // We disabled col 0 sort.
+
+            if (isFiltered) {
+                disableSortable("Search active. Clear search to reorder.");
+            }
+
+            else {
+                // For now, if user clicks headers, we consider it sorted.
+                // We can allow re-enabling if they somehow reset it, but DataTables UI doesn't have a "Reset Sort" button easily.
+                // So we just say: "Reload page to reset sort and reorder" if they sort?
+                // Or we can try to detect if it's matches 'data-id' array? Too expensive.
+
+                // Let's just block on search for now as the main conflict. 
+                // And block on Sort if we detect a sort event.
+            }
         }
 
-        // Refined Logic:
-        // Since we can't easily detect "unsorted" state in DataTables without plugins,
-        // we will create a UI hint.
-        // Actually, we can check if the rows are still in DOM order? No DataTables reorders DOM.
-
-        var blocked=isFiltered || isSorted;
-
-        // Wait, enabling 'ordering: true' usually applies a default sort on col 0.
-        // We disabled col 0 sort.
-
-        if (isFiltered) {
-            disableSortable("Search active. Clear search to reorder.");
-        }
-
-        else {
-            // For now, if user clicks headers, we consider it sorted.
-            // We can allow re-enabling if they somehow reset it, but DataTables UI doesn't have a "Reset Sort" button easily.
-            // So we just say: "Reload page to reset sort and reorder" if they sort?
-            // Or we can try to detect if it's matches 'data-id' array? Too expensive.
-
-            // Let's just block on search for now as the main conflict. 
-            // And block on Sort if we detect a sort event.
-        }
-    }
-
-    // Simpler approach: Listen to 'order.dt' and 'search.dt'
-    table.on('search.dt', function () {
-            var term=table.search();
+        // Simpler approach: Listen to 'order.dt' and 'search.dt'
+        table.on('search.dt', function () {
+            var term = table.search();
 
             if (term && term.length > 0) {
                 disableSortable("Search is active");
@@ -451,55 +466,60 @@
             }
         });
 
-    table.on('order.dt', function () {
+        table.on('order.dt', function () {
             checkSortStatus();
         });
 
-    function checkSortStatus() {
-        // Check if any header has purely 'sorting_asc' or 'sorting_desc'
-        // The classes are 'sorting', 'sorting_asc', 'sorting_desc', 'sorting_disabled'
-        // If we find an 'asc' or 'desc' on a sortable column, we assume sorted.
-        var isSorted=false;
+        function checkSortStatus() {
+            var isSorted = false;
 
-        $('#fieldsTable thead th').each(function () {
-                if ($(this).hasClass('sorting_asc') || $(this).hasClass('sorting_desc')) {
-                    // Ignore if it's our default? We didn't set a default.
-                    // But if we didn't set a default, DataTables might default col 0. We disabled col 0.
-                    isSorted=true;
-                }
-            });
+            // Check if any column has a sort applied that isn't the default "no sort"
+            var currentOrder = table.order();
 
-        var isFiltered=table.search() !=="";
+            if (currentOrder && currentOrder.length > 0) {
+                // DataTables default order is [[0, 'asc']] sometimes. 
+                // We initialized with order: [] which usually means empty.
+                // If user sorts, length > 0.
+                isSorted = true;
+            }
 
-        if (isSorted || isFiltered) {
-            disableSortable();
+            // Check global search
+            var isGlobalFiltered = table.search() !== "";
+
+            // Check column searches (specifically Category at index 4)
+            var isColFiltered = table.column(4).search() !== "";
+
+            if (isSorted || isGlobalFiltered || isColFiltered) {
+                disableSortable();
+            }
+
+            else {
+                enableSortable();
+            }
         }
 
-        else {
-            enableSortable();
+        function disableSortable() {
+            sortable.option("disabled", true);
+            $('#fieldsTable').addClass('sortable-disabled');
+            $('.fa-grip-vertical').attr('title', 'Clear search and sort to reorder');
+            $('#resetContainer').removeClass('d-none'); // Show reset button
         }
-    }
 
-    function disableSortable() {
-        sortable.option("disabled", true);
-        $('#fieldsTable').addClass('sortable-disabled');
-        $('.fa-grip-vertical').attr('title', 'Clear search and sort to reorder');
-    }
+        function enableSortable() {
+            sortable.option("disabled", false);
+            $('#fieldsTable').removeClass('sortable-disabled');
+            $('.fa-grip-vertical').attr('title', 'Drag to reorder');
+            $('#resetContainer').addClass('d-none'); // Hide reset button
+        }
 
-    function enableSortable() {
-        sortable.option("disabled", false);
-        $('#fieldsTable').removeClass('sortable-disabled');
-        $('.fa-grip-vertical').attr('title', 'Drag to reorder');
-    }
+        // Initial check
+        // checkSortStatus(); 
+        // Force enable on load if we assume server order is correct? 
+        // DataTables might apply initial sort if we aren't careful.
+        // Let's set order: [] to prevent initial sort
 
-    // Initial check
-    // checkSortStatus(); 
-    // Force enable on load if we assume server order is correct? 
-    // DataTables might apply initial sort if we aren't careful.
-    // Let's set order: [] to prevent initial sort
-
-    // --- 5. Row Click to Edit ---
-    $('#fieldsTable tbody').on('click', 'tr', function (e) {
+        // --- 5. Row Click to Edit ---
+        $('#fieldsTable tbody').on('click', 'tr', function (e) {
             // Check if we clicked an ignored element
             // 1. Checkbox or its label/container
             if ($(e.target).closest('.custom-control').length > 0) return;
@@ -512,20 +532,20 @@
             if ($(e.target).is('input')) return;
 
             // Get Field ID
-            var fieldId=$(this).data('id');
+            var fieldId = $(this).data('id');
 
             if (fieldId) {
                 // Construct URL. Flask's url_for is server side, so we need a base or pattern.
                 // We have the pattern in the edit button.
                 // Let's grab it from the edit button in this row
-                var editUrl=$(this).find('a[title="Edit"]').attr('href');
+                var editUrl = $(this).find('a[title="Edit"]').attr('href');
 
                 if (editUrl) {
-                    window.location.href=editUrl;
+                    window.location.href = editUrl;
                 }
             }
         });
     });
 
-    </script>
+</script>
 {% endblock %}
