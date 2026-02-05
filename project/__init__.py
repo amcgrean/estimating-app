@@ -149,4 +149,14 @@ def create_app():
         handler.setLevel(logging.INFO)
         app.logger.addHandler(handler)
 
+    # Manual Schema Fix Hook for Vercel
+    # This runs on every cold start, but the script is idempotent (IF NOT EXISTS).
+    # This ensures the DB is updated without CLI access.
+    if is_vercel:
+        try:
+            from .manual_schema_fix import fix_schema
+            fix_schema()
+        except Exception as e:
+            app.logger.error(f"Schema Fix Failed: {e}")
+
     return app
