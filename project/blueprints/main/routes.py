@@ -1250,6 +1250,13 @@ def manage_bid(bid_id):
 
     form.sales_rep_id.choices = [(0, 'Select Sales Rep')] + [(rep.id, rep.username) for rep in sales_reps]
 
+    # FIX: Initialize job_id choices to allow validation
+    form.job_id.choices = []
+    if request.method == 'POST' and form.job_id.data:
+         form.job_id.choices = [(form.job_id.data, 'Selected Job')]
+    elif bid.job_id: # On GET, preserve existing selection
+        form.job_id.choices = [(bid.job_id, f"{bid.job.job_reference} - {bid.job.job_name}")]
+
     # Fetch Dynamic Fields for Rendering
     dynamic_fields = BidField.query.filter_by(is_active=True).order_by(BidField.sort_order).all()
     # Filter by branch if restricted
