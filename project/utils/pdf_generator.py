@@ -86,11 +86,33 @@ def generate_spec_sheet(bid_id):
     elements.append(meta_table)
     elements.append(Spacer(1, 0.2*inch))
 
+    # Map categories to Bid model boolean flags
+    # Use lowercase keys for easier matching if needed, or exact matches
+    cat_flag_map = {
+        'Framing': 'include_framing',
+        'Siding': 'include_siding',
+        'Shingles': 'include_shingle', # Model has include_shingle
+        'Deck': 'include_deck',
+        'Trim': 'include_trim',
+        'Windows': 'include_window', # Model has include_window
+        'Doors': 'include_door',    # Model has include_door
+        'Window': 'include_window',
+        'Door': 'include_door'
+    }
+
     # Dynamic Content
     for cat in sorted_categories:
+        # CHECK FLAGS: Skip if unchecked
+        # If category is not in map (e.g. General or custom), default to SHOW
+        if cat in cat_flag_map:
+            flag_name = cat_flag_map[cat]
+            if not getattr(bid, flag_name, False):
+                continue
+
         # Category Header
         elements.append(Paragraph(cat, styles['Heading3']))
-        elements.append(Spacer(1, 0.05*inch))
+        # Compact: reduce spacer
+        elements.append(Spacer(1, 0.02*inch))
         
         # Prepare 4-Column Data (Label, Value, Label, Value)
         # Flatten list pairs
@@ -122,7 +144,10 @@ def generate_spec_sheet(bid_id):
             table_data.append(row)
 
         if not table_data:
-            elements.append(Paragraph("No specifications recorded.", normal_style))
+            # If empty but checked, show a placeholder line to confirm it was reviewed?
+            # Or skip entirely? User requested "onepage", so maybe skip empty tables?
+            # "show only groups that are checked" -> implies if checked but empty, show.
+            elements.append(Paragraph("Selected but no data entered.", normal_style))
         else:
             # Create Table
             # Col Widths: We have 7.5 inches usable width (8.5 - 0.5 - 0.5)
@@ -134,13 +159,13 @@ def generate_spec_sheet(bid_id):
             t = Table(table_data, colWidths=col_widths)
             t.setStyle(TableStyle([
                 ('VALIGN', (0,0), (-1,-1), 'TOP'),
-                ('PADDING', (0,0), (-1,-1), 2),
-                # ('GRID', (0,0), (-1,-1), 0.5, colors.lightgrey), # Optional grid
+                ('PADDING', (0,0), (-1,-1), 1), # Compact padding
                 ('LINEBELOW', (0,0), (-1,-1), 0.5, colors.lightgrey),
             ]))
             elements.append(t)
             
-        elements.append(Spacer(1, 0.15*inch))
+        # Compact: reduce spacer between sections
+        elements.append(Spacer(1, 0.1*inch))
 
     doc.build(elements)
     buffer.seek(0)
