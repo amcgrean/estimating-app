@@ -39,7 +39,7 @@ def import_data():
         
         # 3. Import Customers
         customers_csv = os.path.join('project', 'import files', 'customers.csv')
-        job_csv = os.path.join('project', 'import files', 'jobs_20260205.csv')
+        job_csv = os.path.join('project', 'import files', 'jobs.csv')
         
         print("Importing Customers...")
         cust_map = {c.customerCode: c.id for c in Customer.query.all()} # Pre-load map
