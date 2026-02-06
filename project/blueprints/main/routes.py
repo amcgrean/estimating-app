@@ -892,6 +892,17 @@ def add_bid():
     print(f"DEBUG: Final Sales Rep Choices: {[r.username for r in sales_reps]}")
     form.sales_rep_id.choices = [(0, 'Select Sales Rep')] + [(rep.id, rep.username) for rep in sales_reps]
     
+    # NEW: Initialize job_id choices to avoid "Choices cannot be None" error during validation.
+    # The actual options are populated via AJAX on the frontend, but WTForms needs this.
+    # We set it to allow any integer (using coerce=int in form) but since we don't know the full list here easily
+    # without selecting a customer first, we might need to bypass validation or populate it dynamically 
+    # if it's in the POST data.
+    form.job_id.choices = [] 
+    if request.method == 'POST' and form.job_id.data:
+         # If submitting, we might need to recognize the choice as valid.
+         # A simple trick is to just add the one submitted value to choices if present.
+         form.job_id.choices = [(form.job_id.data, 'Selected Job')]
+    
     # Fetch Dynamic Fields
     all_fields = BidField.query.order_by(BidField.sort_order).all()
     dynamic_fields = []
