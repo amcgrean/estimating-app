@@ -1028,6 +1028,13 @@ def add_bid():
             bid_date=form.bid_date.data,
             flexible_bid_date=form.flexible_bid_date.data,
             include_specs=form.include_specs.data,
+            include_framing=form.include_framing.data,
+            include_siding=form.include_siding.data,
+            include_shingle=form.include_shingle.data,
+            include_deck=form.include_deck.data,
+            include_trim=form.include_trim.data,
+            include_window=form.include_window.data,
+            include_door=form.include_door.data,
             framing_notes=form.framing_notes.data,
             siding_notes=form.siding_notes.data,
             shingle_notes=form.shingle_notes.data,
@@ -1297,7 +1304,11 @@ def manage_bid(bid_id):
 
         for cat, form_attr in cat_form_map.items():
             if cat in active_categories and hasattr(form, form_attr):
-                getattr(form, form_attr).data = True
+                # FIX: Only auto-toggle if the DB value is None (unknown/legacy).
+                # If it's False (user explicitly unchecked), respect it.
+                current_val = getattr(bid, form_attr, None)
+                if current_val is None:
+                    getattr(form, form_attr).data = True
     
     # Default Estimator for Coralville (Branch 3) -> Jason R (ID 10)
     if request.method == 'GET' and bid.branch_id == 3:
