@@ -624,9 +624,25 @@ def perform_db_upgrade():
     try:
         # Run the upgrade
         upgrade()
-        return "Database upgraded successfully! You can go back now."
+        flash("Database upgraded successfully!", 'success')
     except Exception as e:
-        return f"Error during upgrade: {str(e)}", 500
+        logger.error(f"Upgrade failed: {e}")
+        flash(f"Error during upgrade: {str(e)}", 'danger')
+    return redirect(url_for('admin.admin_dashboard'))
+
+@admin.route('/perform_import')
+@login_required
+def perform_data_import():
+    if not current_user.is_admin:
+        abort(403)
+    try:
+        from project.import_data import import_data
+        import_data()
+        flash('Data import completed successfully.', 'success')
+    except Exception as e:
+        logger.error(f"Import failed: {e}")
+        flash(f'Import failed: {e}', 'danger')
+    return redirect(url_for('admin.admin_dashboard'))
 
 @admin.route('/manage_notifications')
 @login_required

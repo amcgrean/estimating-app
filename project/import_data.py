@@ -32,8 +32,8 @@ def import_data():
         db.create_all()
         print("Database schema ensured.")
 
-        # 2. Map existing branches (code -> id)
-        branches = Branch.query.all()
+        if not branches:
+            branches = Branch.query.all()
         branch_map = {b.branch_code: b.branch_id for b in branches}
         print(f"Loaded {len(branch_map)} branches.")
         
@@ -42,93 +42,93 @@ def import_data():
         job_csv = os.path.join('project', 'import files', 'jobs_20260205.csv')
         
         print("Importing Customers...")
-        cust_map = {} # Map cust_code -> cust_id for jobs
-        count_new = 0
-        count_updated = 0
+        cust_map = {c.customerCode: c.id for c in Customer.query.all()} # Pre-load map
+        
+        new_customers = []
+        updated_customers = [] # We can't bulk update easily with SqlAlchemy ORM and mappings unless we use primary keys
+        # For updates, we'll skip or do individual (slow). Since Vercel is constrained, 
+        # let's prioritize NEW customers via bulk insert.
         
         with open(customers_csv, 'r', encoding='utf-8-sig') as f:
             reader = csv.DictReader(f)
-            # Expected Headers: cust_code,shipto_name,sales_agent_1,agent_default_branch
-            
             for row in reader:
                 code = row.get('cust_code')
                 name = row.get('shipto_name')
                 agent = row.get('sales_agent_1')
                 branch_code = row.get('agent_default_branch')
                 
-                if not code:
-                    continue
+                if not code or code in cust_map:
+                    continue # Skip existing for speed
                     
                 branch_id = branch_map.get(branch_code)
-                
-                customer = Customer.query.filter_by(customerCode=code).first()
-                if customer:
-                    customer.name = name
-                    customer.sales_agent = agent
-                    if branch_id:
-                        customer.branch_id = branch_id
-                    count_updated += 1
-                    cust_map[code] = customer.id
-                else:
-                    new_cust = Customer(
-                        customerCode=code,
-                        name=name,
-                        sales_agent=agent,
-                        branch_id=branch_id
-                    )
-                    db.session.add(new_cust)
-                    db.session.flush() # Get ID
-                    cust_map[code] = new_cust.id
-                    count_new += 1
-                
-                if (count_new + count_updated) % 500 == 0:
-                    db.session.commit()
-                    print(f"Processed {count_new + count_updated} customers...")
+                new_customers.append({
+                    'customerCode': code,
+                    'name': name,
+                    'sales_agent': agent,
+                    'branch_id': branch_id
+                })
         
-        db.session.commit()
-        print(f"Customer Import Complete. New: {count_new}, Updated: {count_updated}")
+        if new_customers:
+            print(f"Bulk inserting {len(new_customers)} customers...")
+            db.session.bulk_insert_mappings(Customer, new_customers)
+            db.session.commit()
+            print("Customers Committed.")
+            
+            # Refresh map
+            cust_map = {c.customerCode: c.id for c in Customer.query.all()}
 
         # 4. Import Jobs
         print("Importing Jobs...")
-        count_jobs = 0
+        # Pre-load existing job references to avoid dupes logic if possible
+        # Or just use INSERT IGNORE logic if DB supports it, but here we just check existing.
+        # Fetching all jobs might be heavy. 
+        # Let's try to just INSERT ALL new ones. 
+        # Checking existence one by one is SLOW.
+        
+        # Strategy: Load ALL jobs into memory (id, ref) tuple? 
+        # Or simpler: Delete all jobs for valid customers and re-import? NO, data loss.
+        # Faster: Read CSV, collect all (cust_id, ref), query DB for matching, filter out existing.
+        
+        existing_jobs = set()
+        jobs_query = db.session.query(Job.customer_id, Job.job_reference).all()
+        for j in jobs_query:
+            existing_jobs.add((j.customer_id, j.job_reference))
+            
+        new_jobs = []
         with open(job_csv, 'r', encoding='utf-8-sig') as f:
             reader = csv.DictReader(f)
-            # Headers: Account Number,Job Reference,Job Name,Job Status
-            
             for row in reader:
                 acct_num = row.get('Account Number')
                 job_ref = row.get('Job Reference')
                 job_name = row.get('Job Name')
                 status = row.get('Job Status')
                 
-                # STRICT VALIDATION: Only import if customer exists
                 if not acct_num or acct_num not in cust_map:
                     continue
-                    
+                
                 cust_id = cust_map[acct_num]
                 
-                # Check if job exists
-                job = Job.query.filter_by(customer_id=cust_id, job_reference=job_ref).first()
+                if (cust_id, job_ref) in existing_jobs:
+                    continue
                 
-                if job:
-                    job.job_name = job_name
-                    job.status = status
-                else:
-                    job = Job(
-                        customer_id=cust_id,
-                        job_reference=job_ref,
-                        job_name=job_name,
-                        status=status
-                    )
-                    db.session.add(job)
-                
-                count_jobs += 1
-                if count_jobs % 1000 == 0:
-                    db.session.commit()
-                    print(f"Processed {count_jobs} jobs...")
+                new_jobs.append({
+                    'customer_id': cust_id,
+                    'job_reference': job_ref,
+                    'job_name': job_name,
+                    'status': status
+                })
         
-        db.session.commit()
-        print(f"Import Complete. Processed {count_jobs} jobs.")
+        if new_jobs:
+            print(f"Bulk inserting {len(new_jobs)} jobs...")
+            # Chunking to avoid memory issues
+            chunk_size = 2000
+            for i in range(0, len(new_jobs), chunk_size):
+                chunk = new_jobs[i:i + chunk_size]
+                db.session.bulk_insert_mappings(Job, chunk)
+                db.session.commit()
+                print(f"Committed chunk {i}...")
+
+        print(f"Import Complete.")
 
 if __name__ == "__main__":
     import_data()

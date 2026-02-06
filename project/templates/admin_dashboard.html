@@ -13,6 +13,10 @@
                     <ul>
                         <li><a href="{{ url_for('main.add_bid') }}">Add Bid</a></li>
                         <li><a href="{{ url_for('admin.upload_historical_bids') }}">Upload Historical Bids</a></li>
+                        <li><a href="{{ url_for('admin.perform_db_upgrade') }}" class="text-warning">Migrate DB
+                                Schema</a></li>
+                        <li><a href="{{ url_for('admin.perform_data_import') }}" class="text-danger">Import Data
+                                (Jobs/Customers)</a></li>
                         <!-- Add more links as needed -->
                     </ul>
                 </div>
