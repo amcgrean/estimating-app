@@ -32,8 +32,10 @@ def import_data():
         db.create_all()
         print("Database schema ensured.")
 
+        # 2. Cache Branches
+        branches = Branch.query.all()
         if not branches:
-            branches = Branch.query.all()
+            print("No branches found in DB.")
         branch_map = {b.branch_code: b.branch_id for b in branches}
         print(f"Loaded {len(branch_map)} branches.")
         
