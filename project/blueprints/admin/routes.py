@@ -262,25 +262,9 @@ def manage_customers():
     add_customer_form = CustomerForm()
     search_form = SearchForm()
 
-    if add_customer_form.validate_on_submit():
-        customer_code = add_customer_form.customerCode.data.strip()
-        customer_name = add_customer_form.name.data.strip()
-        if customer_code and customer_name:
-            existing_customer = Customer.query.filter_by(customerCode=customer_code).first()
-            if existing_customer:
-                flash('Customer code already exists!', 'danger')
-            else:
-                new_customer = Customer(
-                    customerCode=customer_code, 
-                    name=customer_name,
-                    branch_id=current_user.user_branch_id
-                )
-                db.session.add(new_customer)
-                db.session.commit()
-                flash('Customer added successfully!', 'success')
-        else:
-            flash('Please enter both customer code and name', 'danger')
-        return redirect(url_for('admin.manage_customers'))
+    # Manual customer addition logic removed at user request
+    # if add_customer_form.validate_on_submit():
+    #     ...
 
     branch_id = request.args.get('branch_id', current_user.user_branch_id, type=int)
     customers = Customer.query
