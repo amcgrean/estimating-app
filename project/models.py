@@ -16,7 +16,16 @@ class Estimator(db.Model):
     estimatorID = db.Column(db.Integer, primary_key=True)
     estimatorName = db.Column(db.String(100), nullable=False)
     estimatorUsername = db.Column(db.String(100), nullable=False)
-    type = db.Column(db.String(50), nullable=False)  # New column
+    type = db.Column(db.String(50), nullable=False)  # 'Residential', 'Commercial' (Designers moved to Designer table)
+
+class Designer(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(100), nullable=False)
+    username = db.Column(db.String(100), nullable=False)
+    type = db.Column(db.String(50), default='Designer')
+
+    def __repr__(self):
+        return f'<Designer {self.name}>'
 
 class Bid(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -182,7 +191,7 @@ class Design(db.Model):  # New table
     contractor = db.Column(db.String(100), nullable=True)
     log_date = db.Column(db.DateTime, default=datetime.utcnow)
     preliminary_set_date = db.Column(db.DateTime, nullable=True)
-    designer_id = db.Column(db.Integer, db.ForeignKey('estimator.estimatorID'), nullable=True)  # Changed to nullable=True
+    designer_id = db.Column(db.Integer, db.ForeignKey('designer.id'), nullable=True)
     status = db.Column(db.String(50), default='Active')  # Default to 'Active'
     plan_description = db.Column(db.String(50), nullable=True)
     notes = db.Column(db.Text, nullable=True)
@@ -192,7 +201,7 @@ class Design(db.Model):  # New table
     branch_id = db.Column(db.Integer, db.ForeignKey('branch.branch_id'), nullable=True)
 
     customer = db.relationship('Customer', backref=db.backref('designs', lazy=True))
-    designer = db.relationship('Estimator', backref=db.backref('designs', lazy=True))
+    designer = db.relationship('Designer', backref=db.backref('designs', lazy=True))
     branch = db.relationship('Branch', backref=db.backref('designs', lazy=True))
     square_footage = db.Column(db.Integer, nullable=True)
     
@@ -211,6 +220,7 @@ class User(db.Model, UserMixin):
     password = db.Column(db.String(255), nullable=False)
     usertype_id = db.Column(db.Integer, db.ForeignKey('user_type.id'), nullable=False)
     estimatorID = db.Column(db.Integer, db.ForeignKey('estimator.estimatorID'), nullable=True)
+    designer_id = db.Column(db.Integer, db.ForeignKey('designer.id'), nullable=True) # Link to Designer table
     # sales_rep_id removed as we are deleting SalesRep table
     user_branch_id = db.Column(db.Integer, db.ForeignKey('branch.branch_id'), nullable=True)
 
@@ -220,10 +230,12 @@ class User(db.Model, UserMixin):
     is_active = db.Column(db.Boolean, default=True)
     is_admin = db.Column(db.Boolean, default=False)
     is_estimator = db.Column(db.Boolean, default=False)
+    is_designer = db.Column(db.Boolean, default=False) # New flag
     login_count = db.Column(db.Integer, default=0)
 
     usertype = db.relationship('UserType', backref=db.backref('users', lazy=True))
-    estimator = db.relationship('Estimator', backref=db.backref('estimators', lazy=True))  # Changed backref name
+    estimator = db.relationship('Estimator', backref=db.backref('estimators', lazy=True))
+    designer = db.relationship('Designer', backref=db.backref('users', lazy=True)) # New relation
     branch = db.relationship('Branch', backref=db.backref('branches', lazy=True))  # Changed backref name
     # sales_rep relationship removed
 
