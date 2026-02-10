@@ -1,0 +1,76 @@
+Using Database URI: postgresql://neondb_owner:npg_1E4CvgZbaVBW@ep-fragrant-waterfall-ad8fjcey-pooler.c-2.us-east-1.aws.neon.tech/neondb?sslmode=require
+Creating Designer table...
+Designer table created (or exists).
+Querying Estimators: ['amyl', 'mikeb', 'mikew']
+Found 3 designers to move.
+Processing: Amy Larsen (ID: 6)
+Existing Designer ID: 1
+Processing: Mike Blevins (ID: 7)
+Existing Designer ID: 2
+Processing: Mike Wagenknecht (ID: 8)
+Existing Designer ID: 3
+Designers processed and committed.
+Updating Users...
+Checking for users with estimatorID=6
+EXCEPTION OCCURRED:
+Traceback (most recent call last):
+  File "C:\Users\amcgrean\python\pa-bid-request\.venv\Lib\site-packages\sqlalchemy\engine\base.py", line 1967, in _exec_single_context
+    self.dialect.do_execute(
+  File "C:\Users\amcgrean\python\pa-bid-request\.venv\Lib\site-packages\sqlalchemy\engine\default.py", line 941, in do_execute
+    cursor.execute(statement, parameters)
+psycopg2.errors.UndefinedColumn: column user.designer_id does not exist
+LINE 1: ...e_id, "user"."estimatorID" AS "user_estimatorID", "user".des...
+                                                             ^
+
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "C:\Users\amcgrean\python\pa-bid-request\debug_migrate.py", line 61, in debug_migrate
+    users = User.query.filter_by(estimatorID=old_est_id).all()
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\amcgrean\python\pa-bid-request\.venv\Lib\site-packages\sqlalchemy\orm\query.py", line 2673, in all
+    return self._iter().all()  # type: ignore
+           ^^^^^^^^^^^^
+  File "C:\Users\amcgrean\python\pa-bid-request\.venv\Lib\site-packages\sqlalchemy\orm\query.py", line 2827, in _iter
+    result: Union[ScalarResult[_T], Result[_T]] = self.session.execute(
+                                                  ^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\amcgrean\python\pa-bid-request\.venv\Lib\site-packages\sqlalchemy\orm\session.py", line 2362, in execute
+    return self._execute_internal(
+           ^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\amcgrean\python\pa-bid-request\.venv\Lib\site-packages\sqlalchemy\orm\session.py", line 2247, in _execute_internal
+    result: Result[Any] = compile_state_cls.orm_execute_statement(
+                          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\amcgrean\python\pa-bid-request\.venv\Lib\site-packages\sqlalchemy\orm\context.py", line 293, in orm_execute_statement
+    result = conn.execute(
+             ^^^^^^^^^^^^^
+  File "C:\Users\amcgrean\python\pa-bid-request\.venv\Lib\site-packages\sqlalchemy\engine\base.py", line 1418, in execute
+    return meth(
+           ^^^^^
+  File "C:\Users\amcgrean\python\pa-bid-request\.venv\Lib\site-packages\sqlalchemy\sql\elements.py", line 515, in _execute_on_connection
+    return connection._execute_clauseelement(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\amcgrean\python\pa-bid-request\.venv\Lib\site-packages\sqlalchemy\engine\base.py", line 1640, in _execute_clauseelement
+    ret = self._execute_context(
+          ^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\amcgrean\python\pa-bid-request\.venv\Lib\site-packages\sqlalchemy\engine\base.py", line 1846, in _execute_context
+    return self._exec_single_context(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\amcgrean\python\pa-bid-request\.venv\Lib\site-packages\sqlalchemy\engine\base.py", line 1986, in _exec_single_context
+    self._handle_dbapi_exception(
+  File "C:\Users\amcgrean\python\pa-bid-request\.venv\Lib\site-packages\sqlalchemy\engine\base.py", line 2355, in _handle_dbapi_exception
+    raise sqlalchemy_exception.with_traceback(exc_info[2]) from e
+  File "C:\Users\amcgrean\python\pa-bid-request\.venv\Lib\site-packages\sqlalchemy\engine\base.py", line 1967, in _exec_single_context
+    self.dialect.do_execute(
+  File "C:\Users\amcgrean\python\pa-bid-request\.venv\Lib\site-packages\sqlalchemy\engine\default.py", line 941, in do_execute
+    cursor.execute(statement, parameters)
+sqlalchemy.exc.ProgrammingError: (psycopg2.errors.UndefinedColumn) column user.designer_id does not exist
+LINE 1: ...e_id, "user"."estimatorID" AS "user_estimatorID", "user".des...
+                                                             ^
+
+[SQL: SELECT "user".id AS user_id, "user".username AS user_username, "user".email AS user_email, "user".password AS user_password, "user".usertype_id AS user_usertype_id, "user"."estimatorID" AS "user_estimatorID", "user".designer_id AS user_designer_id, "user".user_branch_id AS user_user_branch_id, "user".last_login AS user_last_login, "user".created_at AS user_created_at, "user".updated_at AS user_updated_at, "user".is_active AS user_is_active, "user".is_admin AS user_is_admin, "user".is_estimator AS user_is_estimator, "user".is_designer AS user_is_designer, "user".login_count AS user_login_count 
+FROM "user" 
+WHERE "user"."estimatorID" = %(estimatorID_1)s]
+[parameters: {'estimatorID_1': 6}]
+(Background on this error at: https://sqlalche.me/e/20/f405)
+

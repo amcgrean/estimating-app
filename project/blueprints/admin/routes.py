@@ -3,7 +3,7 @@ from flask_login import login_required, current_user
 from project import db, mail
 from datetime import date
 from sqlalchemy import func, cast, Date
-from project.models import User, UserType, Customer, Bid, Estimator, Branch, UserSecurity, Design, LoginActivity, NotificationRule
+from project.models import User, UserType, Customer, Bid, Estimator, Branch, UserSecurity, Design, LoginActivity, NotificationRule, Designer
 from project.forms import UserForm, UpdateUserForm, UploadForm, CustomerForm, UserTypeForm, UserSecurityForm, SearchForm, NotificationRuleForm
 from werkzeug.utils import secure_filename
 from werkzeug.security import generate_password_hash
@@ -22,17 +22,16 @@ admin = Blueprint('admin', __name__)
 logger = logging.getLogger(__name__)
 
 # --- Helper Functions ---
-def get_branch_estimators_admin(branch_id, estimator_type=None):
-    """Helper to get estimators for a specific branch, optionally filtered by type."""
-    query = db.session.query(Estimator).join(
+def get_branch_estimators_admin(branch_id):
+    """Helper to get estimators for a specific branch."""
+    query = Estimator.query.join(
         User, User.username == Estimator.estimatorUsername
     ).filter(User.is_active == True)
 
     if branch_id and branch_id != 0:
         query = query.filter(User.user_branch_id == branch_id)
     
-    if estimator_type:
-        query = query.filter(Estimator.type == estimator_type)
+    # estimator_type removed as Estimator table no longer has type column
 
     estimators = query.all()
     
@@ -109,20 +108,35 @@ def add_user():
         db.session.add(user)
         db.session.flush()
 
-        # Sync with Estimator table
         if user.is_estimator:
             existing_estimator = Estimator.query.filter_by(estimatorUsername=user.username).first()
             if not existing_estimator:
                 new_estimator = Estimator(
                     estimatorName=user.username,
-                    estimatorUsername=user.username,
-                    type='Residential'
+                    estimatorUsername=user.username
                 )
                 db.session.add(new_estimator)
-                db.session.flush()
+                db.session.flush() # Get the ID
                 user.estimatorID = new_estimator.estimatorID
             else:
                 user.estimatorID = existing_estimator.estimatorID
+
+        # Sync with Designer table if marked as designer
+        if user.is_designer:
+            existing_designer = Designer.query.filter_by(username=user.username).first()
+            if not existing_designer:
+                new_designer = Designer(
+                    name=user.username,
+                    username=user.username,
+                    type='Designer'
+                )
+                db.session.add(new_designer)
+                db.session.flush()
+                user.designer_id = new_designer.id
+            else:
+                user.designer_id = existing_designer.id
+
+        db.session.add(user)
         try:
             db.session.commit()
             flash('User created successfully!', 'success')
@@ -158,14 +172,28 @@ def edit_user(user_id):
             if not existing_estimator:
                 new_estimator = Estimator(
                     estimatorName=user.username, # Default name to username
-                    estimatorUsername=user.username,
-                    type='Residential' # Default type
+                    estimatorUsername=user.username
                 )
                 db.session.add(new_estimator)
                 db.session.flush() # Get the ID
                 user.estimatorID = new_estimator.estimatorID
             else:
                 user.estimatorID = existing_estimator.estimatorID
+
+        # Sync with Designer table if marked as designer
+        if user.is_designer:
+            existing_designer = Designer.query.filter_by(username=user.username).first()
+            if not existing_designer:
+                new_designer = Designer(
+                    name=user.username,
+                    username=user.username,
+                    type='Designer'
+                )
+                db.session.add(new_designer)
+                db.session.flush()
+                user.designer_id = new_designer.id
+            else:
+                user.designer_id = existing_designer.id
 
         if form.password.data:
             user.set_password(form.password.data)

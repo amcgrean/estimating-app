@@ -1,0 +1,28 @@
+--- Designers ---
+ID: 1, Name: Amy Larsen, Username: amyl
+ID: 2, Name: Mike Blevins, Username: mikeb
+ID: 3, Name: Mike Wagenknecht, Username: mikew
+ID: 4, Name: Matt Hackett, Username: matth
+
+--- Estimators ---
+ID: 1, Name: Karl Peters, Username: kpeters
+ID: 4, Name: Ryan Boes, Username: rboes
+ID: 9, Name: Aaron McGrean, Username: amcgrean
+ID: 6, Name: Amy Larsen, Username: amyl
+ID: 2, Name: JC King, Username: jc
+ID: 3, Name: Matt Hackett, Username: matth
+ID: 5, Name: Don Stevens, Username: dons
+ID: 7, Name: Mike Blevins, Username: mikeb
+ID: 8, Name: Mike Wagenknecht, Username: mikew
+ID: 10, Name: jasonr, Username: jasonr
+
+--- Imported Designs (Sample) ---
+Plan: 1026-26, DesignerID: 2, Designer: Mike Blevins
+Plan: 1027-26, DesignerID: 2, Designer: Mike Blevins
+Plan: 1025-26, DesignerID: 1, Designer: Amy Larsen
+Plan: 1379-20, DesignerID: 3, Designer: Mike Wagenknecht
+
+--- Checking for Old Estimator IDs (6, 7, 8) in Design.designer_id ---
+Designs with designer_id=6: 0
+Designs with designer_id=7: 0
+Designs with designer_id=8: 0

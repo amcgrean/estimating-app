@@ -47,9 +47,6 @@ def import_data():
         cust_map = {c.customerCode: c.id for c in Customer.query.all()} # Pre-load map
         
         new_customers = []
-        updated_customers = [] # We can't bulk update easily with SqlAlchemy ORM and mappings unless we use primary keys
-        # For updates, we'll skip or do individual (slow). Since Vercel is constrained, 
-        # let's prioritize NEW customers via bulk insert.
         
         with open(customers_csv, 'r', encoding='utf-8-sig') as f:
             reader = csv.DictReader(f)
@@ -81,15 +78,6 @@ def import_data():
 
         # 4. Import Jobs
         print("Importing Jobs...")
-        # Pre-load existing job references to avoid dupes logic if possible
-        # Or just use INSERT IGNORE logic if DB supports it, but here we just check existing.
-        # Fetching all jobs might be heavy. 
-        # Let's try to just INSERT ALL new ones. 
-        # Checking existence one by one is SLOW.
-        
-        # Strategy: Load ALL jobs into memory (id, ref) tuple? 
-        # Or simpler: Delete all jobs for valid customers and re-import? NO, data loss.
-        # Faster: Read CSV, collect all (cust_id, ref), query DB for matching, filter out existing.
         
         existing_jobs = set()
         jobs_query = db.session.query(Job.customer_id, Job.job_reference).all()

@@ -80,6 +80,7 @@ class UserForm(BaseForm):
     estimatorID = SelectField('Estimator', coerce=int, choices=[], validators=[Optional()])
     user_branch_id = SelectField('Branch', coerce=int, choices=[], validators=[DataRequired()])
     is_estimator = BooleanField('Is Estimator')
+    is_designer = BooleanField('Is Designer')
     submit = SubmitField('Submit')
 
     def __init__(self, *args, **kwargs):
@@ -95,6 +96,7 @@ class UpdateUserForm(BaseForm):
     estimatorID = SelectField('Estimator', coerce=int, choices=[], validators=[Optional()])
     user_branch_id = SelectField('Branch', coerce=int, choices=[], validators=[DataRequired()])
     is_estimator = BooleanField('Is Estimator')
+    is_designer = BooleanField('Is Designer')
     password = PasswordField('New Password (leave blank to keep current password)', validators=[Optional()])
     submit = SubmitField('Update')
 

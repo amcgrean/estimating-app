@@ -16,6 +16,21 @@
             <form action="{{ url_for('main.manage_design', design_id=design.id) }}" method="POST">
                 {{ form.hidden_tag() }}
 
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <label class="font-weight-600 small text-uppercase tracking-wider">Plan Number</label>
+                            <input type="text" class="input-modern" value="{{ design.planNumber }}" readonly>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <label class="font-weight-600 small text-uppercase tracking-wider">Customer</label>
+                            {{ form.customer_id(class="input-modern") }}
+                        </div>
+                    </div>
+                </div>
+
                 <div class="form-group">
                     <label class="font-weight-600 small text-uppercase tracking-wider">Plan Name</label>
                     {{ form.plan_name(class="input-modern") }}
@@ -27,13 +42,19 @@
                 </div>
 
                 <div class="row">
-                    <div class="col-md-6">
+                    <div class="col-md-4">
+                        <div class="form-group">
+                            <label class="font-weight-600 small text-uppercase tracking-wider">Designer</label>
+                            {{ form.designer_id(class="input-modern") }}
+                        </div>
+                    </div>
+                    <div class="col-md-4">
                         <div class="form-group">
                             <label class="font-weight-600 small text-uppercase tracking-wider">Contractor</label>
                             {{ form.contractor(class="input-modern") }}
                         </div>
                     </div>
-                    <div class="col-md-6">
+                    <div class="col-md-4">
                         <div class="form-group">
                             <label class="font-weight-600 small text-uppercase tracking-wider">Status</label>
                             {{ form.status(class="input-modern") }}

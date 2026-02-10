@@ -16,7 +16,7 @@ class Estimator(db.Model):
     estimatorID = db.Column(db.Integer, primary_key=True)
     estimatorName = db.Column(db.String(100), nullable=False)
     estimatorUsername = db.Column(db.String(100), nullable=False)
-    type = db.Column(db.String(50), nullable=False)  # 'Residential', 'Commercial' (Designers moved to Designer table)
+    # type column removed as it does not exist in DB
 
 class Designer(db.Model):
     id = db.Column(db.Integer, primary_key=True)

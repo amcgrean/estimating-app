@@ -4,7 +4,7 @@ from project import mail, db
 from project.models import (
     Bid, Customer, Estimator, Design, User, EWP, UserType, UserSecurity,
     Branch, LoginActivity, ITService, Project, BidActivity, BidFile, NotificationRule,
-    BidField, BidValue, Job
+    BidField, BidValue, Job, Designer
 )
 import csv
 import json
@@ -417,8 +417,8 @@ def get_estimators():
     estimator_list = [{'estimatorID': e.estimatorID, 'name': e.estimatorName} for e in estimators]
     return jsonify(estimator_list)
 
-def get_branch_estimators(branch_id, estimator_type=None):
-    """Helper to get estimators for a specific branch, optionally filtered by type."""
+def get_branch_estimators(branch_id):
+    """Helper to get estimators for a specific branch."""
     query = db.session.query(Estimator).join(
         User, User.username == Estimator.estimatorUsername
     ).filter(User.is_active == True)
@@ -426,12 +426,33 @@ def get_branch_estimators(branch_id, estimator_type=None):
     if branch_id and branch_id != 0:
         query = query.filter(User.user_branch_id == branch_id)
     
-    if estimator_type:
-        query = query.filter(Estimator.type == estimator_type)
+    # estimator_type removed as Estimator table no longer has type column
 
     estimators = query.all()
     
     return [(0, 'No Estimator')] + [(e.estimatorID, e.estimatorName) for e in estimators]
+
+def get_branch_designers(branch_id):
+    """Helper to get designers for a specific branch."""
+    # Designers are now in the Designer table.
+    # We might need to filter by branch if Designer had a branch_id... 
+    # But currently Designer table does NOT have a branch_id (per my model definition).
+    # Wait, did I add branch_id to Designer?
+    # Let's check models.py quickly.
+    # Ah, I missed adding branch_id to Designer model in my replace_file_content call.
+    # However, User table has branch_id and is linked to Designer.
+    # So we should join Designer with User to filter by branch.
+    
+    query = db.session.query(Designer).join(
+        User, User.designer_id == Designer.id
+    ).filter(User.is_active == True)
+
+    if branch_id and branch_id != 0:
+        query = query.filter(User.user_branch_id == branch_id)
+
+    designers = query.order_by(Designer.name).all()
+    
+    return [(0, 'Select a Designer')] + [(d.id, d.name) for d in designers]
 
 def get_branch_sales_reps(branch_id):
     """Helper to get sales reps (Users) for a specific branch."""
@@ -1769,7 +1790,7 @@ def add_design():
     customers = customer_query.order_by(Customer.name).all()
     form.customer_id.choices = [(0, 'Select a customer')] + [(customer.id, customer.name) for customer in customers]
     # Populate designer choices based on branch
-    form.designer_id.choices = get_branch_estimators(selected_branch_id, estimator_type='designer')
+    form.designer_id.choices = get_branch_designers(selected_branch_id)
     form.branch_id.choices = [(b.branch_id, b.branch_name) for b in Branch.query.all()]
     
     if not form.branch_id.data:
@@ -1827,7 +1848,7 @@ def open_designs():
         'plan_name': Design.plan_name,
         'customer_name': Customer.name,
         'project_address': Design.project_address,
-        'designer': Estimator.estimatorName,
+        'designer': Designer.name,
         'status': Design.status,
         'log_date': Design.log_date,
         'notes': Design.notes
@@ -1841,7 +1862,7 @@ def open_designs():
         sort_column_attr = sort_column_attr.desc()
 
     # Base query for designs
-    query = db.session.query(Design).join(Customer).join(Estimator, isouter=True)
+    query = db.session.query(Design).join(Customer).join(Designer, isouter=True)
 
     # Branch filtering
     from flask import session
@@ -1886,8 +1907,9 @@ def manage_design(design_id):
     if design.branch_id:
         customer_query = customer_query.filter((Customer.branch_id == design.branch_id) | (Customer.branch_id == None))
     
+    
     form.customer_id.choices = [(customer.id, customer.name) for customer in customer_query.all()]
-    form.designer_id.choices = get_branch_estimators(design.branch_id, estimator_type='designer')
+    form.designer_id.choices = get_branch_designers(design.branch_id)
     form.branch_id.choices = [(b.branch_id, b.branch_name) for b in Branch.query.all()]
 
     if form.validate_on_submit():

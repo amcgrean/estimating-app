@@ -102,7 +102,7 @@
                     <td class="small">{{ design.project_address }}</td>
                     <td><span class="badge-premium badge-active"
                             style="background: var(--surface-muted); color: var(--text-main);">{{
-                            design.designer.estimatorName if design.designer else 'N/A' }}</span></td>
+                            design.designer.name if design.designer else 'N/A' }}</span></td>
                     <td>
                         {% if design.status == 'Incomplete' %}
                         <span class="badge-premium badge-incomplete">Incomplete</span>
