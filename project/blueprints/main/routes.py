@@ -1922,8 +1922,8 @@ def manage_design(design_id):
     # Populate Job choices
     selected_customer_id = form.customer_id.data
     if selected_customer_id and selected_customer_id != 0:
-         jobs = Job.query.filter_by(customer_id=selected_customer_id).order_by(Job.name).all()
-         form.job_id.choices = [(0, 'Select Ship To')] + [(j.id, j.name) for j in jobs]
+         jobs = Job.query.filter_by(customer_id=selected_customer_id).order_by(Job.job_name).all()
+         form.job_id.choices = [(0, 'Select Ship To')] + [(j.id, j.job_name) for j in jobs]
     else:
          form.job_id.choices = [(0, 'Select Ship To')]
 
