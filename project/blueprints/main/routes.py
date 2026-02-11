@@ -1792,6 +1792,13 @@ def add_design():
     # Populate designer choices based on branch
     form.designer_id.choices = get_branch_designers(selected_branch_id)
     form.branch_id.choices = [(b.branch_id, b.branch_name) for b in Branch.query.all()]
+
+    # Populate Job choices if customer selected
+    if form.customer_id.data and form.customer_id.data != 0:
+        jobs = Job.query.filter_by(customer_id=form.customer_id.data).order_by(Job.name).all()
+        form.job_id.choices = [(0, 'Select Ship To')] + [(j.id, j.name) for j in jobs]
+    else:
+        form.job_id.choices = [(0, 'Select Ship To')]
     
     if not form.branch_id.data:
         form.branch_id.data = selected_branch_id
@@ -1911,6 +1918,14 @@ def manage_design(design_id):
     form.customer_id.choices = [(customer.id, customer.name) for customer in customer_query.all()]
     form.designer_id.choices = get_branch_designers(design.branch_id)
     form.branch_id.choices = [(b.branch_id, b.branch_name) for b in Branch.query.all()]
+
+    # Populate Job choices
+    selected_customer_id = form.customer_id.data
+    if selected_customer_id and selected_customer_id != 0:
+         jobs = Job.query.filter_by(customer_id=selected_customer_id).order_by(Job.name).all()
+         form.job_id.choices = [(0, 'Select Ship To')] + [(j.id, j.name) for j in jobs]
+    else:
+         form.job_id.choices = [(0, 'Select Ship To')]
 
     if form.validate_on_submit():
         form.populate_obj(design)

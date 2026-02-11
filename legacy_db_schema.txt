@@ -1,0 +1,308 @@
+--- Tables in Legacy DB ---
+alembic_version
+customer
+estimator
+bid
+design
+user_type
+user_security
+sales_rep
+_alembic_tmp_ewp
+branch
+ewp
+bid_activity
+general_audit
+login_activity
+user
+sessions
+it_service
+deck
+door
+framing
+shingle
+siding
+trim
+window
+projects
+
+--- 'alembic_version' Table Schema ---
+(0, 'version_num', 'VARCHAR(32)', 1, None, 1)
+Sample: ('f0c6376ba5fb',)
+
+--- 'customer' Table Schema ---
+(0, 'id', 'INTEGER', 1, None, 1)
+(1, 'customerCode', 'VARCHAR(100)', 1, None, 0)
+(2, 'name', 'VARCHAR(100)', 1, None, 0)
+Sample: (1, '515E1000', '515 Exteriors, LLC')
+
+--- 'estimator' Table Schema ---
+(0, 'estimatorID', 'INTEGER', 1, None, 1)
+(1, 'estimatorName', 'VARCHAR(100)', 1, None, 0)
+(2, 'estimatorUsername', 'VARCHAR(100)', 1, None, 0)
+(3, 'type', 'VARCHAR(50)', 1, None, 0)
+Sample: (1, 'Karl Peters', 'kpeters', 'Estimator')
+
+--- 'bid' Table Schema ---
+(0, 'id', 'INTEGER', 1, None, 1)
+(1, 'plan_type', 'VARCHAR(50)', 1, None, 0)
+(2, 'customer_id', 'INTEGER', 1, None, 0)
+(3, 'project_name', 'VARCHAR(100)', 1, None, 0)
+(4, 'estimator_id', 'INTEGER', 0, None, 0)
+(5, 'status', 'VARCHAR(50)', 0, None, 0)
+(6, 'log_date', 'DATETIME', 0, None, 0)
+(7, 'due_date', 'DATETIME', 0, None, 0)
+(8, 'completion_date', 'DATETIME', 0, None, 0)
+(9, 'notes', 'TEXT', 0, None, 0)
+(10, 'last_updated_by', 'VARCHAR(150)', 0, None, 0)
+(11, 'last_updated_at', 'DATETIME', 0, None, 0)
+Sample: (2, 'Residential', 770, '1624', 1, 'Complete', '2017-02-28 00:00:00.000000', '2017-03-14 00:00:00.000000', '2017-03-14 00:00:00.000000', '', None, '2024-07-26 17:03:03.193587')
+
+--- 'design' Table Schema ---
+(0, 'id', 'INTEGER', 1, None, 1)
+(1, 'planNumber', 'VARCHAR(10)', 1, None, 0)
+(2, 'plan_name', 'VARCHAR(100)', 1, None, 0)
+(3, 'customer_id', 'INTEGER', 1, None, 0)
+(4, 'project_address', 'VARCHAR(200)', 1, None, 0)
+(5, 'contractor', 'VARCHAR(100)', 0, None, 0)
+(6, 'log_date', 'DATETIME', 0, None, 0)
+(7, 'preliminary_set_date', 'DATETIME', 0, None, 0)
+(8, 'designer_id', 'INTEGER', 0, None, 0)
+(9, 'status', 'VARCHAR(50)', 0, None, 0)
+(10, 'plan_description', 'VARCHAR(50)', 0, None, 0)
+(11, 'notes', 'TEXT', 0, None, 0)
+(12, 'last_updated_by', 'VARCHAR(150)', 0, None, 0)
+(13, 'last_updated_at', 'DATETIME', 0, None, 0)
+Sample: (1, '1125-24', 'Magnolia II', 770, '2328 Green Leaf, Norwalk', None, '2024-05-16 00:00:00.000000', None, 6, 'Active', None, None, 'admin', '2024-07-13 00:00:00')
+
+--- 'user_type' Table Schema ---
+(0, 'id', 'INTEGER', 1, None, 1)
+(1, 'name', 'VARCHAR(50)', 1, None, 0)
+Sample: (1, 'Administrator')
+
+--- 'user_security' Table Schema ---
+(0, 'user_type_id', 'INTEGER', 1, None, 1)
+(1, 'admin', 'BOOLEAN', 1, None, 0)
+(2, 'estimating', 'BOOLEAN', 1, None, 0)
+(3, 'bid_request', 'BOOLEAN', 1, None, 0)
+(4, 'design', 'BOOLEAN', 1, None, 0)
+(5, 'ewp', 'BOOLEAN', 1, None, 0)
+(6, 'service', 'BOOLEAN', 1, None, 0)
+(7, 'install', 'BOOLEAN', 1, None, 0)
+(8, 'picking', 'BOOLEAN', 1, None, 0)
+(9, 'work_orders', 'BOOLEAN', 1, None, 0)
+(10, 'dashboards', 'BOOLEAN', 1, None, 0)
+(11, 'security_10', 'BOOLEAN', 1, None, 0)
+(12, 'security_11', 'BOOLEAN', 1, None, 0)
+(13, 'security_12', 'BOOLEAN', 1, None, 0)
+(14, 'security_13', 'BOOLEAN', 1, None, 0)
+(15, 'security_14', 'BOOLEAN', 1, None, 0)
+(16, 'security_15', 'BOOLEAN', 1, None, 0)
+(17, 'security_16', 'BOOLEAN', 1, None, 0)
+(18, 'security_17', 'BOOLEAN', 1, None, 0)
+(19, 'security_18', 'BOOLEAN', 1, None, 0)
+(20, 'security_19', 'BOOLEAN', 1, None, 0)
+(21, 'security_20', 'BOOLEAN', 1, None, 0)
+Sample: (1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1)
+
+--- 'sales_rep' Table Schema ---
+(0, 'id', 'INTEGER', 1, None, 1)
+(1, 'name', 'VARCHAR(100)', 1, None, 0)
+(2, 'username', 'VARCHAR(100)', 1, None, 0)
+Sample: (2, 'benr', 'benr')
+
+--- '_alembic_tmp_ewp' Table Schema ---
+(0, 'id', 'INTEGER', 1, None, 1)
+(1, 'plan_number', 'VARCHAR(255)', 1, None, 0)
+(2, 'address', 'VARCHAR(255)', 1, None, 0)
+(3, 'notes', 'TEXT', 0, None, 0)
+(4, 'login_date', 'DATE', 1, None, 0)
+(5, 'tji_depth', 'VARCHAR(255)', 1, None, 0)
+(6, 'assigned_designer', 'VARCHAR(255)', 1, None, 0)
+(7, 'layout_finalized', 'VARCHAR(255)', 1, None, 0)
+(8, 'agility_quote', 'FLOAT', 1, None, 0)
+(9, 'imported_stellar', 'VARCHAR(255)', 1, None, 0)
+(10, 'sales_rep_id', 'INTEGER', 0, None, 0)
+(11, 'customer_id', 'INTEGER', 0, None, 0)
+Sample: None
+
+--- 'branch' Table Schema ---
+(0, 'branch_id', 'INTEGER', 1, None, 1)
+(1, 'branch_name', 'VARCHAR(255)', 1, None, 0)
+(2, 'branch_code', 'VARCHAR(255)', 1, None, 0)
+(3, 'branch_type', 'INTEGER', 1, None, 0)
+Sample: (1, 'Grimes', '20GR', 1)
+
+--- 'ewp' Table Schema ---
+(0, 'id', 'INTEGER', 1, None, 1)
+(1, 'plan_number', 'VARCHAR(255)', 1, None, 0)
+(2, 'sales_rep_id', 'INTEGER', 0, None, 0)
+(3, 'customer_id', 'INTEGER', 1, None, 0)
+(4, 'address', 'VARCHAR(255)', 1, None, 0)
+(5, 'notes', 'TEXT', 0, None, 0)
+(6, 'login_date', 'DATE', 1, None, 0)
+(7, 'tji_depth', 'VARCHAR(255)', 1, None, 0)
+(8, 'assigned_designer', 'VARCHAR(255)', 0, None, 0)
+(9, 'layout_finalized', 'DATE', 0, None, 0)
+(10, 'agility_quote', 'DATE', 0, None, 0)
+(11, 'imported_stellar', 'DATE', 0, None, 0)
+(12, 'last_updated_by', 'VARCHAR(150)', 0, None, 0)
+(13, 'last_updated_at', 'DATETIME', 0, None, 0)
+Sample: (101, '19-0306', None, 1156, 'Fort Dodge', '', '2019-07-31', '9', '', '2019-08-07', '2019-08-07', None, None, '2024-07-23 20:41:27.016430')
+
+--- 'bid_activity' Table Schema ---
+(0, 'id', 'INTEGER', 1, None, 1)
+(1, 'user_id', 'INTEGER', 1, None, 0)
+(2, 'bid_id', 'INTEGER', 1, None, 0)
+(3, 'action', 'VARCHAR(50)', 1, None, 0)
+(4, 'timestamp', 'DATETIME', 1, None, 0)
+Sample: None
+
+--- 'general_audit' Table Schema ---
+(0, 'id', 'INTEGER', 1, None, 1)
+(1, 'user_id', 'INTEGER', 1, None, 0)
+(2, 'model_name', 'VARCHAR(50)', 1, None, 0)
+(3, 'action', 'VARCHAR(50)', 1, None, 0)
+(4, 'timestamp', 'DATETIME', 1, None, 0)
+(5, 'changes', 'TEXT', 0, None, 0)
+Sample: None
+
+--- 'login_activity' Table Schema ---
+(0, 'id', 'INTEGER', 1, None, 1)
+(1, 'user_id', 'INTEGER', 1, None, 0)
+(2, 'logged_in', 'DATETIME', 1, None, 0)
+(3, 'logged_out', 'DATETIME', 0, None, 0)
+Sample: (1, 2, '2024-07-27 13:05:29.189781', None)
+
+--- 'user' Table Schema ---
+(0, 'id', 'INTEGER', 0, None, 1)
+(1, 'username', 'TEXT', 1, None, 0)
+(2, 'email', 'TEXT', 1, None, 0)
+(3, 'password', 'TEXT(255)', 0, None, 0)
+(4, 'usertype_id', 'INTEGER', 1, None, 0)
+(5, 'estimatorID', 'INTEGER', 0, None, 0)
+(6, 'sales_rep_id', 'INTEGER', 0, None, 0)
+(7, 'user_branch_id', 'INTEGER', 0, None, 0)
+(8, 'last_login', 'DATETIME', 0, None, 0)
+(9, 'created_at', 'DATETIME', 0, 'CURRENT_TIMESTAMP', 0)
+(10, 'updated_at', 'DATETIME', 0, 'CURRENT_TIMESTAMP', 0)
+(11, 'is_active', 'INTEGER', 0, '1', 0)
+(12, 'is_admin', 'INTEGER', 0, '0', 0)
+(13, 'login_count', 'INTEGER', 0, '0', 0)
+Sample: (1, 'admin_username', 'aaronm@beisserlumber.com', 'default_password', 1, None, None, 1, None, None, None, None, None, None)
+
+--- 'sessions' Table Schema ---
+(0, 'id', 'INTEGER', 1, None, 1)
+(1, 'session_id', 'VARCHAR(255)', 0, None, 0)
+(2, 'data', 'BLOB', 0, None, 0)
+(3, 'expiry', 'DATETIME', 0, None, 0)
+Sample: (1, 'session:LanWWO1xIXwUgneUKHKaKGf8g9hvotVAYv_0T1cpIYU', b'\x83\xaa_permanent\xc3\xaacsrf_token\xd9(e2d6e5b305584668b6254175da78f03e9ed61543\xa6_fresh\xc2', '2024-07-31 04:41:19.598352')
+
+--- 'it_service' Table Schema ---
+(0, 'id', 'INTEGER', 1, None, 1)
+(1, 'issue_type', 'VARCHAR(255)', 1, None, 0)
+(2, 'createdby', 'VARCHAR(255)', 1, None, 0)
+(3, 'description', 'TEXT', 1, None, 0)
+(4, 'status', 'VARCHAR(50)', 1, None, 0)
+(5, 'updatedby', 'VARCHAR(255)', 0, None, 0)
+(6, 'updated_date', 'DATETIME', 0, None, 0)
+(7, 'notes', 'TEXT', 0, None, 0)
+(8, 'createdDate', 'DATETIME', 0, None, 0)
+Sample: (1, 'Website Spec Sheet', 'amcgrean', 'wrong profile for 421 mdf', 'Completed', 'amcgrean', '2024-12-05 20:12:20.703909', 'replaced with mdfcas683rlfbdpm - 683 RL FBDPM MDF Casing w/ Back', '2024-10-24 17:16:38.558509')
+
+--- 'deck' Table Schema ---
+(0, 'id', 'INTEGER', 1, None, 1)
+(1, 'project_id', 'INTEGER', 1, None, 0)
+(2, 'decking_type', 'VARCHAR(50)', 1, None, 0)
+(3, 'railing_type', 'VARCHAR(50)', 1, None, 0)
+(4, 'stairs', 'VARCHAR(50)', 1, None, 0)
+(5, 'deck_notes', 'TEXT', 0, None, 0)
+Sample: (1, 1, 'Treated', 'Treated', 'None', 'test')
+
+--- 'door' Table Schema ---
+(0, 'id', 'INTEGER', 1, None, 1)
+(1, 'project_id', 'INTEGER', 1, None, 0)
+(2, 'door_notes', 'TEXT', 1, None, 0)
+Sample: (1, 1, 'test')
+
+--- 'framing' Table Schema ---
+(0, 'id', 'INTEGER', 1, None, 1)
+(1, 'project_id', 'INTEGER', 1, None, 0)
+(2, 'plate', 'VARCHAR(50)', 1, None, 0)
+(3, 'lot_type', 'VARCHAR(50)', 1, None, 0)
+(4, 'basement_wall_height', 'VARCHAR(50)', 0, None, 0)
+(5, 'basement_exterior_walls', 'VARCHAR(50)', 1, None, 0)
+(6, 'basement_interior_walls', 'VARCHAR(50)', 1, None, 0)
+(7, 'floor_framing', 'VARCHAR(50)', 1, None, 0)
+(8, 'floor_sheeting', 'VARCHAR(50)', 1, None, 0)
+(9, 'floor_adhesive', 'VARCHAR(50)', 1, None, 0)
+(10, 'exterior_walls', 'VARCHAR(50)', 1, None, 0)
+(11, 'first_floor_wall_height', 'VARCHAR(50)', 1, None, 0)
+(12, 'second_floor_wall_height', 'VARCHAR(50)', 0, None, 0)
+(13, 'wall_sheeting', 'VARCHAR(50)', 1, None, 0)
+(14, 'roof_trusses', 'VARCHAR(50)', 1, None, 0)
+(15, 'roof_sheeting', 'VARCHAR(50)', 1, None, 0)
+(16, 'framing_notes', 'TEXT', 0, None, 0)
+Sample: (1, 1, 'Treated', 'Walkout', "8'", '2x4', 'As Shown', 'TJI I-Joist', 'Edge', 'SF-450', '2x4', "8'", "8'", '7/16" OSB', 'Yes', '1/2" OSB', '')
+
+--- 'shingle' Table Schema ---
+(0, 'id', 'INTEGER', 1, None, 1)
+(1, 'project_id', 'INTEGER', 1, None, 0)
+(2, 'shingle_notes', 'TEXT', 1, None, 0)
+Sample: (1, 1, 'test')
+
+--- 'siding' Table Schema ---
+(0, 'id', 'INTEGER', 1, None, 1)
+(1, 'project_id', 'INTEGER', 1, None, 0)
+(2, 'lap_type', 'VARCHAR(50)', 1, None, 0)
+(3, 'panel_type', 'VARCHAR(50)', 1, None, 0)
+(4, 'shake_type', 'VARCHAR(50)', 1, None, 0)
+(5, 'soffit_trim', 'VARCHAR(50)', 1, None, 0)
+(6, 'window_trim_detail', 'VARCHAR(50)', 1, None, 0)
+(7, 'siding_notes', 'TEXT', 0, None, 0)
+Sample: (1, 1, 'LP', 'LP', 'LP', 'LP', 'Per Plan', '')
+
+--- 'trim' Table Schema ---
+(0, 'id', 'INTEGER', 1, None, 1)
+(1, 'project_id', 'INTEGER', 1, None, 0)
+(2, 'base', 'VARCHAR(50)', 1, None, 0)
+(3, 'case', 'VARCHAR(50)', 1, None, 0)
+(4, 'stair_material', 'VARCHAR(50)', 1, None, 0)
+(5, 'door_material_type', 'VARCHAR(50)', 1, None, 0)
+(6, 'number_of_panels', 'VARCHAR(50)', 1, None, 0)
+(7, 'door_hardware', 'VARCHAR(50)', 1, None, 0)
+(8, 'built_in_materials_type', 'VARCHAR(50)', 1, None, 0)
+(9, 'plywood_1x_count', 'VARCHAR(50)', 0, None, 0)
+(10, 'specify_count', 'VARCHAR(50)', 1, None, 0)
+(11, 'trim_allowance', 'VARCHAR(50)', 0, None, 0)
+(12, 'trim_notes', 'TEXT', 0, None, 0)
+Sample: (1, 1, 'MDF 1x6', 'MDF 1x4', 'Poplar', 'Molded - H/C', '3', 'Schlage', 'Poplar', 'Small (3-5 pcs)', '3', '', '')
+
+--- 'window' Table Schema ---
+(0, 'id', 'INTEGER', 1, None, 1)
+(1, 'project_id', 'INTEGER', 1, None, 0)
+(2, 'window_notes', 'TEXT', 1, None, 0)
+Sample: (1, 1, 'test')
+
+--- 'projects' Table Schema ---
+(0, 'id', 'INTEGER', 1, None, 1)
+(1, 'sales_rep_id', 'INTEGER', 1, None, 0)
+(2, 'contractor', 'VARCHAR(255)', 1, None, 0)
+(3, 'project_address', 'VARCHAR(255)', 1, None, 0)
+(4, 'contractor_phone', 'VARCHAR(15)', 0, None, 0)
+(5, 'contractor_email', 'VARCHAR(255)', 0, None, 0)
+(6, 'include_framing', 'BOOLEAN', 1, None, 0)
+(7, 'include_siding', 'BOOLEAN', 1, None, 0)
+(8, 'include_shingles', 'BOOLEAN', 1, None, 0)
+(9, 'include_deck', 'BOOLEAN', 1, None, 0)
+(10, 'include_doors', 'BOOLEAN', 1, None, 0)
+(11, 'include_windows', 'BOOLEAN', 1, None, 0)
+(12, 'include_trim', 'BOOLEAN', 1, None, 0)
+(13, 'notes', 'TEXT', 0, None, 0)
+(14, 'created_at', 'DATETIME', 1, None, 0)
+(15, 'last_updated_by', 'VARCHAR(150)', 0, None, 0)
+(16, 'last_updated_at', 'DATETIME', 1, None, 0)
+(17, 'customer_id', 'INTEGER', 0, None, 0)
+Sample: (1, 2, 'test', 'test', '', '', 1, 1, 1, 1, 1, 1, 1, None, '2024-11-30 19:34:58.502458', None, '2024-11-30 19:34:58.502463', None)
+
+--- Sample Bid Row (id >= 8816) ---
+(8816, 'Residential', 61, 'McCarty Residence ', 2, 'Complete', '2026-01-23 18:34:10.192713', '2026-02-06 00:00:00.000000', '2026-01-30 20:30:41.544964', 'Talk to Mike Schmit or Ryan before starting. Did not put on dropbox. ', 'jc', '2026-01-30 20:30:41.559594')

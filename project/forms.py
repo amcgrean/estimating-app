@@ -157,9 +157,9 @@ class DesignForm(BaseForm):
     project_address = StringField('Project Address', validators=[DataRequired()])
     contractor = StringField('Contractor')
     contractor = StringField('Contractor')
-    customer_id = SelectField('Customer', coerce=int, validators=[Optional()])
-    job_id = SelectField('Ship To', coerce=int, validators=[Optional()])
-    designer_id = SelectField('Designer', coerce=int, validators=[Optional()])
+    customer_id = SelectField('Customer', coerce=int, choices=[], validators=[Optional()])
+    job_id = SelectField('Ship To', coerce=int, choices=[], validators=[Optional()])
+    designer_id = SelectField('Designer', coerce=int, choices=[], validators=[Optional()])
     preliminary_set_date = DateField('Preliminary Set Date', format='%Y-%m-%d', validators=[Optional()])
     status = SelectField('Status', choices=[
         ('Active', 'Active'),
