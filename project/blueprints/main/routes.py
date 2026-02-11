@@ -1045,9 +1045,6 @@ def add_bid():
             last_updated_by=last_updated_by,
             last_updated_at=last_updated_at,
             branch_id=form.branch_id.data,
-            # New Enhancement Fields
-            bid_date=form.bid_date.data,
-            flexible_bid_date=form.flexible_bid_date.data,
             include_specs=form.include_specs.data,
             include_framing=form.include_framing.data,
             include_siding=form.include_siding.data,
@@ -1620,8 +1617,7 @@ def api_bids_events():
     events = []
     
     for bid in bids:
-        # Prioritize Bid Date for calendar, fallback to Due Date
-        start_date = bid.bid_date if bid.bid_date else bid.due_date
+        start_date = bid.due_date
         
         if start_date:
             # Color coding based on Plan Type

@@ -231,10 +231,6 @@ class BidForm(BaseForm):
     project_name = StringField('Project Name', validators=[DataRequired()])
     due_date = DateField('Due Date', format='%Y-%m-%d', default=lambda: (datetime.utcnow() + timedelta(days=14)).date(), validators=[DataRequired()])
     
-    # New Enhancement Fields
-    bid_date = DateField('Bid Date', format='%Y-%m-%d', validators=[Optional()])
-    flexible_bid_date = BooleanField('Flexible Bid Date')
-    
     # Spec Controls
     include_specs = BooleanField('Include Specs') # Master toggle
     include_framing = BooleanField('Include Framing')

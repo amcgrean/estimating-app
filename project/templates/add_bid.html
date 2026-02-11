@@ -190,30 +190,12 @@
                 </div>
 
                 <div class="row">
-                    <div class="col-md-6">
-                        <div class="form-group mb-4">
-                            <label class="font-weight-600 small text-uppercase tracking-wider mb-2">{{
-                                form.bid_date.label.text }} <span
-                                    class="text-muted font-weight-normal">(Optional)</span></label>
-                            {{ form.bid_date(class="input-modern", type="date") }}
-                        </div>
-                    </div>
-                    <div class="col-md-6">
+                    <div class="col-md-12">
                         <div class="form-group mb-4">
                             <label class="font-weight-600 small text-uppercase tracking-wider mb-2">{{
                                 form.due_date.label.text }}</label>
                             {{ form.due_date(class="input-modern", type="date") }}
                         </div>
-                    </div>
-                </div>
-
-                <!-- Flexible Bid Date Toggle - Visible only when Bid Date is set -->
-                <div class="form-group mb-4" id="flexible-date-container" style="display: none;">
-                    <div class="custom-control custom-checkbox">
-                        {{ form.flexible_bid_date(class="custom-control-input", id="flexibleBidDate") }}
-                        <label class="custom-control-label font-weight-600 text-muted" for="flexibleBidDate">
-                            {{ form.flexible_bid_date.label.text }}
-                        </label>
                     </div>
                 </div>
 
@@ -718,10 +700,75 @@
 
     // Master Specs Toggle Logic Removed - Section always visible
 
-    // Toggle Flexible Bid Date
-    const bidDateInput = document.getElementById('bid_date');
-    const flexibleDateContainer = document.getElementById('flexible-date-container');
-    const flexibleDateCheckbox = document.getElementById('flexibleBidDate');
+    $(document).ready(function () {
+        $('.select2-enable').select2({
+            width: '100%',
+            placeholder: "Search...",
+            allowClear: true
+        });
+
+        // Ship To / Job Selection Logic
+        var customerSelect = $('#customer_id');
+        var jobSelect = $('#job_id');
+        var jobGroup = $('#ship-to-group');
+
+        function loadJobs(customerId) {
+            if (!customerId || customerId == 0) {
+                jobGroup.slideUp();
+                jobSelect.empty();
+                return;
+            }
+
+            jobSelect.prop('disabled', true);
+
+            $.ajax({
+                url: '/api/customer/' + customerId + '/jobs',
+                type: 'GET',
+                success: function (data) {
+                    jobSelect.empty();
+                    jobSelect.append(new Option('Select Ship To', 0));
+
+                    var defaultJobId = null;
+
+                    if (data.length > 0) {
+                        data.forEach(function (job) {
+                            var option = new Option(job.full_name, job.id);
+                            jobSelect.append(option);
+                            // Check for default (Reference 1)
+                            if (job.reference == '1' || job.reference == 1) {
+                                defaultJobId = job.id;
+                            }
+                        });
+
+                        jobSelect.prop('disabled', false);
+                        jobGroup.slideDown();
+
+                        // Select default if found
+                        if (defaultJobId) {
+                            jobSelect.val(defaultJobId).trigger('change');
+                        }
+                    } else {
+                        jobGroup.slideUp();
+                    }
+                },
+                error: function (err) {
+                    console.error('Error fetching jobs:', err);
+                    jobSelect.prop('disabled', false);
+                }
+            });
+        }
+
+        // Listen for change
+        customerSelect.on('change', function () {
+            var custId = $(this).val();
+            loadJobs(custId);
+        });
+
+        // Initial Load (if validation fail)
+        if (customerSelect.val() && customerSelect.val() != 0) {
+            loadJobs(customerSelect.val());
+        }
+    });
 
     // --- S3 Direct Upload Logic ---
     // --- Auto-fill Sales Rep Logic ---
@@ -991,20 +1038,5 @@
         }
     })();
 
-    function toggleFlexibleDate() {
-        if (bidDateInput.value) {
-            flexibleDateContainer.style.display = 'block';
-        } else {
-            flexibleDateContainer.style.display = 'none';
-            flexibleDateCheckbox.checked = false; // Reset if hidden
-        }
-    }
-
-    if (bidDateInput) {
-        bidDateInput.addEventListener('change', toggleFlexibleDate);
-        // Also listen for input event just in case
-        bidDateInput.addEventListener('input', toggleFlexibleDate);
-        toggleFlexibleDate(); // Run on load
-    }
 </script>
 {% endblock %}
