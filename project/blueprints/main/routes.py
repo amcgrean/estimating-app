@@ -1797,8 +1797,8 @@ def add_design():
 
     # Populate Job choices if customer selected
     if form.customer_id.data and form.customer_id.data != 0:
-        jobs = Job.query.filter_by(customer_id=form.customer_id.data).order_by(Job.name).all()
-        form.job_id.choices = [(0, 'Select Ship To')] + [(j.id, j.name) for j in jobs]
+        jobs = Job.query.filter_by(customer_id=form.customer_id.data).order_by(Job.job_name).all()
+        form.job_id.choices = [(0, 'Select Ship To')] + [(j.id, j.job_name) for j in jobs]
     else:
         form.job_id.choices = [(0, 'Select Ship To')]
     
