@@ -1749,23 +1749,27 @@ def generate_next_plan_number():
     import re
     
     current_year_suffix = datetime.now().strftime('%y')
-    pattern = f"-{current_year_suffix}$"
     
-    # Find all designs ending with current year suffix
-    # Note: This is a bit inefficient if table is huge, but with 10 char limit it should be okay.
-    # Ideally use SQL LIKE
-    last_design = Design.query.filter(Design.planNumber.like(f'%-%{current_year_suffix}')).order_by(Design.id.desc()).first()
+    # Fetch all plan numbers for the current year to find the true maximum
+    designs = Design.query.filter(Design.planNumber.like(f'%-%{current_year_suffix}')).all()
     
     next_sequence = 1001
-    if last_design:
-        # Extract the numeric part before the hyphen
-        match = re.match(r'(\d+)-', last_design.planNumber)
-        if match:
-            try:
-                next_sequence = int(match.group(1)) + 1
-            except ValueError:
-                pass
-    
+    if designs:
+        max_seq = 0
+        for d in designs:
+            # Extract the numeric part before the hyphen
+            match = re.match(r'(\d+)-', d.planNumber)
+            if match:
+                try:
+                    seq = int(match.group(1))
+                    if seq > max_seq:
+                        max_seq = seq
+                except ValueError:
+                    continue
+        
+        if max_seq >= 1001:
+            next_sequence = max_seq + 1
+            
     return f"{next_sequence:04d}-{current_year_suffix}"
 
 
