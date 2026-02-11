@@ -272,6 +272,15 @@ class BidActivity(db.Model):
     user = db.relationship('User', backref=db.backref('bid_activities', lazy=True))
     bid = db.relationship('Bid', backref=db.backref('activities', lazy=True, cascade="all, delete-orphan"))
 
+class DesignActivity(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    design_id = db.Column(db.Integer, db.ForeignKey('design.id'), nullable=False)
+    action = db.Column(db.String(50), nullable=False)
+    timestamp = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
+    user = db.relationship('User', backref=db.backref('design_activities', lazy=True))
+    design = db.relationship('Design', backref=db.backref('activities', lazy=True, cascade="all, delete-orphan"))
+
 class GeneralAudit(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)

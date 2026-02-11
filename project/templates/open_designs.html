@@ -50,6 +50,50 @@
     </a>
 </div>
 
+{% if recently_viewed_designs %}
+<div class="premium-card mb-4 py-3">
+    <h5 class="mb-3 d-flex align-items-center px-3">
+        <i class="fas fa-history text-muted mr-2 small"></i> Recently Viewed Designs
+    </h5>
+    <div class="table-responsive">
+        <table class="table mb-0 table-sm">
+            <thead>
+                <tr>
+                    <th>Plan #</th>
+                    <th>Plan Name</th>
+                    <th>Customer</th>
+                    <th>Status</th>
+                    <th>Last Viewed</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for design in recently_viewed_designs %}
+                <tr>
+                    <td class="font-weight-600">{{ design.planNumber }}</td>
+                    <td><a href="{{ url_for('main.manage_design', design_id=design.id) }}"
+                            class="font-weight-600 text-primary">{{ design.plan_name }}</a></td>
+                    <td><a href="{{ url_for('main.view_customer_bids', customer_id=design.customer_id) }}"
+                            class="text-dark">{{ design.customer.name }}</a></td>
+                    <td>
+                        {% if design.status == 'Incomplete' %}
+                        <span class="badge-premium badge-incomplete py-0 px-2"
+                            style="font-size: 0.75rem;">Incomplete</span>
+                        {% elif design.status == 'Complete' %}
+                        <span class="badge-premium badge-complete py-0 px-2" style="font-size: 0.75rem;">Complete</span>
+                        {% else %}
+                        <span class="badge-premium badge-active py-0 px-2" style="font-size: 0.75rem;">{{ design.status
+                            }}</span>
+                        {% endif %}
+                    </td>
+                    <td class="text-muted small">Just now</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endif %}
+
 <div class="filter-panel">
     <form method="GET" action="{{ url_for('main.open_designs') }}" class="form-row align-items-end">
         <div class="col-md-4">

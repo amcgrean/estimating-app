@@ -4,7 +4,7 @@ from project import mail, db
 from project.models import (
     Bid, Customer, Estimator, Design, User, EWP, UserType, UserSecurity,
     Branch, LoginActivity, ITService, Project, BidActivity, BidFile, NotificationRule,
-    BidField, BidValue, Job, Designer
+    BidField, BidValue, Job, Designer, DesignActivity
 )
 import csv
 import json
@@ -78,17 +78,26 @@ def index():
         if branch_id and branch_id != 0:
             query = query.filter(model.branch_id == branch_id)
         
-        # Sales Rep Filtering (My Bids)
-        if filter_sales_reps and current_user.is_authenticated and current_user.usertype.name == 'Sales Rep':
-            if model == Bid:
-                 sales_rep_name = current_user.username
-                 # Ensure we join with Customer if not already joined, but SQLAlchemy handles joins smartly.
-                 # Actually, to be safe, we check if filtering by Customer fields.
-                 # But simplistic approach:
-                 query = query.join(Customer).filter(
-                     (Bid.sales_rep_id == current_user.id) |
-                     (Customer.sales_agent == sales_rep_name)
-                 )
+        # Sales Rep Filtering (My Bids / My Designs)
+        if filter_sales_reps and current_user.is_authenticated:
+            if current_user.usertype.name == 'Sales Rep':
+                if model == Bid:
+                     sales_rep_name = current_user.username
+                     query = query.join(Customer).filter(
+                         (Bid.sales_rep_id == current_user.id) |
+                         (Customer.sales_agent == sales_rep_name)
+                     )
+                elif model == Design:
+                     sales_rep_name = current_user.username
+                     query = query.join(Customer).filter(Customer.sales_agent == sales_rep_name)
+            
+            # Designer Logic (My Designs)
+            elif current_user.usertype.name == 'Designer':
+                if model == Design:
+                    # Filter by designer_id if linked
+                    if current_user.designer_id:
+                        query = query.filter(Design.designer_id == current_user.designer_id)
+
         return query
 
     # Open bids count (incomplete)
@@ -142,8 +151,10 @@ def index():
     if recent_bid_ids:
         # Preserve order and apply branch filter
         query = Bid.query.filter(Bid.id.in_(recent_bid_ids))
-        if branch_id and branch_id != 0:
-            query = query.filter(Bid.branch_id == branch_id)
+        query = apply_branch_filter(query, Bid)
+        # Re-applying apply_branch_filter handles branch check AND sales rep check logic centrally.
+        # But apply_branch_filter already checks branch_id internally.
+        # So we just call it.
         
         projects_dict = {b.id: b for b in query.all()}
         recently_opened_projects = [projects_dict[bid_id] for bid_id in recent_bid_ids if bid_id in projects_dict]
@@ -1883,6 +1894,10 @@ def open_designs():
     branch_id = session.get('branch_id')
     if branch_id and branch_id != 0:
         query = query.filter(Design.branch_id == branch_id)
+    
+    # Sales Rep Filtering
+    if current_user.usertype.name == 'Sales Rep':
+        query = query.filter(Customer.sales_agent == current_user.username)
 
     # Apply status filter
     query = query.filter(Design.status == status_filter)
@@ -1904,12 +1919,42 @@ def open_designs():
     # Apply sorting
     open_designs = query.order_by(sort_column_attr).all()
 
+    # --- Recently Viewed Designs Logic ---
+    recently_viewed_designs = []
+    try:
+        recent_activities = db.session.query(DesignActivity.design_id, func.max(DesignActivity.timestamp).label('max_time')) \
+            .filter(DesignActivity.user_id == current_user.id, DesignActivity.action == 'viewed') \
+            .group_by(DesignActivity.design_id) \
+            .order_by(func.max(DesignActivity.timestamp).desc()) \
+            .limit(5) \
+            .all()
+        
+        recent_design_ids = [r.design_id for r in recent_activities]
+        
+        if recent_design_ids:
+            # Fetch designs
+            recent_q = Design.query.filter(Design.id.in_(recent_design_ids))
+            if branch_id and branch_id != 0:
+                recent_q = recent_q.filter(Design.branch_id == branch_id)
+            
+            # Apply Sales Rep Filter to Recent as well
+            if current_user.usertype.name == 'Sales Rep':
+                recent_q = recent_q.join(Customer).filter(Customer.sales_agent == current_user.username)
+
+            d_dict = {d.id: d for d in recent_q.all()}
+            # Maintain order from activity log
+            recently_viewed_designs = [d_dict[did] for did in recent_design_ids if did in d_dict]
+    except Exception as e:
+        # current_app.logger.error(f"Error fetching recent designs: {e}")
+        pass
+    # -------------------------------------
+
     # Fetch distinct statuses for the filter dropdowns
     statuses = ['Active', 'Bid Set', 'Cancelled', 'Completed', 'On Hold']
 
     branches = Branch.query.all()
     return render_template('open_designs.html', designs=open_designs, sort_column=sort_column, sort_direction=sort_direction, statuses=statuses, current_status=status_filter,
-                           branches=branches, current_branch_id=branch_id, start_date=start_date, end_date=end_date)
+                           branches=branches, current_branch_id=branch_id, start_date=start_date, end_date=end_date, recently_viewed_designs=recently_viewed_designs)
 
 @main.route('/manage_design/<int:design_id>', methods=['GET', 'POST'])
 @login_required
@@ -1938,11 +1983,54 @@ def manage_design(design_id):
     if form.validate_on_submit():
         form.populate_obj(design)
         db.session.commit()
+        
+        # Log Activity (Update)
+        # try:
+        #     activity = DesignActivity(user_id=current_user.id, design_id=design.id, action='updated')
+        #     db.session.add(activity)
+        #     db.session.commit()
+        # except:
+        #     db.session.rollback()
+
         flash('Design updated successfully!', 'success')
         return redirect(url_for('main.open_designs'))
 
+    # Log Activity (View) - Only on GET or initial load
+    if request.method == 'GET':
+        try:
+            activity = DesignActivity(
+                user_id=current_user.id,
+                design_id=design.id,
+                action='viewed'
+            )
+            db.session.add(activity)
+            db.session.commit()
+        except Exception as e:
+            db.session.rollback()
+            # current_app.logger.error(f"Error logging design view: {e}")
+
     statuses = ['Active', 'Bid Set', 'Cancelled', 'Completed', 'On Hold']
     return render_template('manage_design.html', design=design, form=form, statuses=statuses)
+
+@main.route('/delete_design/<int:design_id>', methods=['POST'])
+@login_required
+def delete_design(design_id):
+    design = Design.query.get_or_404(design_id)
+    
+    # Permission Check
+    if current_user.usertype.name == 'Sales Rep':
+        flash('You do not have permission to delete designs.', 'danger')
+        return redirect(url_for('main.open_designs'))
+
+    try:
+        db.session.delete(design)
+        db.session.commit()
+        flash('Design deleted successfully!', 'success')
+    except Exception as e:
+        db.session.rollback()
+        flash(f'Error deleting design: {str(e)}', 'danger')
+    
+    return redirect(url_for('main.open_designs'))
 
 @main.route('/bid_request', methods=['GET', 'POST'])
 @login_required
