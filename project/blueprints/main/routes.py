@@ -405,12 +405,14 @@ def fill_pdf(pdf_path, output_path, data):
 
 
 @main.route('/get_roles')
+@login_required
 def get_roles():
     role_type = request.args.get('type')
     roles = Estimator.query.filter_by(type=role_type).all()
     return jsonify([{'id': role.estimatorID, 'name': role.estimatorName} for role in roles])
 
 @main.route('/get_estimators')
+@login_required
 def get_estimators():
     estimator_type = request.args.get('type', type=int)
     estimators = Estimator.query.filter_by(type=estimator_type).all()
@@ -488,6 +490,7 @@ def get_customer_jobs(customer_id):
 from project.forms import FilterForm
 
 @main.route('/layouts', methods=['GET'])
+@login_required
 def view_layouts():
     form = FilterForm(request.args)
 
@@ -1771,6 +1774,7 @@ def debug_bids():
     return str(incomplete_bids)
 
 @main.route('/add_design', methods=['GET', 'POST'])
+@login_required
 def add_design():
     form = DesignForm()
 
@@ -1828,6 +1832,7 @@ def add_design():
     return render_template('add_design.html', form=form)
 
 @main.route('/open_designs', methods=['GET'])
+@login_required
 def open_designs():
     # Get the sort column from the query parameters, default to 'log_date'
     sort_column = request.args.get('sort', 'log_date')
@@ -1901,6 +1906,7 @@ def open_designs():
                            branches=branches, current_branch_id=branch_id, start_date=start_date, end_date=end_date)
 
 @main.route('/manage_design/<int:design_id>', methods=['GET', 'POST'])
+@login_required
 def manage_design(design_id):
     design = Design.query.get_or_404(design_id)
     form = DesignForm(obj=design)  # Create an instance of your form and pass the design object
@@ -2212,6 +2218,7 @@ def manage_project(project_id):
     )
 
 @main.route('/mockup/spec_sheet')
+@login_required
 def mockup_spec_sheet():
     return render_template('mockups/pdf_spec_sheet.html')
 
