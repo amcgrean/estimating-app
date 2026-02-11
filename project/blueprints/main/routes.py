@@ -575,7 +575,8 @@ def create_layout():
     form = LayoutForm()
 
     # Determine the branch_id for populating choices
-    selected_branch_id = form.branch_id.data or request.args.get('branch_id', current_user.user_branch_id, type=int)
+    user_branch = current_user.user_branch_id if current_user.is_authenticated else None
+    selected_branch_id = form.branch_id.data or request.args.get('branch_id', user_branch, type=int)
 
     # Populate the sales reps and customers
     form.sales_rep_id.choices = get_branch_sales_reps(selected_branch_id)
@@ -1779,7 +1780,8 @@ def add_design():
     form = DesignForm()
 
     # Determine the branch_id for populating choices
-    selected_branch_id = form.branch_id.data or request.args.get('branch_id', current_user.user_branch_id, type=int)
+    user_branch = current_user.user_branch_id if current_user.is_authenticated else None
+    selected_branch_id = form.branch_id.data or request.args.get('branch_id', user_branch, type=int)
 
     # Populate Customer choices based on branch
     customer_query = Customer.query
