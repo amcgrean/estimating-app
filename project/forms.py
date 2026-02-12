@@ -97,6 +97,7 @@ class UpdateUserForm(BaseForm):
     user_branch_id = SelectField('Branch', coerce=int, choices=[], validators=[DataRequired()])
     is_estimator = BooleanField('Is Estimator')
     is_designer = BooleanField('Is Designer')
+    is_active = BooleanField('Active')
     password = PasswordField('New Password (leave blank to keep current password)', validators=[Optional()])
     submit = SubmitField('Update')
 

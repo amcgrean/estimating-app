@@ -165,6 +165,8 @@ def edit_user(user_id):
         user.usertype_id = form.usertype_id.data
         user.user_branch_id = form.user_branch_id.data
         user.is_estimator = form.is_estimator.data
+        user.is_designer = form.is_designer.data
+        user.is_active = form.is_active.data
 
         # Sync with Estimator table if marked as estimator
         if user.is_estimator:
