@@ -350,7 +350,16 @@ class NotificationRuleForm(FlaskForm):
     # We will populate these choices dynamically in the view or leave them empty and let JS/Validation handle logic
     recipient_role = SelectField('Role', coerce=int, validators=[Optional()])
     recipient_user = SelectField('User', coerce=int, validators=[Optional()])
-    submit = SubmitField('Create Rule')
+    
+    # Filters
+    branch_id = SelectField('Limit to Branch', coerce=int, validators=[Optional()])
+    bid_type = SelectField('Limit to Bid Type', choices=[
+        ('', 'All Bid Types'),
+        ('Residential', 'Residential'), 
+        ('Commercial', 'Commercial')
+    ], validators=[Optional()])
+    
+    submit = SubmitField('Save Rule')
 
 
 class BidFieldForm(FlaskForm):

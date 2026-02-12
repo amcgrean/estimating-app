@@ -815,6 +815,14 @@ def send_bid_notification(bid, event_type):
         recipients = set() # Set of emails to avoid duplicates
 
         for rule in rules:
+            # Check Branch Filter
+            if rule.branch_id and rule.branch_id != bid.branch_id:
+                continue
+            
+            # Check Bid Type Filter
+            if rule.bid_type and rule.bid_type != bid.plan_type:
+                continue
+
             if rule.recipient_type == 'user':
                 user = User.query.get(rule.recipient_id)
                 if user and user.email:

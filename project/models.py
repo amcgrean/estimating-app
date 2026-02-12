@@ -154,6 +154,12 @@ class NotificationRule(db.Model):
 
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
 
+    # Filters
+    branch_id = db.Column(db.Integer, db.ForeignKey('branch.branch_id'), nullable=True)
+    bid_type = db.Column(db.String(50), nullable=True) # 'Residential' or 'Commercial'
+
+    branch = db.relationship('Branch', backref=db.backref('notification_rules', lazy=True))
+
     def __repr__(self):
         return f'<NotificationRule {self.event_type} -> {self.recipient_type}:{self.recipient_id}>'
 

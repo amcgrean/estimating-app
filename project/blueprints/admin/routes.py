@@ -688,9 +688,16 @@ def add_notification_rule():
     users = User.query.all()
     form.recipient_user.choices = [(0, 'Select User...')] + [(u.id, f"{u.username} ({u.email})") for u in users]
 
+    # Populate Branch Choices
+    branches = Branch.query.all()
+    form.branch_id.choices = [(0, 'All Branches')] + [(b.branch_id, b.branch_name) for b in branches]
+
+
     if form.validate_on_submit():
         event_type = form.event_type.data
         recipient_type = form.recipient_type.data
+        branch_id = form.branch_id.data if form.branch_id.data != 0 else None
+        bid_type = form.bid_type.data if form.bid_type.data else None
         
         recipient_name = "Unknown"
         recipient_id = None
@@ -711,7 +718,9 @@ def add_notification_rule():
                 event_type=event_type,
                 recipient_type=recipient_type,
                 recipient_id=recipient_id,
-                recipient_name=recipient_name
+                recipient_name=recipient_name,
+                branch_id=branch_id,
+                bid_type=bid_type
             )
             db.session.add(new_rule)
             db.session.commit()
@@ -720,7 +729,65 @@ def add_notification_rule():
         else:
              flash('Please select a valid recipient for the chosen type.', 'danger')
 
-    return render_template('add_notification_rule.html', form=form)
+    return render_template('add_notification_rule.html', form=form, title="Add Notification Rule")
+
+@admin.route('/edit_notification_rule/<int:rule_id>', methods=['GET', 'POST'])
+@login_required
+def edit_notification_rule(rule_id):
+    if not current_user.is_admin:
+        flash('Access denied.', 'danger')
+        return redirect(url_for('main.index'))
+    
+    rule = NotificationRule.query.get_or_404(rule_id)
+    form = NotificationRuleForm(obj=rule)
+
+    # Populate Choices (same as add)
+    form.event_type.choices = [('', 'Choose Event...'), ('new_bid', 'New Bid Submitted'), ('bid_completed', 'Bid Completed')]
+    roles = UserType.query.all()
+    form.recipient_role.choices = [(0, 'Select Role...')] + [(r.id, r.name) for r in roles]
+    users = User.query.all()
+    form.recipient_user.choices = [(0, 'Select User...')] + [(u.id, f"{u.username} ({u.email})") for u in users]
+    branches = Branch.query.all()
+    form.branch_id.choices = [(0, 'All Branches')] + [(b.branch_id, b.branch_name) for b in branches]
+
+    if request.method == 'GET':
+        # Pre-select dropdowns based on saved IDs
+        if rule.recipient_type == 'user':
+            form.recipient_user.data = rule.recipient_id
+        elif rule.recipient_type == 'role':
+            form.recipient_role.data = rule.recipient_id
+            
+        form.branch_id.data = rule.branch_id if rule.branch_id else 0
+
+    if form.validate_on_submit():
+        rule.event_type = form.event_type.data
+        rule.recipient_type = form.recipient_type.data
+        rule.branch_id = form.branch_id.data if form.branch_id.data != 0 else None
+        rule.bid_type = form.bid_type.data if form.bid_type.data else None
+        
+        recipient_id = None
+        recipient_name = "Unknown"
+
+        if rule.recipient_type == 'user':
+            recipient_id = form.recipient_user.data
+            user = User.query.get(recipient_id)
+            if user: recipient_name = user.username
+        elif rule.recipient_type == 'role':
+            recipient_id = form.recipient_role.data
+            role = UserType.query.get(recipient_id)
+            if role: recipient_name = role.name
+            
+        if recipient_id and recipient_id != 0:
+            rule.recipient_id = recipient_id
+            rule.recipient_name = recipient_name
+            
+            db.session.commit()
+            flash('Notification rule updated.', 'success')
+            return redirect(url_for('admin.manage_notifications'))
+        else:
+            flash('Please select a valid recipient.', 'danger')
+
+    return render_template('add_notification_rule.html', form=form, title="Edit Notification Rule")
 
 @admin.route('/delete_notification_rule/<int:rule_id>', methods=['POST'])
 @login_required

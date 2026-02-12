@@ -12,7 +12,7 @@
                 <p class="mb-0 text-center text-white-50 small mt-1">Set up automated email alert rules</p>
             </div>
             <div class="card-body p-5">
-                <form method="POST" action="{{ url_for('admin.add_notification_rule') }}">
+                <form method="POST">
                     {{ form.hidden_tag() }}
 
                     <!-- Event Selection -->
@@ -21,6 +21,25 @@
                         tracking-wider") }}
                         {{ form.event_type(class="form-control form-control-lg custom-select input-premium") }}
                     </div>
+
+                    <!-- Filter by Branch -->
+                    <div class="form-group mb-4">
+                        {{ form.branch_id.label(class="font-weight-bold text-uppercase small text-muted
+                        tracking-wider") }}
+                        {{ form.branch_id(class="form-control form-control-lg custom-select input-premium") }}
+                        <small class="text-muted">Leave as "All Branches" to send for every branch.</small>
+                    </div>
+
+                    <!-- Filter by Bid Type -->
+                    <div class="form-group mb-4">
+                        {{ form.bid_type.label(class="font-weight-bold text-uppercase small text-muted
+                        tracking-wider") }}
+                        {{ form.bid_type(class="form-control form-control-lg custom-select input-premium") }}
+                        <small class="text-muted">Leave as "All Types" to send for both Residential and
+                            Commercial.</small>
+                    </div>
+
+                    <hr class="my-4">
 
                     <!-- Recipient Type -->
                     <div class="form-group mb-4">
