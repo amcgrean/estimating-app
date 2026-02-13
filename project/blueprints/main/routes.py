@@ -809,20 +809,22 @@ def send_bid_notification(bid, event_type):
     """
     try:
         rules = NotificationRule.query.filter_by(event_type=event_type).all()
-        if not rules:
-            return
-
+        current_app.logger.info(f"Checking {len(rules)} rules for event {event_type} (Bid Branch: {bid.branch_id}, Type: {bid.plan_type})")
+        
         recipients = set() # Set of emails to avoid duplicates
 
         for rule in rules:
             # Check Branch Filter
             if rule.branch_id and rule.branch_id != bid.branch_id:
+                current_app.logger.info(f"  Rule {rule.id} skipped: Branch mismatch ({rule.branch_id} vs {bid.branch_id})")
                 continue
             
             # Check Bid Type Filter
             if rule.bid_type and rule.bid_type != bid.plan_type:
+                current_app.logger.info(f"  Rule {rule.id} skipped: Type mismatch ('{rule.bid_type}' vs '{bid.plan_type}')")
                 continue
 
+            current_app.logger.info(f"  Rule {rule.id} matched! Recipient: {rule.recipient_name} ({rule.recipient_type})")
             if rule.recipient_type == 'user':
                 user = User.query.get(rule.recipient_id)
                 if user and user.email:
@@ -833,10 +835,12 @@ def send_bid_notification(bid, event_type):
                 for user in users:
                     if user.email:
                         recipients.add(user.email)
-            # Add branch_role logic if needed later
         
         if not recipients:
+            current_app.logger.info("No recipients found for this notification.")
             return
+
+        current_app.logger.info(f"Sending notification to: {recipients}")
 
         subject = f"New Bid Submitted: {bid.project_name}"
         if event_type == 'bid_completed':
