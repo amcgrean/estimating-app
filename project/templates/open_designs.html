@@ -125,13 +125,29 @@
         <table class="table-premium mb-0">
             <thead>
                 <tr>
-                    <th>Plan #</th>
+                    <th>
+                        <a href="{{ url_for('main.open_designs', sort='planNumber', direction='asc' if sort_column == 'planNumber' and sort_direction == 'desc' else 'desc', status=current_status, start_date=start_date, end_date=end_date) }}"
+                            class="text-muted">
+                            Plan #
+                            {% if sort_column == 'planNumber' %}
+                            <i class="fas fa-sort-{{ 'down' if sort_direction == 'desc' else 'up' }} ml-1"></i>
+                            {% endif %}
+                        </a>
+                    </th>
                     <th>Plan Name</th>
                     <th>Customer</th>
                     <th>Address</th>
                     <th>Designer</th>
                     <th>Status</th>
-                    <th>Log Date</th>
+                    <th>
+                        <a href="{{ url_for('main.open_designs', sort='log_date', direction='asc' if sort_column == 'log_date' and sort_direction == 'desc' else 'desc', status=current_status, start_date=start_date, end_date=end_date) }}"
+                            class="text-muted">
+                            Log Date
+                            {% if sort_column == 'log_date' %}
+                            <i class="fas fa-sort-{{ 'down' if sort_direction == 'desc' else 'up' }} ml-1"></i>
+                            {% endif %}
+                        </a>
+                    </th>
                     <th>Notes</th>
                 </tr>
             </thead>

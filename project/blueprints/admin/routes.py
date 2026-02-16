@@ -3,7 +3,7 @@ from flask_login import login_required, current_user
 from project import db, mail
 from datetime import date
 from sqlalchemy import func, cast, Date
-from project.models import User, UserType, Customer, Bid, Estimator, Branch, UserSecurity, Design, LoginActivity, NotificationRule, Designer
+from project.models import User, UserType, Customer, Bid, Estimator, Branch, UserSecurity, Design, LoginActivity, NotificationRule, Designer, NotificationLog
 from project.forms import UserForm, UpdateUserForm, UploadForm, CustomerForm, UserTypeForm, UserSecurityForm, SearchForm, NotificationRuleForm
 from werkzeug.utils import secure_filename
 from werkzeug.security import generate_password_hash
@@ -798,6 +798,18 @@ def delete_notification_rule(rule_id):
     rule = NotificationRule.query.get_or_404(rule_id)
     db.session.delete(rule)
     db.session.commit()
+    flash('Notification rule deleted.', 'success')
+    return redirect(url_for('admin.manage_notifications'))
+
+@admin.route('/notification_logs')
+@login_required
+def notification_logs():
+    if not current_user.is_admin:
+        flash('Access denied.', 'danger')
+        return redirect(url_for('main.index'))
+    
+    logs = NotificationLog.query.order_by(NotificationLog.timestamp.desc()).limit(200).all()
+    return render_template('notification_logs.html', logs=logs)
     flash('Rule deleted.', 'success')
     return redirect(url_for('admin.manage_notifications'))
 

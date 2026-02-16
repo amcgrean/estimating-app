@@ -390,6 +390,22 @@ class Project(db.Model):
         return f"<Project id={self.id} contractor={self.contractor}>"
 
 
+class NotificationLog(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    bid_id = db.Column(db.Integer, db.ForeignKey('bid.id'), nullable=True)
+    event_type = db.Column(db.String(50), nullable=False)
+    recipients = db.Column(db.Text, nullable=True) # Comma separated list
+    matched_rules = db.Column(db.Text, nullable=True) # Comma separated list of rule IDs
+    status = db.Column(db.String(50), nullable=False) # 'sent', 'failed', 'no_recipients'
+    error_message = db.Column(db.Text, nullable=True)
+    timestamp = db.Column(db.DateTime, default=datetime.utcnow)
+
+    bid = db.relationship('Bid', backref=db.backref('notification_logs', lazy=True, cascade="all, delete-orphan"))
+
+    def __repr__(self):
+        return f'<NotificationLog {self.event_type} status:{self.status} bid:{self.bid_id}>'
+
+
 
 
 

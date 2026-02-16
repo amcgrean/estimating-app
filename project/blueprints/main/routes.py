@@ -4,7 +4,7 @@ from project import mail, db
 from project.models import (
     Bid, Customer, Estimator, Design, User, EWP, UserType, UserSecurity,
     Branch, LoginActivity, ITService, Project, BidActivity, BidFile, NotificationRule,
-    BidField, BidValue, Job, Designer, DesignActivity
+    BidField, BidValue, Job, Designer, DesignActivity, NotificationLog
 )
 import csv
 import json
@@ -805,68 +805,86 @@ def sign_s3():
 
 def send_bid_notification(bid, event_type):
     """
-    Sends email notifications based on NotificationRules.
+    Sends email notifications based on NotificationRules and logs the attempt.
     """
+    matched_rules = []
+    recipients = set()
+    status = 'no_recipients'
+    error_message = None
+
     try:
         rules = NotificationRule.query.filter_by(event_type=event_type).all()
         current_app.logger.info(f"Checking {len(rules)} rules for event {event_type} (Bid Branch: {bid.branch_id}, Type: {bid.plan_type})")
         
-        recipients = set() # Set of emails to avoid duplicates
-
         for rule in rules:
             # Check Branch Filter
             if rule.branch_id and rule.branch_id != bid.branch_id:
-                current_app.logger.info(f"  Rule {rule.id} skipped: Branch mismatch ({rule.branch_id} vs {bid.branch_id})")
                 continue
             
             # Check Bid Type Filter
             if rule.bid_type and rule.bid_type != bid.plan_type:
-                current_app.logger.info(f"  Rule {rule.id} skipped: Type mismatch ('{rule.bid_type}' vs '{bid.plan_type}')")
                 continue
 
+            matched_rules.append(str(rule.id))
             current_app.logger.info(f"  Rule {rule.id} matched! Recipient: {rule.recipient_name} ({rule.recipient_type})")
+            
             if rule.recipient_type == 'user':
                 user = User.query.get(rule.recipient_id)
                 if user and user.email:
                     recipients.add(user.email)
             elif rule.recipient_type == 'role':
-                # Get all users with this role
                 users = User.query.filter_by(usertype_id=rule.recipient_id).all()
                 for user in users:
                     if user.email:
                         recipients.add(user.email)
         
-        if not recipients:
-            current_app.logger.info("No recipients found for this notification.")
-            return
-
-        current_app.logger.info(f"Sending notification to: {recipients}")
-
-        subject = f"New Bid Submitted: {bid.project_name}"
-        if event_type == 'bid_completed':
-            subject = f"Bid Completed: {bid.project_name}"
+        if recipients:
+            current_app.logger.info(f"Sending notification to: {recipients}")
+            subject = f"New Bid Submitted: {bid.project_name}"
+            if event_type == 'bid_completed':
+                subject = f"Bid Completed: {bid.project_name}"
+                
+            msg = Message(subject,
+                          sender=current_app.config.get('MAIL_DEFAULT_SENDER', 'noreply@pa-bid-request.com'),
+                          recipients=list(recipients))
             
-        msg = Message(subject,
-                      sender=current_app.config.get('MAIL_DEFAULT_SENDER', 'noreply@pa-bid-request.com'),
-                      recipients=list(recipients))
-        
-        # Simple text body for now
-        msg.body = f"""
-        A new bid has been submitted.
-        
-        Project: {bid.project_name}
-        Customer: {bid.customer.name if bid.customer else 'Unknown'}
-        Submitted By: {bid.last_updated_by}
-        Link: {url_for('main.edit_bid', bid_id=bid.id, _external=True)}
-        
-        Please log in to view details.
-        """
-        
-        mail.send(msg)
-        current_app.logger.info(f"Sent {event_type} notification to {len(recipients)} recipients.")
+            msg.body = f"""
+            A new bid has been submitted.
+            
+            Project: {bid.project_name}
+            Customer: {bid.customer.name if bid.customer else 'Unknown'}
+            Submitted By: {bid.last_updated_by}
+            Link: {url_for('main.manage_bid', bid_id=bid.id, _external=True)}
+            
+            Please log in to view details.
+            """
+            
+            mail.send(msg)
+            status = 'sent'
+            current_app.logger.info(f"Sent {event_type} notification to {len(recipients)} recipients.")
+        else:
+            current_app.logger.info("No recipients found for this notification.")
 
     except Exception as e:
+        status = 'failed'
+        error_message = str(e)
         current_app.logger.error(f"Failed to send notification: {e}")
+    
+    finally:
+        try:
+            log = NotificationLog(
+                bid_id=bid.id,
+                event_type=event_type,
+                recipients=', '.join(list(recipients)) if recipients else None,
+                matched_rules=', '.join(matched_rules) if matched_rules else None,
+                status=status,
+                error_message=error_message
+            )
+            db.session.add(log)
+            db.session.commit()
+        except Exception as log_e:
+            db.session.rollback()
+            current_app.logger.error(f"Failed to create notification log: {log_e}")
 
 @main.route('/add_bid', methods=['GET', 'POST'])
 @login_required
@@ -1865,8 +1883,8 @@ def add_design():
 def open_designs():
     # Get the sort column from the query parameters, default to 'log_date'
     sort_column = request.args.get('sort', 'log_date')
-    # Get the sort direction from the query parameters, default to 'asc'
-    sort_direction = request.args.get('direction', 'asc')
+    # Get the sort direction from the query parameters, default to 'desc'
+    sort_direction = request.args.get('direction', 'desc')
 
     # Validate the sort direction
     if sort_direction not in ['asc', 'desc']:
