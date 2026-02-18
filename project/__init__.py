@@ -125,11 +125,13 @@ def create_app():
     from .blueprints.auth.routes import auth as auth_blueprint
     from .blueprints.admin.routes import admin as admin_blueprint
     from .blueprints.debug.routes import debug_bp
+    from .blueprints.api.cron_routes import api as api_blueprint
     
     app.register_blueprint(main_blueprint)
     app.register_blueprint(auth_blueprint)
     app.register_blueprint(admin_blueprint)
     app.register_blueprint(debug_bp)
+    app.register_blueprint(api_blueprint)
 
     @app.template_filter('from_json_safe')
     def from_json_safe(value):

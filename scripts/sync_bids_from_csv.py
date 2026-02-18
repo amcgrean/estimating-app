@@ -204,9 +204,14 @@ def sync_bids(csv_path, commit=False):
                 db.session.commit()
                 # Reset sequences if needed (Postgres specific)
                 if added > 0:
-                   print("Resetting primary key sequence...")
-                   db.session.execute(func.setval('bid_id_seq', func.max(Bid.id)))
-                   db.session.commit()
+                    print("Resetting primary key sequence...")
+                    # Using more robust sequence reset for Postgres
+                    try:
+                        db.session.execute(text("SELECT setval('public.bid_id_seq', (SELECT MAX(id) FROM bid))"))
+                        db.session.commit()
+                    except Exception as seq_e:
+                        print(f"Warning: Could not reset sequence: {seq_e}")
+                        db.session.rollback()
                 print("Done.")
             except Exception as e:
                 db.session.rollback()
