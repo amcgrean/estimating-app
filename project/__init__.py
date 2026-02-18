@@ -131,7 +131,7 @@ def create_app():
     app.register_blueprint(auth_blueprint)
     app.register_blueprint(admin_blueprint)
     app.register_blueprint(debug_bp)
-    app.register_blueprint(api_blueprint)
+    app.register_blueprint(api_blueprint, url_prefix='/api')
 
     @app.template_filter('from_json_safe')
     def from_json_safe(value):
