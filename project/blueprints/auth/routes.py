@@ -23,6 +23,7 @@ def login():
                 return redirect(url_for('auth.login'))
                 
             login_user(user)
+            session.permanent = True
             
             # Set default branch
             if user.user_branch_id:

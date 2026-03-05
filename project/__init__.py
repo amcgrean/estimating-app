@@ -72,7 +72,7 @@ def create_app():
     if not is_vercel:
         app.config["SESSION_TYPE"] = "filesystem"
     
-    app.config["PERMANENT_SESSION_LIFETIME"] = timedelta(minutes=30)
+    app.config["PERMANENT_SESSION_LIFETIME"] = timedelta(days=7)
 
     # Initialize extensions
     db.init_app(app)
