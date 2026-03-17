@@ -139,7 +139,7 @@ def sync_estimators(src: sqlite3.Connection, pg, missing_bid_rows, dry_run: bool
         return 0
 
     pg_cur = pg.cursor()
-    pg_cur.execute("SELECT id FROM estimator WHERE id = ANY(%s)", (list(needed_ids),))
+    pg_cur.execute('SELECT "estimatorID" FROM estimator WHERE "estimatorID" = ANY(%s)', (list(needed_ids),))
     existing = {r[0] for r in pg_cur.fetchall()}
 
     missing = needed_ids - existing
@@ -147,26 +147,15 @@ def sync_estimators(src: sqlite3.Connection, pg, missing_bid_rows, dry_run: bool
         print(f"  Estimators : all {len(needed_ids)} referenced estimators already in Neon ✓")
         return 0
 
-    # PA uses 'estimatorID' as PK column name; Neon uses 'id'
     placeholders = ",".join("?" * len(missing))
     src_cur = src.cursor()
     src_cur.execute(f"SELECT * FROM estimator WHERE estimatorID IN ({placeholders})", list(missing))
     rows = src_cur.fetchall()
 
+    # Both PA and Neon use the same column names (estimatorID, estimatorName, estimatorUsername, type)
     src_cols = sqlite_columns(src, "estimator")
     pg_cols  = neon_columns(pg, "estimator")
-
-    # Build column mapping: estimatorID→id, estimatorName→name, etc.
-    col_map = {}
-    for sc in src_cols:
-        if sc in pg_cols:
-            col_map[sc] = sc
-        elif sc == "estimatorID" and "id" in pg_cols:
-            col_map[sc] = "id"
-        elif sc == "estimatorName" and "name" in pg_cols:
-            col_map[sc] = "name"
-        elif sc == "estimatorUsername" and "username" in pg_cols:
-            col_map[sc] = "username"
+    shared   = [c for c in src_cols if c in pg_cols]
 
     print(f"  Estimators : {len(rows)} new estimator(s) to insert:")
     for r in rows:
@@ -175,13 +164,13 @@ def sync_estimators(src: sqlite3.Connection, pg, missing_bid_rows, dry_run: bool
     if dry_run:
         return len(rows)
 
-    col_str = ", ".join(f'"{pg_col}"' for pg_col in col_map.values())
-    ph      = ", ".join("%s" for _ in col_map)
-    sql     = f'INSERT INTO estimator ({col_str}) VALUES ({ph}) ON CONFLICT (id) DO NOTHING'
+    col_str = ", ".join(f'"{c}"' for c in shared)
+    ph      = ", ".join("%s" for _ in shared)
+    sql     = f'INSERT INTO estimator ({col_str}) VALUES ({ph}) ON CONFLICT ("estimatorID") DO NOTHING'
 
     inserted = 0
     for row in rows:
-        pg_cur.execute(sql, tuple(row[src_col] for src_col in col_map.keys()))
+        pg_cur.execute(sql, tuple(row[c] for c in shared))
         inserted += 1
 
     print(f"  Estimators : inserted {inserted}")
