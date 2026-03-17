@@ -1,18 +1,18 @@
 #!/usr/bin/env python3
 """
-Migrate missing bids (and any new customers) from the PythonAnywhere SQLite DB
+Migrate missing bids (and any missing customers) from the PythonAnywhere SQLite DB
 to the Neon PostgreSQL database.
 
 Usage:
-    python scripts/migrate_pa_bids_to_neon.py --source "path/to/bids (79).db" --dry-run
-    python scripts/migrate_pa_bids_to_neon.py --source "path/to/bids (79).db"
+    python scripts/migrate_pa_bids_to_neon.py --source "bids (79).db" --dry-run
+    python scripts/migrate_pa_bids_to_neon.py --source "bids (79).db"
 
 The script:
-  1. Connects to Neon via DATABASE_URL environment variable (or --db-url flag)
-  2. Finds the highest bid ID already in Neon
-  3. Copies any customers referenced by new bids that don't yet exist in Neon
-  4. Inserts all bids with ID > max Neon bid ID from the source SQLite file
-  5. Reports a summary of what was migrated
+  1. Fetches ALL bid IDs currently in Neon
+  2. Fetches ALL bid IDs from the source SQLite file
+  3. Finds IDs present in source but MISSING from Neon (handles gaps, not just max)
+  4. Syncs any customers referenced by missing bids that don't yet exist in Neon
+  5. Inserts all missing bids in a single transaction
 
 Requirements:
     pip install psycopg2-binary
@@ -28,11 +28,11 @@ try:
     import psycopg2
     import psycopg2.extras
 except ImportError:
-    sys.exit("psycopg2 is required: pip install psycopg2-binary")
+    sys.exit("psycopg2 is required:  pip install psycopg2-binary")
 
 
 # ---------------------------------------------------------------------------
-# Helpers
+# Connections
 # ---------------------------------------------------------------------------
 
 def get_sqlite_conn(path: str) -> sqlite3.Connection:
@@ -44,49 +44,56 @@ def get_sqlite_conn(path: str) -> sqlite3.Connection:
 
 
 def get_pg_conn(db_url: str):
-    url = db_url.strip()
-    if url.startswith("postgres://"):
-        url = url.replace("postgres://", "postgresql://", 1)
+    url = db_url.strip().replace("postgres://", "postgresql://", 1)
     try:
         return psycopg2.connect(url)
     except psycopg2.OperationalError as e:
-        sys.exit(f"Cannot connect to Neon DB: {e}")
+        sys.exit(f"Cannot connect to Neon DB:\n  {e}")
 
 
-def sqlite_tables(conn: sqlite3.Connection) -> list[str]:
-    cur = conn.cursor()
-    cur.execute("SELECT name FROM sqlite_master WHERE type='table' ORDER BY name")
+# ---------------------------------------------------------------------------
+# Schema helpers
+# ---------------------------------------------------------------------------
+
+def neon_columns(pg, table: str) -> list[str]:
+    cur = pg.cursor()
+    cur.execute("""
+        SELECT column_name FROM information_schema.columns
+        WHERE table_schema = 'public' AND table_name = %s
+        ORDER BY ordinal_position
+    """, (table,))
     return [r[0] for r in cur.fetchall()]
+
+
+def sqlite_columns(src: sqlite3.Connection, table: str) -> list[str]:
+    cur = src.cursor()
+    cur.execute(f"PRAGMA table_info({table})")
+    return [r[1] for r in cur.fetchall()]
 
 
 # ---------------------------------------------------------------------------
 # Inspection
 # ---------------------------------------------------------------------------
 
-def inspect_source(src: sqlite3.Connection):
+def inspect_source(src: sqlite3.Connection) -> tuple[int, set[int]]:
     cur = src.cursor()
-
-    cur.execute("SELECT COUNT(*) FROM bid")
-    total_bids = cur.fetchone()[0]
-
-    cur.execute("SELECT MAX(id) FROM bid")
-    max_id = cur.fetchone()[0]
+    cur.execute("SELECT id FROM bid ORDER BY id")
+    ids = {r[0] for r in cur.fetchall()}
 
     cur.execute("SELECT MIN(log_date), MAX(log_date) FROM bid WHERE log_date IS NOT NULL")
-    min_date, max_date = cur.fetchone()
+    min_d, max_d = cur.fetchone()
 
-    print(f"\n[Source SQLite]")
-    print(f"  Total bids : {total_bids}")
-    print(f"  Max bid ID : {max_id}")
-    print(f"  Date range : {min_date}  →  {max_date}")
+    print(f"\n[Source SQLite  ({os.path.basename(src.row_factory.__module__ if hasattr(src.row_factory,'__module__') else 'bids.db')})]")
+    print(f"  Total bids : {len(ids)}")
+    print(f"  ID range   : {min(ids)} → {max(ids)}")
+    print(f"  Date range : {min_d}  →  {max_d}")
+    return max(ids), ids
 
-    return max_id
 
-
-def inspect_neon(pg) -> int:
+def inspect_neon(pg) -> tuple[int, set[int]]:
     cur = pg.cursor()
 
-    # Check if bid table exists
+    # Verify table exists
     cur.execute("""
         SELECT EXISTS (
             SELECT 1 FROM information_schema.tables
@@ -94,115 +101,72 @@ def inspect_neon(pg) -> int:
         )
     """)
     if not cur.fetchone()[0]:
-        sys.exit("ERROR: 'bid' table does not exist in Neon DB. Run Flask-Migrate first.")
+        sys.exit("ERROR: 'bid' table not found in Neon. Run Flask-Migrate first.")
 
-    cur.execute("SELECT COUNT(*) FROM bid")
-    total_bids = cur.fetchone()[0]
+    cur.execute("SELECT id FROM bid ORDER BY id")
+    ids = {r[0] for r in cur.fetchall()}
 
-    cur.execute("SELECT MAX(id) FROM bid")
-    max_id = cur.fetchone()[0] or 0
+    if not ids:
+        print(f"\n[Neon DB]  (empty)")
+        return 0, ids
 
     cur.execute("SELECT MIN(log_date), MAX(log_date) FROM bid WHERE log_date IS NOT NULL")
-    min_date, max_date = cur.fetchone()
+    min_d, max_d = cur.fetchone()
 
     print(f"\n[Neon DB]")
-    print(f"  Total bids : {total_bids}")
-    print(f"  Max bid ID : {max_id}")
-    print(f"  Date range : {min_date}  →  {max_date}")
-
-    return max_id
-
-
-# ---------------------------------------------------------------------------
-# Neon schema introspection — get actual columns so we never assume
-# ---------------------------------------------------------------------------
-
-def neon_bid_columns(pg) -> list[str]:
-    cur = pg.cursor()
-    cur.execute("""
-        SELECT column_name FROM information_schema.columns
-        WHERE table_schema = 'public' AND table_name = 'bid'
-        ORDER BY ordinal_position
-    """)
-    return [r[0] for r in cur.fetchall()]
-
-
-def neon_customer_columns(pg) -> list[str]:
-    cur = pg.cursor()
-    cur.execute("""
-        SELECT column_name FROM information_schema.columns
-        WHERE table_schema = 'public' AND table_name = 'customer'
-        ORDER BY ordinal_position
-    """)
-    return [r[0] for r in cur.fetchall()]
-
-
-def sqlite_bid_columns(src: sqlite3.Connection) -> list[str]:
-    cur = src.cursor()
-    cur.execute("PRAGMA table_info(bid)")
-    return [r[1] for r in cur.fetchall()]
-
-
-def sqlite_customer_columns(src: sqlite3.Connection) -> list[str]:
-    cur = src.cursor()
-    cur.execute("PRAGMA table_info(customer)")
-    return [r[1] for r in cur.fetchall()]
+    print(f"  Total bids : {len(ids)}")
+    print(f"  ID range   : {min(ids)} → {max(ids)}")
+    print(f"  Date range : {min_d}  →  {max_d}")
+    return max(ids), ids
 
 
 # ---------------------------------------------------------------------------
-# Customer sync (insert missing ones referenced by new bids)
+# Customer sync
 # ---------------------------------------------------------------------------
 
-def sync_customers(src: sqlite3.Connection, pg, new_bid_rows, dry_run: bool) -> int:
-    """Insert customers from source that are referenced by new bids but absent in Neon."""
-
-    if not new_bid_rows:
+def sync_customers(src: sqlite3.Connection, pg, missing_bid_rows, dry_run: bool) -> int:
+    if not missing_bid_rows:
         return 0
 
-    customer_ids = {row["customer_id"] for row in new_bid_rows if row["customer_id"]}
-    if not customer_ids:
+    needed_ids = {row["customer_id"] for row in missing_bid_rows if row["customer_id"]}
+    if not needed_ids:
         return 0
 
-    # Which ones already exist in Neon?
     pg_cur = pg.cursor()
-    pg_cur.execute("SELECT id FROM customer WHERE id = ANY(%s)", (list(customer_ids),))
-    existing_ids = {r[0] for r in pg_cur.fetchall()}
+    pg_cur.execute("SELECT id FROM customer WHERE id = ANY(%s)", (list(needed_ids),))
+    existing = {r[0] for r in pg_cur.fetchall()}
 
-    missing_ids = customer_ids - existing_ids
-    if not missing_ids:
-        print(f"\n  Customers : all {len(customer_ids)} referenced customers already in Neon")
+    missing = needed_ids - existing
+    if not missing:
+        print(f"  Customers  : all {len(needed_ids)} referenced customers already in Neon ✓")
         return 0
 
-    # Fetch missing customers from source
-    placeholders = ",".join("?" * len(missing_ids))
+    placeholders = ",".join("?" * len(missing))
     src_cur = src.cursor()
-    src_cur.execute(f"SELECT * FROM customer WHERE id IN ({placeholders})", list(missing_ids))
-    missing_rows = src_cur.fetchall()
+    src_cur.execute(f"SELECT * FROM customer WHERE id IN ({placeholders})", list(missing))
+    rows = src_cur.fetchall()
 
-    src_cols = sqlite_customer_columns(src)
-    pg_cols = neon_customer_columns(pg)
+    src_cols = sqlite_columns(src, "customer")
+    pg_cols  = neon_columns(pg, "customer")
+    shared   = [c for c in src_cols if c in pg_cols]
 
-    # Intersect columns that exist in both
-    shared_cols = [c for c in src_cols if c in pg_cols]
-    col_str = ", ".join(f'"{c}"' for c in shared_cols)
-    placeholders_pg = ", ".join("%s" for _ in shared_cols)
-
-    print(f"\n  Customers : {len(missing_rows)} new customer(s) need to be inserted first")
-    for row in missing_rows:
-        print(f"    → id={row['id']}  code={row['customerCode']}  name={row['name']}")
+    print(f"  Customers  : {len(rows)} new customer(s) to insert:")
+    for r in rows:
+        print(f"    → id={r['id']}  {r['customerCode']}  {r['name']}")
 
     if dry_run:
-        return len(missing_rows)
+        return len(rows)
 
-    insert_sql = f'INSERT INTO customer ({col_str}) VALUES ({placeholders_pg}) ON CONFLICT (id) DO NOTHING'
+    col_str  = ", ".join(f'"{c}"' for c in shared)
+    ph       = ", ".join("%s" for _ in shared)
+    sql      = f'INSERT INTO customer ({col_str}) VALUES ({ph}) ON CONFLICT (id) DO NOTHING'
 
     inserted = 0
-    for row in missing_rows:
-        values = tuple(row[c] for c in shared_cols)
-        pg_cur.execute(insert_sql, values)
+    for row in rows:
+        pg_cur.execute(sql, tuple(row[c] for c in shared))
         inserted += 1
 
-    print(f"  Customers : inserted {inserted}")
+    print(f"  Customers  : inserted {inserted}")
     return inserted
 
 
@@ -210,59 +174,57 @@ def sync_customers(src: sqlite3.Connection, pg, new_bid_rows, dry_run: bool) -> 
 # Bid migration
 # ---------------------------------------------------------------------------
 
-def migrate_bids(src: sqlite3.Connection, pg, neon_max_id: int, dry_run: bool):
-    src_cur = src.cursor()
-    src_cur.execute("SELECT * FROM bid WHERE id > ? ORDER BY id ASC", (neon_max_id,))
-    new_bids = src_cur.fetchall()
-
-    if not new_bids:
-        print(f"\n  Bids      : nothing to migrate (Neon already has up to id={neon_max_id})")
+def migrate_bids(src: sqlite3.Connection, pg, missing_ids: set[int], dry_run: bool) -> int:
+    if not missing_ids:
+        print("\n  Bids       : nothing to migrate — Neon is already up to date ✓")
         return 0
 
-    print(f"\n  Bids      : {len(new_bids)} bid(s) to migrate (id {new_bids[0]['id']} → {new_bids[-1]['id']})")
+    sorted_ids = sorted(missing_ids)
+    print(f"\n  Bids       : {len(sorted_ids)} bid(s) missing from Neon")
+    print(f"  ID range   : {sorted_ids[0]} → {sorted_ids[-1]}")
 
-    # Show preview
-    print("\n  Preview of bids to be migrated:")
-    for row in new_bids[:10]:
-        print(f"    id={row['id']}  {row['log_date']}  [{row['status']}]  {row['project_name'][:50]}")
-    if len(new_bids) > 10:
-        print(f"    ... and {len(new_bids) - 10} more")
+    # Fetch the full rows from source
+    placeholders = ",".join("?" * len(sorted_ids))
+    src_cur = src.cursor()
+    src_cur.execute(
+        f"SELECT * FROM bid WHERE id IN ({placeholders}) ORDER BY id",
+        sorted_ids
+    )
+    rows = src_cur.fetchall()
+
+    print("\n  Preview (first 15):")
+    for row in rows[:15]:
+        print(f"    id={row['id']:5d}  {str(row['log_date'])[:19]}  [{row['status'] or '':12s}]  {str(row['project_name'])[:45]}")
+    if len(rows) > 15:
+        print(f"    ... and {len(rows) - 15} more")
 
     if dry_run:
-        return len(new_bids)
+        return len(rows)
 
-    # Sync any missing customers first
-    sync_customers(src, pg, new_bids, dry_run=False)
+    # Sync customers first
+    sync_customers(src, pg, rows, dry_run=False)
 
-    src_cols = sqlite_bid_columns(src)
-    pg_cols = neon_bid_columns(pg)
+    src_cols = sqlite_columns(src, "bid")
+    pg_cols  = neon_columns(pg, "bid")
+    shared   = [c for c in src_cols if c in pg_cols]
+    skipped  = [c for c in src_cols if c not in pg_cols]
+    if skipped:
+        print(f"\n  Note: source columns not in Neon (skipped): {skipped}")
 
-    # Use columns present in BOTH schemas to stay safe
-    shared_cols = [c for c in src_cols if c in pg_cols]
-    skipped_src = [c for c in src_cols if c not in pg_cols]
-    skipped_pg  = [c for c in pg_cols  if c not in src_cols and c != "job_id"]  # job_id is nullable
+    col_str = ", ".join(f'"{c}"' for c in shared)
+    ph      = ", ".join("%s" for _ in shared)
+    sql     = f'INSERT INTO bid ({col_str}) VALUES ({ph}) ON CONFLICT (id) DO NOTHING'
 
-    if skipped_src:
-        print(f"\n  Note: source columns not in Neon (skipped): {skipped_src}")
-    if skipped_pg:
-        print(f"  Note: Neon columns not in source (will be NULL): {skipped_pg}")
-
-    col_str = ", ".join(f'"{c}"' for c in shared_cols)
-    placeholders = ", ".join("%s" for _ in shared_cols)
-    insert_sql = f'INSERT INTO bid ({col_str}) VALUES ({placeholders}) ON CONFLICT (id) DO NOTHING'
-
-    pg_cur = pg.cursor()
+    pg_cur   = pg.cursor()
     inserted = 0
-    errors = []
+    errors   = []
 
-    for row in new_bids:
-        values = tuple(row[c] for c in shared_cols)
+    for row in rows:
         try:
-            pg_cur.execute(insert_sql, values)
+            pg_cur.execute(sql, tuple(row[c] for c in shared))
             inserted += 1
         except Exception as e:
             errors.append((row["id"], str(e)))
-            pg.rollback()  # rollback just this statement's savepoint if needed
 
     if errors:
         print(f"\n  ERRORS ({len(errors)}):")
@@ -277,61 +239,72 @@ def migrate_bids(src: sqlite3.Connection, pg, neon_max_id: int, dry_run: bool):
 # ---------------------------------------------------------------------------
 
 def main():
-    parser = argparse.ArgumentParser(description="Migrate bids from PythonAnywhere SQLite to Neon PostgreSQL")
-    parser.add_argument("--source", required=True, help="Path to the source SQLite .db file (e.g. 'bids (79).db')")
-    parser.add_argument("--db-url", default=os.environ.get("DATABASE_URL"), help="Neon PostgreSQL connection string (or set DATABASE_URL env var)")
-    parser.add_argument("--dry-run", action="store_true", help="Preview what would be migrated without writing anything")
+    parser = argparse.ArgumentParser(
+        description="Migrate missing bids from PythonAnywhere SQLite → Neon PostgreSQL"
+    )
+    parser.add_argument("--source", required=True,
+                        help="Path to source SQLite file, e.g. 'bids (79).db'")
+    parser.add_argument("--db-url", default=os.environ.get("DATABASE_URL"),
+                        help="Neon connection string (or set DATABASE_URL env var)")
+    parser.add_argument("--dry-run", action="store_true",
+                        help="Preview only — no writes to Neon")
     args = parser.parse_args()
 
     if not args.db_url:
-        sys.exit("No DATABASE_URL set. Use --db-url or export DATABASE_URL=...")
+        sys.exit("No DATABASE_URL. Use --db-url or: export DATABASE_URL=postgresql://...")
 
-    print("=" * 60)
-    print(f"  Bid Migration: SQLite  →  Neon PostgreSQL")
-    print(f"  Mode: {'DRY RUN (no changes)' if args.dry_run else 'LIVE (will write to Neon)'}")
-    print(f"  Source: {args.source}")
-    print("=" * 60)
+    print("=" * 65)
+    print("  Bid Migration: PythonAnywhere SQLite  →  Neon PostgreSQL")
+    print(f"  Mode   : {'DRY RUN — no changes will be written' if args.dry_run else 'LIVE — will write to Neon'}")
+    print(f"  Source : {args.source}")
+    print("=" * 65)
 
     src = get_sqlite_conn(args.source)
     pg  = get_pg_conn(args.db_url)
 
-    src_max_id  = inspect_source(src)
-    neon_max_id = inspect_neon(pg)
+    _src_max, src_ids  = inspect_source(src)
+    _pg_max,  neon_ids = inspect_neon(pg)
 
-    if src_max_id <= neon_max_id:
-        print(f"\n  Nothing to do: Neon max id ({neon_max_id}) >= source max id ({src_max_id})")
+    missing = src_ids - neon_ids
+    in_neon_not_src = neon_ids - src_ids  # informational
+
+    print(f"\n  Comparison:")
+    print(f"    In PA source only (missing from Neon) : {len(missing)}")
+    print(f"    In Neon only (added after PA export)  : {len(in_neon_not_src)}")
+    print(f"    In both                               : {len(src_ids & neon_ids)}")
+
+    if not missing:
+        print("\n  Nothing to migrate.\n")
         return
 
-    gap = src_max_id - neon_max_id
-    print(f"\n  Gap: {gap} bid(s) to migrate (id {neon_max_id + 1} → {src_max_id})")
-
     if args.dry_run:
-        # Still need to read the rows for preview
+        migrate_bids(src, pg, missing, dry_run=True)
+        # Also show customer preview
+        sorted_ids = sorted(missing)
+        placeholders = ",".join("?" * len(sorted_ids))
         src_cur = src.cursor()
-        src_cur.execute("SELECT * FROM bid WHERE id > ? ORDER BY id ASC", (neon_max_id,))
-        new_bids = src_cur.fetchall()
-
-        sync_customers(src, pg, new_bids, dry_run=True)
-        migrate_bids(src, pg, neon_max_id, dry_run=True)
+        src_cur.execute(f"SELECT * FROM bid WHERE id IN ({placeholders}) ORDER BY id", sorted_ids)
+        rows = src_cur.fetchall()
+        sync_customers(src, pg, rows, dry_run=True)
         print("\n  [DRY RUN] No changes written.\n")
         return
 
-    # Live run — wrap everything in a transaction
+    # Live run
     try:
-        migrate_bids(src, pg, neon_max_id, dry_run=False)
+        inserted = migrate_bids(src, pg, missing, dry_run=False)
         pg.commit()
-        print(f"\n  Migration committed successfully.")
+        print(f"\n  ✓ Committed {inserted} bid(s) to Neon successfully.")
     except Exception as e:
         pg.rollback()
-        print(f"\n  ERROR — transaction rolled back: {e}")
+        print(f"\n  ERROR — rolled back: {e}")
         sys.exit(1)
     finally:
         pg.close()
         src.close()
 
-    print("=" * 60)
+    print("=" * 65)
     print(f"  Done: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
-    print("=" * 60)
+    print("=" * 65)
 
 
 if __name__ == "__main__":
