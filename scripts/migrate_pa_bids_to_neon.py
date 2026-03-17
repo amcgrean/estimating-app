@@ -121,6 +121,74 @@ def inspect_neon(pg) -> tuple[int, set[int]]:
 
 
 # ---------------------------------------------------------------------------
+# Estimator sync
+# ---------------------------------------------------------------------------
+
+def sync_estimators(src: sqlite3.Connection, pg, missing_bid_rows, dry_run: bool) -> int:
+    """Insert estimators from source that are referenced by new bids but absent in Neon.
+    estimator_id=0 is treated as NULL (PA uses 0 for unassigned; Neon FK won't allow it).
+    """
+    if not missing_bid_rows:
+        return 0
+
+    # Collect non-zero estimator_ids referenced by new bids
+    needed_ids = {row["estimator_id"] for row in missing_bid_rows
+                  if row["estimator_id"] and row["estimator_id"] != 0}
+    if not needed_ids:
+        print(f"  Estimators : none referenced (or all unassigned) ✓")
+        return 0
+
+    pg_cur = pg.cursor()
+    pg_cur.execute("SELECT id FROM estimator WHERE id = ANY(%s)", (list(needed_ids),))
+    existing = {r[0] for r in pg_cur.fetchall()}
+
+    missing = needed_ids - existing
+    if not missing:
+        print(f"  Estimators : all {len(needed_ids)} referenced estimators already in Neon ✓")
+        return 0
+
+    # PA uses 'estimatorID' as PK column name; Neon uses 'id'
+    placeholders = ",".join("?" * len(missing))
+    src_cur = src.cursor()
+    src_cur.execute(f"SELECT * FROM estimator WHERE estimatorID IN ({placeholders})", list(missing))
+    rows = src_cur.fetchall()
+
+    src_cols = sqlite_columns(src, "estimator")
+    pg_cols  = neon_columns(pg, "estimator")
+
+    # Build column mapping: estimatorID→id, estimatorName→name, etc.
+    col_map = {}
+    for sc in src_cols:
+        if sc in pg_cols:
+            col_map[sc] = sc
+        elif sc == "estimatorID" and "id" in pg_cols:
+            col_map[sc] = "id"
+        elif sc == "estimatorName" and "name" in pg_cols:
+            col_map[sc] = "name"
+        elif sc == "estimatorUsername" and "username" in pg_cols:
+            col_map[sc] = "username"
+
+    print(f"  Estimators : {len(rows)} new estimator(s) to insert:")
+    for r in rows:
+        print(f"    → id={r['estimatorID']}  {r['estimatorName']}  ({r['estimatorUsername']})")
+
+    if dry_run:
+        return len(rows)
+
+    col_str = ", ".join(f'"{pg_col}"' for pg_col in col_map.values())
+    ph      = ", ".join("%s" for _ in col_map)
+    sql     = f'INSERT INTO estimator ({col_str}) VALUES ({ph}) ON CONFLICT (id) DO NOTHING'
+
+    inserted = 0
+    for row in rows:
+        pg_cur.execute(sql, tuple(row[src_col] for src_col in col_map.keys()))
+        inserted += 1
+
+    print(f"  Estimators : inserted {inserted}")
+    return inserted
+
+
+# ---------------------------------------------------------------------------
 # Customer sync
 # ---------------------------------------------------------------------------
 
@@ -201,7 +269,8 @@ def migrate_bids(src: sqlite3.Connection, pg, missing_ids: set[int], dry_run: bo
     if dry_run:
         return len(rows)
 
-    # Sync customers first
+    # Sync estimators and customers first
+    sync_estimators(src, pg, rows, dry_run=False)
     sync_customers(src, pg, rows, dry_run=False)
 
     src_cols = sqlite_columns(src, "bid")
@@ -220,10 +289,20 @@ def migrate_bids(src: sqlite3.Connection, pg, missing_ids: set[int], dry_run: bo
     errors   = []
 
     for row in rows:
+        # Coerce estimator_id=0 → NULL (PA uses 0 for unassigned; Neon FK disallows it)
+        def val(col):
+            v = row[col]
+            if col == "estimator_id" and v == 0:
+                return None
+            return v
+
+        pg_cur.execute("SAVEPOINT sp_bid")
         try:
-            pg_cur.execute(sql, tuple(row[c] for c in shared))
+            pg_cur.execute(sql, tuple(val(c) for c in shared))
+            pg_cur.execute("RELEASE SAVEPOINT sp_bid")
             inserted += 1
         except Exception as e:
+            pg_cur.execute("ROLLBACK TO SAVEPOINT sp_bid")
             errors.append((row["id"], str(e)))
 
     if errors:
@@ -279,12 +358,13 @@ def main():
 
     if args.dry_run:
         migrate_bids(src, pg, missing, dry_run=True)
-        # Also show customer preview
+        # Also show estimator/customer preview
         sorted_ids = sorted(missing)
         placeholders = ",".join("?" * len(sorted_ids))
         src_cur = src.cursor()
         src_cur.execute(f"SELECT * FROM bid WHERE id IN ({placeholders}) ORDER BY id", sorted_ids)
         rows = src_cur.fetchall()
+        sync_estimators(src, pg, rows, dry_run=True)
         sync_customers(src, pg, rows, dry_run=True)
         print("\n  [DRY RUN] No changes written.\n")
         return
