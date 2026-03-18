@@ -3,7 +3,7 @@ import argparse
 import sys
 import os
 from datetime import datetime
-from sqlalchemy import func
+from sqlalchemy import func, text
 
 # Add parent directory to path so we can import 'project'
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
@@ -214,7 +214,6 @@ def sync_bids(csv_path, commit=False):
                 if "postgresql" in db_url or "postgres" in db_url:
                     print("Resetting primary key sequence...")
                     try:
-                        from sqlalchemy import text
                         db.session.execute(text("SELECT setval('public.bid_id_seq', (SELECT MAX(id) FROM bid))"))
                         db.session.commit()
                     except Exception as seq_e:
