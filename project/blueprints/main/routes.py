@@ -471,6 +471,10 @@ def get_branch_estimators(branch_id, plan_type=None):
     elif plan_type == 'Residential':
         query = query.filter(User.is_residential_estimator == True)
 
+    estimators = query.all()
+
+    return [(0, 'No Estimator')] + [(e.estimatorID, e.estimatorName) for e in estimators]
+
 
 def get_estimator_plan_type_filter():
     """Return the plan_type that should be auto-filtered for the current user.
