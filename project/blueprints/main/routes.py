@@ -74,10 +74,16 @@ def index():
     from flask import session
     branch_id = session.get('branch_id')
     
+    estimator_plan_type = get_estimator_plan_type_filter()
+
     def apply_branch_filter(query, model, filter_sales_reps=True):
         if branch_id and branch_id != 0:
             query = query.filter(model.branch_id == branch_id)
-        
+
+        # Estimator plan-type auto-filter (commercial vs residential)
+        if estimator_plan_type and model == Bid:
+            query = query.filter(Bid.plan_type == estimator_plan_type)
+
         # Sales Rep Filtering (My Bids / My Designs)
         if filter_sales_reps and current_user.is_authenticated:
             if current_user.usertype.name == 'Sales Rep':
@@ -90,7 +96,7 @@ def index():
                 elif model == Design:
                      sales_rep_name = current_user.username
                      query = query.join(Customer).filter(Customer.sales_agent == sales_rep_name)
-            
+
             # Designer Logic (My Designs)
             elif current_user.usertype.name == 'Designer':
                 if model == Design:
@@ -455,6 +461,24 @@ def get_branch_estimators(branch_id, plan_type=None):
         query = query.filter(User.is_commercial_estimator == True)
     elif plan_type == 'Residential':
         query = query.filter(User.is_residential_estimator == True)
+
+
+def get_estimator_plan_type_filter():
+    """Return the plan_type that should be auto-filtered for the current user.
+
+    Returns 'Commercial' or 'Residential' if the logged-in user is a
+    single-type estimator.  Returns None (no filter) for admins, sales reps,
+    dual-type estimators (jasonr), or any non-estimator user.
+    """
+    if not current_user.is_authenticated or not current_user.is_estimator:
+        return None
+    is_comm = bool(getattr(current_user, 'is_commercial_estimator', False))
+    is_res  = bool(getattr(current_user, 'is_residential_estimator', False))
+    if is_comm and not is_res:
+        return 'Commercial'
+    if is_res and not is_comm:
+        return 'Residential'
+    return None  # both set (or neither) → show all
 
     estimators = query.all()
 
@@ -1503,8 +1527,11 @@ def open_bids():
     if sort_direction not in ['asc', 'desc']:
         sort_direction = 'asc'
 
-    # Get the plan type filter from the query parameters
-    plan_type_filter = request.args.get('plan_type', 'all')
+    # Get the plan type filter from the query parameters.
+    # Default to the estimator's type if the URL param wasn't explicitly provided.
+    _user_plan_type = get_estimator_plan_type_filter()
+    _default_plan_type = _user_plan_type if _user_plan_type else 'all'
+    plan_type_filter = request.args.get('plan_type', _default_plan_type)
 
     # Get the status filter from the query parameters, default to 'Incomplete'
     status_filter = request.args.get('status', 'Incomplete')
@@ -1642,6 +1669,11 @@ def print_open_bids():
 
     if plan_type != 'all':
         query = query.filter_by(plan_type=plan_type)
+    else:
+        # If no explicit plan_type filter, still respect the logged-in estimator's type
+        _print_plan_type = get_estimator_plan_type_filter()
+        if _print_plan_type:
+            query = query.filter(Bid.plan_type == _print_plan_type)
 
     bids = query.all()
     current_date = datetime.now().strftime('%m/%d/%y')  # Format the current date as MM/DD/YY
@@ -1665,16 +1697,13 @@ def api_bids_events():
     branch_id = session.get('branch_id')
     
     query = Bid.query.filter(Bid.status == 'Incomplete')
-    # Use branch filter but explicitly SKIP Sales Rep filtering for calendar
-    # We need to replicate the branch filter logic here because apply_branch_filter is locally scoped in index() 
-    # Wait, apply_branch_filter is defined inside index()! It is NOT available here.
-    # The user wants api_bids_events to NOT filter for sales people.
-    # Currently lines 1105-1106 ONLY filter by branch_id. 
-    # They do NOT filter by sales rep. 
-    # So actually, the calendar ALREADY does not filter by sales rep.
-    
     if branch_id and branch_id != 0:
         query = query.filter(Bid.branch_id == branch_id)
+
+    # Auto-filter calendar by estimator's plan type
+    _cal_plan_type = get_estimator_plan_type_filter()
+    if _cal_plan_type:
+        query = query.filter(Bid.plan_type == _cal_plan_type)
         
     bids = query.all()
     events = []
