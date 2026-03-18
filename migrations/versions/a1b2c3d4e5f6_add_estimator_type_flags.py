@@ -25,19 +25,19 @@ depends_on = None
 
 def upgrade():
     conn = op.get_bind()
-    inspector = sa.inspect(conn)
 
-    # 1. Add new columns to user table (guard against re-runs)
-    existing_cols = {c['name'] for c in inspector.get_columns('user')}
+    # 1. Add new columns using native PostgreSQL IF NOT EXISTS — safe on re-runs
+    #    and does not require a pre-query that could itself fail.
+    conn.execute(sa.text(
+        'ALTER TABLE "user" ADD COLUMN IF NOT EXISTS '
+        'is_commercial_estimator BOOLEAN DEFAULT FALSE'
+    ))
+    conn.execute(sa.text(
+        'ALTER TABLE "user" ADD COLUMN IF NOT EXISTS '
+        'is_residential_estimator BOOLEAN DEFAULT FALSE'
+    ))
 
-    if 'is_commercial_estimator' not in existing_cols:
-        op.add_column('user', sa.Column('is_commercial_estimator', sa.Boolean(),
-                                        nullable=True, server_default=sa.false()))
-    if 'is_residential_estimator' not in existing_cols:
-        op.add_column('user', sa.Column('is_residential_estimator', sa.Boolean(),
-                                        nullable=True, server_default=sa.false()))
-
-    # Default any NULLs to False
+    # 2. Default any NULLs to False
     conn.execute(sa.text(
         'UPDATE "user" SET is_commercial_estimator = FALSE '
         'WHERE is_commercial_estimator IS NULL'
@@ -47,7 +47,7 @@ def upgrade():
         'WHERE is_residential_estimator IS NULL'
     ))
 
-    # 2. Seed estimator type flags for known estimators
+    # 3. Seed estimator type flags for known estimators
 
     # Commercial only: dons
     conn.execute(sa.text(
@@ -66,20 +66,19 @@ def upgrade():
         "WHERE username = 'jasonr'"
     ))
 
-    # 3. Null out bid.estimator_id for any bids pointing to Amy/Mike/Mike
+    # 4. Null out bid.estimator_id for any bids pointing to Amy/Mike/Mike
     #    (estimator IDs 6=amyl, 7=mikeb, 8=mikew)
     conn.execute(sa.text(
         'UPDATE bid SET estimator_id = NULL WHERE estimator_id IN (6, 7, 8)'
     ))
 
-    # 4. Clear "estimatorID" (camelCase FK column on user table) and is_estimator
-    #    for those three users.  The User model column is estimatorID not estimator_id.
+    # 5. Clear "estimatorID" (camelCase FK on user table) and is_estimator flag
     conn.execute(sa.text(
         'UPDATE "user" SET "estimatorID" = NULL, is_estimator = FALSE '
         "WHERE username IN ('amyl', 'mikeb', 'mikew')"
     ))
 
-    # 5. Delete the stale Estimator rows – only if they still exist
+    # 6. Delete stale Estimator rows — only those that still exist
     conn.execute(sa.text(
         'DELETE FROM estimator WHERE "estimatorID" IN (6, 7, 8)'
     ))
@@ -88,13 +87,13 @@ def upgrade():
 def downgrade():
     conn = op.get_bind()
 
-    # Re-insert removed estimator rows (best-effort; ignore if already exist)
+    # Re-insert removed estimator rows
     conn.execute(sa.text(
-        "INSERT INTO estimator (\"estimatorID\", \"estimatorName\", \"estimatorUsername\") "
+        'INSERT INTO estimator ("estimatorID", "estimatorName", "estimatorUsername") '
         "VALUES (6, 'Amy Larsen', 'amyl'), "
         "(7, 'Mike Blevins', 'mikeb'), "
         "(8, 'Mike Wagenknecht', 'mikew') "
-        "ON CONFLICT (\"estimatorID\") DO NOTHING"
+        'ON CONFLICT ("estimatorID") DO NOTHING'
     ))
 
     # Restore user links
