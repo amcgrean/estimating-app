@@ -90,15 +90,22 @@ def create_app():
     def inject_branches():
         from flask import session
         from flask_login import current_user
-        
-        branches = Branch.query.all()
-        
+
+        try:
+            branches = Branch.query.all()
+        except Exception:
+            db.session.rollback()
+            try:
+                branches = Branch.query.all()
+            except Exception:
+                branches = []
+
         # Default branch logic
         current_branch_id = session.get('branch_id')
         if current_branch_id is None and current_user.is_authenticated:
             current_branch_id = current_user.user_branch_id
             session['branch_id'] = current_branch_id
-        
+
         return {
             'all_branches': branches,
             'current_branch_id': current_branch_id

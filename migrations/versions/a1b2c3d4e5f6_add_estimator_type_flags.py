@@ -25,14 +25,26 @@ depends_on = None
 
 def upgrade():
     conn = op.get_bind()
+    inspector = sa.inspect(conn)
 
-    # 1. Add new columns to user table
-    op.add_column('user', sa.Column('is_commercial_estimator', sa.Boolean(), nullable=True, server_default=sa.false()))
-    op.add_column('user', sa.Column('is_residential_estimator', sa.Boolean(), nullable=True, server_default=sa.false()))
+    # 1. Add new columns to user table (guard against re-runs)
+    existing_cols = {c['name'] for c in inspector.get_columns('user')}
 
-    # Default existing rows to False
+    if 'is_commercial_estimator' not in existing_cols:
+        op.add_column('user', sa.Column('is_commercial_estimator', sa.Boolean(),
+                                        nullable=True, server_default=sa.false()))
+    if 'is_residential_estimator' not in existing_cols:
+        op.add_column('user', sa.Column('is_residential_estimator', sa.Boolean(),
+                                        nullable=True, server_default=sa.false()))
+
+    # Default any NULLs to False
     conn.execute(sa.text(
-        'UPDATE "user" SET is_commercial_estimator = FALSE, is_residential_estimator = FALSE'
+        'UPDATE "user" SET is_commercial_estimator = FALSE '
+        'WHERE is_commercial_estimator IS NULL'
+    ))
+    conn.execute(sa.text(
+        'UPDATE "user" SET is_residential_estimator = FALSE '
+        'WHERE is_residential_estimator IS NULL'
     ))
 
     # 2. Seed estimator type flags for known estimators
@@ -44,27 +56,30 @@ def upgrade():
 
     # Residential only: jc, matth, karlp, ryanb
     conn.execute(sa.text(
-        "UPDATE \"user\" SET is_residential_estimator = TRUE WHERE username IN ('jc', 'matth', 'karlp', 'ryanb')"
+        "UPDATE \"user\" SET is_residential_estimator = TRUE "
+        "WHERE username IN ('jc', 'matth', 'karlp', 'ryanb')"
     ))
 
     # Both: jasonr
     conn.execute(sa.text(
-        "UPDATE \"user\" SET is_commercial_estimator = TRUE, is_residential_estimator = TRUE WHERE username = 'jasonr'"
+        "UPDATE \"user\" SET is_commercial_estimator = TRUE, is_residential_estimator = TRUE "
+        "WHERE username = 'jasonr'"
     ))
 
     # 3. Null out bid.estimator_id for any bids pointing to Amy/Mike/Mike
-    #    (estimator IDs 6=amyl, 7=mikeb, 8=mikew based on debug_ids.txt)
+    #    (estimator IDs 6=amyl, 7=mikeb, 8=mikew)
     conn.execute(sa.text(
         'UPDATE bid SET estimator_id = NULL WHERE estimator_id IN (6, 7, 8)'
     ))
 
-    # 4. Clear estimatorID and is_estimator on the User rows for those three
+    # 4. Clear "estimatorID" (camelCase FK column on user table) and is_estimator
+    #    for those three users.  The User model column is estimatorID not estimator_id.
     conn.execute(sa.text(
-        "UPDATE \"user\" SET estimator_id = NULL, is_estimator = FALSE "
+        'UPDATE "user" SET "estimatorID" = NULL, is_estimator = FALSE '
         "WHERE username IN ('amyl', 'mikeb', 'mikew')"
     ))
 
-    # 5. Delete the stale Estimator rows for Amy, Mike Blevins, Mike Wagenknecht
+    # 5. Delete the stale Estimator rows – only if they still exist
     conn.execute(sa.text(
         'DELETE FROM estimator WHERE "estimatorID" IN (6, 7, 8)'
     ))
@@ -73,23 +88,24 @@ def upgrade():
 def downgrade():
     conn = op.get_bind()
 
-    # Re-insert removed estimator rows
+    # Re-insert removed estimator rows (best-effort; ignore if already exist)
     conn.execute(sa.text(
-        "INSERT INTO estimator (\"estimatorID\", \"estimatorName\", \"estimatorUsername\") VALUES "
-        "(6, 'Amy Larsen', 'amyl'), "
+        "INSERT INTO estimator (\"estimatorID\", \"estimatorName\", \"estimatorUsername\") "
+        "VALUES (6, 'Amy Larsen', 'amyl'), "
         "(7, 'Mike Blevins', 'mikeb'), "
-        "(8, 'Mike Wagenknecht', 'mikew')"
+        "(8, 'Mike Wagenknecht', 'mikew') "
+        "ON CONFLICT (\"estimatorID\") DO NOTHING"
     ))
 
-    # Restore user links (best effort - don't restore is_estimator since we can't know original state)
+    # Restore user links
     conn.execute(sa.text(
-        "UPDATE \"user\" SET estimator_id = 6 WHERE username = 'amyl'"
+        "UPDATE \"user\" SET \"estimatorID\" = 6 WHERE username = 'amyl'"
     ))
     conn.execute(sa.text(
-        "UPDATE \"user\" SET estimator_id = 7 WHERE username = 'mikeb'"
+        "UPDATE \"user\" SET \"estimatorID\" = 7 WHERE username = 'mikeb'"
     ))
     conn.execute(sa.text(
-        "UPDATE \"user\" SET estimator_id = 8 WHERE username = 'mikew'"
+        "UPDATE \"user\" SET \"estimatorID\" = 8 WHERE username = 'mikew'"
     ))
 
     # Drop the new columns
