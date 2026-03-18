@@ -202,20 +202,24 @@ def sync_bids(csv_path, commit=False):
             print("\nCommitting changes to database...")
             try:
                 db.session.commit()
-                # Reset sequences if needed (Postgres specific)
-                if added > 0:
-                    print("Resetting primary key sequence...")
-                    # Using more robust sequence reset for Postgres
-                    try:
-                        db.session.execute(text("SELECT setval('public.bid_id_seq', (SELECT MAX(id) FROM bid))"))
-                        db.session.commit()
-                    except Exception as seq_e:
-                        print(f"Warning: Could not reset sequence: {seq_e}")
-                        db.session.rollback()
                 print("Done.")
             except Exception as e:
                 db.session.rollback()
                 print(f"Error committing: {e}")
+                return
+
+            # Reset Postgres sequence separately — failure here does NOT affect the committed data
+            if added > 0:
+                db_url = app.config.get("SQLALCHEMY_DATABASE_URI", "")
+                if "postgresql" in db_url or "postgres" in db_url:
+                    print("Resetting primary key sequence...")
+                    try:
+                        from sqlalchemy import text
+                        db.session.execute(text("SELECT setval('public.bid_id_seq', (SELECT MAX(id) FROM bid))"))
+                        db.session.commit()
+                    except Exception as seq_e:
+                        db.session.rollback()
+                        print(f"Warning: Could not reset sequence (non-fatal): {seq_e}")
         else:
             print("\nDRY RUN: No changes committed. Use --commit to apply.")
 
