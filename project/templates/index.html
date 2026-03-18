@@ -324,6 +324,61 @@ font-size: 1.25rem !important;
         </div>
         {% endif %}
 
+        {% if current_user.usertype.name == 'Estimator' %}
+        <!-- Estimator view: open bids for their branch and bid type -->
+        <div class="premium-card mb-4 py-3">
+            <h5 class="mb-3 d-flex align-items-center justify-content-between px-3">
+                <span>
+                    <i class="fas fa-folder-open text-primary mr-2 small"></i> Open Bids
+                    {% if current_user.is_residential_estimator and not current_user.is_commercial_estimator %}
+                    <span class="badge badge-pill" style="background:#d1fae5;color:#065f46;font-size:0.7rem;">Residential</span>
+                    {% elif current_user.is_commercial_estimator and not current_user.is_residential_estimator %}
+                    <span class="badge badge-pill" style="background:#dbeafe;color:#1e40af;font-size:0.7rem;">Commercial</span>
+                    {% endif %}
+                </span>
+                <a href="{{ url_for('main.open_bids', branch_id=current_branch_id) }}" class="small text-primary font-weight-600">View All <i class="fas fa-arrow-right ml-1"></i></a>
+            </h5>
+            {% if estimator_open_bids %}
+            <div class="table-responsive">
+                <table class="table mb-0 table-sm">
+                    <thead>
+                        <tr>
+                            <th>Project</th>
+                            <th>Customer</th>
+                            <th>Type</th>
+                            <th>Due Date</th>
+                            <th>Received</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for bid in estimator_open_bids %}
+                        <tr>
+                            <td><a href="{{ url_for('main.manage_bid', bid_id=bid.id) }}" class="font-weight-600 text-primary">{{ bid.project_name }}</a></td>
+                            <td class="small text-muted">{{ bid.customer.name }}</td>
+                            <td>
+                                {% if bid.plan_type == 'Residential' %}
+                                <span class="badge badge-pill" style="background:#d1fae5;color:#065f46;font-size:0.7rem;">Residential</span>
+                                {% else %}
+                                <span class="badge badge-pill" style="background:#dbeafe;color:#1e40af;font-size:0.7rem;">Commercial</span>
+                                {% endif %}
+                            </td>
+                            <td class="small {% if bid.due_date and bid.due_date.date() < today %}text-danger font-weight-600{% else %}text-muted{% endif %}">
+                                {% if bid.due_date %}{{ bid.due_date.strftime('%m/%d/%Y') }}{% else %}&mdash;{% endif %}
+                            </td>
+                            <td class="small text-muted">{{ bid.log_date.strftime('%m/%d/%Y') }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% else %}
+            <div class="text-center py-4 text-muted">
+                <i class="fas fa-check-circle fa-2x mb-2 text-success"></i>
+                <p class="mb-0 small">No open bids at this time.</p>
+            </div>
+            {% endif %}
+        </div>
+        {% else %}
         <div class="row">
             <div class="col-lg-8">
                 <div class="premium-card mb-4 py-3">
@@ -387,6 +442,7 @@ font-size: 1.25rem !important;
                 </div>
             </div>
         </div>
+        {% endif %}
     </div>
 </div>
 {% endblock %}
