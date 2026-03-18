@@ -168,6 +168,13 @@ def index():
     # Recently created projects
     recently_created_projects = apply_branch_filter(db.session.query(Bid), Bid).order_by(Bid.log_date.desc()).limit(5).all()
 
+    # Open bids list for estimators (branch + plan-type already handled by apply_branch_filter)
+    estimator_open_bids = []
+    if current_user.is_authenticated and current_user.usertype.name == 'Estimator':
+        estimator_open_bids = apply_branch_filter(Bid.query, Bid).filter(
+            Bid.status == 'Incomplete'
+        ).order_by(Bid.due_date.asc()).all()
+
     search_query = request.args.get('search')
     bids = []
     designs = []
@@ -204,6 +211,8 @@ def index():
         previous_year=previous_year,
         recently_opened_projects=recently_opened_projects,
         recently_created_projects=recently_created_projects,
+        estimator_open_bids=estimator_open_bids,
+        today=datetime.now().date(),
         branches=branches,
         current_branch_id=branch_id
     )
