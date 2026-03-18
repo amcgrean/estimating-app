@@ -236,6 +236,8 @@ class User(db.Model, UserMixin):
     is_active = db.Column(db.Boolean, default=True)
     is_admin = db.Column(db.Boolean, default=False)
     is_estimator = db.Column(db.Boolean, default=False)
+    is_commercial_estimator = db.Column(db.Boolean, default=False)
+    is_residential_estimator = db.Column(db.Boolean, default=False)
     is_designer = db.Column(db.Boolean, default=False) # New flag
     login_count = db.Column(db.Integer, default=0)
 

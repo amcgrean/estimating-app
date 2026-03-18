@@ -22,19 +22,22 @@ admin = Blueprint('admin', __name__)
 logger = logging.getLogger(__name__)
 
 # --- Helper Functions ---
-def get_branch_estimators_admin(branch_id):
-    """Helper to get estimators for a specific branch."""
+def get_branch_estimators_admin(branch_id, plan_type=None):
+    """Helper to get estimators for a specific branch, optionally filtered by plan_type."""
     query = Estimator.query.join(
         User, User.username == Estimator.estimatorUsername
     ).filter(User.is_active == True)
 
     if branch_id and branch_id != 0:
         query = query.filter(User.user_branch_id == branch_id)
-    
-    # estimator_type removed as Estimator table no longer has type column
+
+    if plan_type == 'Commercial':
+        query = query.filter(User.is_commercial_estimator == True)
+    elif plan_type == 'Residential':
+        query = query.filter(User.is_residential_estimator == True)
 
     estimators = query.all()
-    
+
     return [(0, 'No Estimator')] + [(e.estimatorID, e.estimatorName) for e in estimators]
 
 # --- Routes ---
@@ -102,7 +105,9 @@ def add_user():
             email=form.email.data,
             usertype_id=form.usertype_id.data,
             user_branch_id=form.user_branch_id.data,
-            is_estimator=form.is_estimator.data
+            is_estimator=form.is_estimator.data,
+            is_commercial_estimator=form.is_commercial_estimator.data,
+            is_residential_estimator=form.is_residential_estimator.data,
         )
         user.set_password(form.password.data)
         db.session.add(user)
@@ -165,6 +170,8 @@ def edit_user(user_id):
         user.usertype_id = form.usertype_id.data
         user.user_branch_id = form.user_branch_id.data
         user.is_estimator = form.is_estimator.data
+        user.is_commercial_estimator = form.is_commercial_estimator.data
+        user.is_residential_estimator = form.is_residential_estimator.data
         user.is_designer = form.is_designer.data
         user.is_active = form.is_active.data
 
