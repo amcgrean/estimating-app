@@ -80,6 +80,8 @@ class UserForm(BaseForm):
     estimatorID = SelectField('Estimator', coerce=int, choices=[], validators=[Optional()])
     user_branch_id = SelectField('Branch', coerce=int, choices=[], validators=[DataRequired()])
     is_estimator = BooleanField('Is Estimator')
+    is_commercial_estimator = BooleanField('Commercial Estimator')
+    is_residential_estimator = BooleanField('Residential Estimator')
     is_designer = BooleanField('Is Designer')
     submit = SubmitField('Submit')
 
@@ -96,6 +98,8 @@ class UpdateUserForm(BaseForm):
     estimatorID = SelectField('Estimator', coerce=int, choices=[], validators=[Optional()])
     user_branch_id = SelectField('Branch', coerce=int, choices=[], validators=[DataRequired()])
     is_estimator = BooleanField('Is Estimator')
+    is_commercial_estimator = BooleanField('Commercial Estimator')
+    is_residential_estimator = BooleanField('Residential Estimator')
     is_designer = BooleanField('Is Designer')
     is_active = BooleanField('Active')
     password = PasswordField('New Password (leave blank to keep current password)', validators=[Optional()])

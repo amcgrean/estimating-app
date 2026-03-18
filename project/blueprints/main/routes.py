@@ -425,24 +425,39 @@ def get_roles():
 @main.route('/get_estimators')
 @login_required
 def get_estimators():
-    estimator_type = request.args.get('type', type=int)
-    estimators = Estimator.query.filter_by(type=estimator_type).all()
-    estimator_list = [{'estimatorID': e.estimatorID, 'name': e.estimatorName} for e in estimators]
+    """Return all active estimators, optionally filtered by branch and plan_type."""
+    branch_id = request.args.get('branch_id', type=int)
+    plan_type = request.args.get('plan_type')
+    choices = get_branch_estimators(branch_id, plan_type)
+    # choices is [(id, name), ...]; skip the leading (0, 'No Estimator') entry
+    estimator_list = [{'estimatorID': eid, 'name': name} for eid, name in choices if eid != 0]
     return jsonify(estimator_list)
 
-def get_branch_estimators(branch_id):
-    """Helper to get estimators for a specific branch."""
+@main.route('/get_estimators_for_bid')
+@login_required
+def get_estimators_for_bid():
+    """AJAX endpoint used by add_bid to refresh the estimator dropdown when plan_type changes."""
+    branch_id = request.args.get('branch_id', type=int)
+    plan_type = request.args.get('plan_type')
+    choices = get_branch_estimators(branch_id, plan_type)
+    return jsonify([{'id': eid, 'name': name} for eid, name in choices])
+
+def get_branch_estimators(branch_id, plan_type=None):
+    """Helper to get estimators for a specific branch, optionally filtered by plan_type."""
     query = db.session.query(Estimator).join(
         User, User.username == Estimator.estimatorUsername
     ).filter(User.is_active == True)
 
     if branch_id and branch_id != 0:
         query = query.filter(User.user_branch_id == branch_id)
-    
-    # estimator_type removed as Estimator table no longer has type column
+
+    if plan_type == 'Commercial':
+        query = query.filter(User.is_commercial_estimator == True)
+    elif plan_type == 'Residential':
+        query = query.filter(User.is_residential_estimator == True)
 
     estimators = query.all()
-    
+
     return [(0, 'No Estimator')] + [(e.estimatorID, e.estimatorName) for e in estimators]
 
 def get_branch_designers(branch_id):
@@ -927,8 +942,11 @@ def add_bid():
     
     customers = customer_query.order_by(Customer.name).all()
     form.customer_id.choices = [(0, 'Select a customer')] + [(customer.id, customer.name) for customer in customers]
-    form.estimator_id.choices = get_branch_estimators(selected_branch_id)
-    
+    # On POST, filter estimators by the submitted plan_type so validation passes for the right set.
+    # On GET, show all estimators for the branch (plan_type not yet chosen).
+    add_bid_plan_type = form.plan_type.data if request.method == 'POST' else None
+    form.estimator_id.choices = get_branch_estimators(selected_branch_id, add_bid_plan_type)
+
     # Populate Sales Reps
     # Filter by Branch using the User table link
     print(f"DEBUG: selected_branch_id = {selected_branch_id}")
@@ -1296,8 +1314,8 @@ def manage_bid(bid_id):
     
     form.customer_id.choices = [(0, 'Select a customer')] + [(customer.id, customer.name) for customer in customer_query.all()]
 
-    # Populate Estimator Choices
-    form.estimator_id.choices = get_branch_estimators(bid.branch_id)
+    # Populate Estimator Choices filtered by this bid's plan_type
+    form.estimator_id.choices = get_branch_estimators(bid.branch_id, bid.plan_type)
 
     # Populate Sales Rep Choices (Reuse logic from add_bid roughly, or just simple branch filter)
     # Populate Sales Rep Choices (Reuse logic from add_bid roughly)

@@ -652,6 +652,44 @@
         window.location.href = url.toString();
     };
 
+    // Refresh estimator dropdown when plan_type changes
+    (function () {
+        var planTypeEl = document.getElementById('plan_type');
+        var estimatorEl = document.getElementById('estimator_id');
+
+        function getBranchId() {
+            // The branch select is disabled; a hidden input carries the real value
+            var hidden = document.querySelector('input[name="branch_id"]');
+            if (hidden) return hidden.value;
+            var sel = document.getElementById('branch_id');
+            return sel ? sel.value : '';
+        }
+
+        function refreshEstimators() {
+            if (!estimatorEl) return;
+            var planType = planTypeEl ? planTypeEl.value : '';
+            var branchId = getBranchId();
+            var url = '/get_estimators_for_bid?plan_type=' + encodeURIComponent(planType) + '&branch_id=' + encodeURIComponent(branchId);
+            fetch(url)
+                .then(function(r) { return r.json(); })
+                .then(function(data) {
+                    var currentVal = estimatorEl.value;
+                    estimatorEl.innerHTML = '';
+                    data.forEach(function(item) {
+                        var opt = document.createElement('option');
+                        opt.value = item.id;
+                        opt.text = item.name;
+                        if (String(item.id) === String(currentVal)) opt.selected = true;
+                        estimatorEl.appendChild(opt);
+                    });
+                });
+        }
+
+        if (planTypeEl) {
+            planTypeEl.addEventListener('change', refreshEstimators);
+        }
+    })();
+
 
 
     // Section Toggles Logic

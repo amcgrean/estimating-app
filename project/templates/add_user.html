@@ -28,9 +28,24 @@
             {{ form.usertype_id(class="form-control") }}
         </div>
         <div class="form-check">
-            {{ form.is_estimator(class="form-check-input") }}
+            {{ form.is_estimator(class="form-check-input", id="is_estimator") }}
             {{ form.is_estimator.label(class="form-check-label") }}
         </div>
+        <div id="estimator-type-fields" class="ms-3 mt-1 mb-2" style="display:none;">
+            <div class="form-check">
+                {{ form.is_commercial_estimator(class="form-check-input") }}
+                {{ form.is_commercial_estimator.label(class="form-check-label") }}
+            </div>
+            <div class="form-check">
+                {{ form.is_residential_estimator(class="form-check-input") }}
+                {{ form.is_residential_estimator.label(class="form-check-label") }}
+            </div>
+        </div>
+        <script>
+            document.getElementById('is_estimator').addEventListener('change', function() {
+                document.getElementById('estimator-type-fields').style.display = this.checked ? '' : 'none';
+            });
+        </script>
         <div class="form-check">
             {{ form.is_designer(class="form-check-input") }}
             {{ form.is_designer.label(class="form-check-label") }}
