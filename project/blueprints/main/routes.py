@@ -46,6 +46,39 @@ main = Blueprint('main', __name__)
 def inject_s3_url():
     return dict(get_s3_url=get_s3_url)
 
+
+def get_bid_sort_order(sort_column='due_date', sort_direction='asc'):
+    """Return a deterministic ORDER BY clause for bid listings.
+
+    The Open Bids view defaults to sorting by due date, and users expect bids
+    that share the same due date to keep their original submission order.
+    Using a stable tie-breaker prevents rows from shifting around after an edit
+    updates the record in the database.
+    """
+    is_desc = sort_direction == 'desc'
+
+    column_map = {
+        'plan_type': Bid.plan_type,
+        'customer_name': Customer.name,
+        'project_name': Bid.project_name,
+        'estimator': Estimator.estimatorName,
+        'status': Bid.status,
+        'log_date': Bid.log_date,
+        'due_date': Bid.due_date,
+        'notes': Bid.notes,
+    }
+
+    primary_column = column_map.get(sort_column, Bid.due_date)
+    primary_order = primary_column.desc() if is_desc else primary_column.asc()
+
+    # Preserve the original submission order inside a shared due date/log date
+    # bucket so the list does not shuffle after unrelated edits.
+    submission_order = [Bid.log_date.asc(), Bid.id.asc()]
+    if sort_column == 'log_date':
+        submission_order = [Bid.id.asc()]
+
+    return [primary_order, *submission_order]
+
 @main.route('/set_branch/<int:branch_id>')
 @login_required
 def set_branch(branch_id):
@@ -173,7 +206,7 @@ def index():
     if current_user.is_authenticated and current_user.usertype.name == 'Estimator':
         estimator_open_bids = apply_branch_filter(Bid.query, Bid).filter(
             Bid.status == 'Incomplete'
-        ).order_by(Bid.due_date.asc()).all()
+        ).order_by(*get_bid_sort_order('due_date', 'asc')).all()
 
     search_query = request.args.get('search')
     bids = []
@@ -1583,25 +1616,6 @@ def open_bids():
         plan_type_filter = 'Commercial'
         status_filter = 'Incomplete'
 
-    # Define a mapping of column names to SQLAlchemy columns
-    column_map = {
-        'plan_type': Bid.plan_type,
-        'customer_name': Customer.name,
-        'project_name': Bid.project_name,
-        'estimator': Estimator.estimatorName,
-        'status': Bid.status,
-        'log_date': Bid.log_date,
-        'due_date': Bid.due_date,
-        'notes': Bid.notes
-    }
-
-    # Get the column to sort by, default to log_date
-    sort_column_attr = column_map.get(sort_column, Bid.log_date)
-
-    # Apply sorting direction
-    if sort_direction == 'desc':
-        sort_column_attr = sort_column_attr.desc()
-
     # Base query for bids
     query = db.session.query(Bid).join(Customer).join(Estimator, isouter=True)
 
@@ -1639,8 +1653,8 @@ def open_bids():
         if due_date_end:
             query = query.filter(Bid.due_date <= due_date_end)
 
-    # Apply sorting
-    query = query.order_by(sort_column_attr)
+    # Apply stable sorting so equal due dates preserve submission order.
+    query = query.order_by(*get_bid_sort_order(sort_column, sort_direction))
 
     # Paginate the results
     pagination = query.paginate(page=page, per_page=per_page)
@@ -1766,21 +1780,6 @@ def completed_bids():
         plan_type_filter = 'Commercial'
         status_filter = 'Complete'
 
-    column_map = {
-        'plan_type': Bid.plan_type,
-        'customer_name': Customer.name,
-        'project_name': Bid.project_name,
-        'estimator': Estimator.estimatorName,
-        'status': Bid.status,
-        'log_date': Bid.log_date,
-        'due_date': Bid.due_date,
-        'notes': Bid.notes
-    }
-
-    sort_column_attr = column_map.get(sort_column, Bid.due_date)
-    if sort_direction == 'desc':
-        sort_column_attr = sort_column_attr.desc()
-
     # Base query for bids
     query = db.session.query(Bid).join(Customer).join(Estimator, isouter=True)
 
@@ -1806,7 +1805,7 @@ def completed_bids():
     if due_date_end:
         query = query.filter(Bid.due_date <= due_date_end)
 
-    query = query.order_by(sort_column_attr)
+    query = query.order_by(*get_bid_sort_order(sort_column, sort_direction))
 
     all_bids = query.all()  # No pagination, fetch all
 
@@ -2405,5 +2404,3 @@ def manage_project(project_id):
 @login_required
 def mockup_spec_sheet():
     return render_template('mockups/pdf_spec_sheet.html')
-
-
