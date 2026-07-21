@@ -903,8 +903,13 @@
                         }
                         formData.append('file', file);
 
+                        // R2 has no presigned POST — backend returns method 'PUT' there.
+                        var isPut = (data.method === 'PUT');
                         var xhr = new XMLHttpRequest();
-                        xhr.open('POST', data.url);
+                        xhr.open(isPut ? 'PUT' : 'POST', data.url);
+                        if (isPut) {
+                            xhr.setRequestHeader('Content-Type', file.type || 'application/octet-stream');
+                        }
 
                         xhr.upload.onprogress = function (e) {
                             if (e.lengthComputable) {
@@ -937,7 +942,7 @@
                             progressBar.classList.add('bg-danger');
                         };
 
-                        xhr.send(formData);
+                        xhr.send(isPut ? file : formData);
                     })
                     .catch(error => {
                         console.error(error);
@@ -1029,8 +1034,13 @@
                     }
                     formData.append('file', file);
 
+                    // R2 has no presigned POST — backend returns method 'PUT' there.
+                    var isPut = (data.method === 'PUT');
                     var xhr = new XMLHttpRequest();
-                    xhr.open('POST', data.url);
+                    xhr.open(isPut ? 'PUT' : 'POST', data.url);
+                    if (isPut) {
+                        xhr.setRequestHeader('Content-Type', file.type || 'application/octet-stream');
+                    }
 
                     xhr.upload.onprogress = function (e) {
                         if (e.lengthComputable) {
@@ -1066,7 +1076,7 @@
                         statusText.classList.add('text-danger');
                     };
 
-                    xhr.send(formData);
+                    xhr.send(isPut ? file : formData);
                 })
                 .catch(err => {
                     console.error(err);

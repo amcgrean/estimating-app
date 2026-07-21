@@ -49,6 +49,19 @@ def create_app():
     }
     if db_url.startswith("sqlite:"):
         engine_opts = {"connect_args": {"timeout": 30}}
+    else:
+        # Which Postgres schema the models resolve to. Neon keeps the tables in
+        # `public` (default), so leaving DB_SCHEMA unset preserves today's
+        # behaviour. At the LiveEdge cutover set DB_SCHEMA=bids so the same
+        # unqualified table names resolve to the shared `bids` schema — an
+        # env-only flip, no code change. Passed straight to psycopg2 as a
+        # libpq option, which is the reliable way to set search_path.
+        db_schema = os.environ.get("DB_SCHEMA")
+        if db_schema:
+            # NOTE the space after -c: `-c search_path=bids`. Supabase's Supavisor
+            # pooler silently drops the no-space form (`-csearch_path=bids`),
+            # leaving search_path at public and every unqualified table 404s.
+            engine_opts["connect_args"] = {"options": f"-c search_path={db_schema}"}
     app.config["SQLALCHEMY_ENGINE_OPTIONS"] = engine_opts
 
     # --- Email Configuration ---

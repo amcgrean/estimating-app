@@ -6,6 +6,7 @@ from flask_login import current_user
 from project import db
 from datetime import datetime, timedelta
 import re
+import json
 from .models import UserType, UserSecurity, Estimator, Branch, GeneralAudit, Customer, User
 
 # ... (omitted)
@@ -37,7 +38,9 @@ class BaseForm(FlaskForm):
                 model_name=model_name,
                 action=action,
                 timestamp=datetime.utcnow(),
-                changes=str(instance)
+                # Must be valid JSON: LiveEdge's bids.general_audit.changes is
+                # jsonb, so a bare str(instance) would fail to insert.
+                changes=json.dumps({'repr': str(instance)})
             )
             db.session.add(audit_entry)
             db.session.commit()
