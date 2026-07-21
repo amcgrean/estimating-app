@@ -27,6 +27,39 @@ OTP_TTL_MINUTES = 10
 OTP_SEND_LIMIT_PER_15_MIN = 3
 
 
+def _send_otp_email(to_email, code):
+    """Deliver the sign-in code.
+
+    Primary path is Resend from noreply@app.beisser.cloud — the same verified
+    sender/pipeline LiveEdge's own OTP emails use (the legacy SMTP sender
+    no-reply@beisser.cloud is NOT a verified SES identity and gets 554'd).
+    Falls back to Flask-Mail if RESEND_API_KEY isn't configured.
+    """
+    import os, json, urllib.request
+    body_text = (f"Your Beisser sign-in code is: {code}\n\n"
+                 f"It expires in {OTP_TTL_MINUTES} minutes. "
+                 "If you didn't request this, you can ignore this email.")
+    api_key = os.environ.get('RESEND_API_KEY')
+    if api_key:
+        payload = json.dumps({
+            "from": "Beisser LiveEdge <noreply@app.beisser.cloud>",
+            "to": [to_email],
+            "subject": "Your Beisser sign-in code",
+            "text": body_text,
+        }).encode()
+        req = urllib.request.Request(
+            "https://api.resend.com/emails", data=payload, method="POST",
+            headers={"Authorization": f"Bearer {api_key}",
+                     "Content-Type": "application/json"})
+        with urllib.request.urlopen(req, timeout=15) as resp:
+            if resp.status >= 300:
+                raise RuntimeError(f"Resend HTTP {resp.status}")
+        return
+    msg = Message(subject='Your Beisser sign-in code',
+                  recipients=[to_email], body=body_text)
+    mail.send(msg)
+
+
 def _resolve_app_user(identifier):
     """Look up an active LiveEdge account by username OR email."""
     if not identifier:
@@ -93,14 +126,7 @@ def otp_send():
             """), {"e": email, "c": code, "ttl": str(OTP_TTL_MINUTES)})
             db.session.commit()
 
-            msg = Message(
-                subject='Your Beisser sign-in code',
-                recipients=[email],
-                body=(f"Your Beisser sign-in code is: {code}\n\n"
-                      f"It expires in {OTP_TTL_MINUTES} minutes. "
-                      "If you didn't request this, you can ignore this email."),
-            )
-            mail.send(msg)
+            _send_otp_email(email, code)
         except Exception as e:
             current_app.logger.error(f"OTP send failed: {e}")
             db.session.rollback()
