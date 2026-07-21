@@ -1,0 +1,12 @@
+﻿Starting Beisser ERP Sync at 2026-03-05T02:41:32.5840626-06:00
+Attempt 1 :: 2026-03-05T02:41:32.5900888-06:00
+Using Database URI: postgresql://neondb_owner:npg_1E4CvgZbaVBW@ep-fragrant-waterfall-ad8fjcey-pooler.c-2.us-east-1.aws.neon.tech/neondb?sslmode=require
+[INFO] ERP Sync Mode: Local CSV Ingestion
+Database schema ensured.
+Loaded 5 branches.
+Importing Customers...
+Reading Customers from: C:\Users\amcgrean\python\pa-bid-request\project\import files\customers.csv
+Importing Jobs...
+Reading Jobs from: C:\Users\amcgrean\python\pa-bid-request\project\import files\jobs.csv
+Import Complete.
+Success :: 2026-03-05T02:41:46.5125184-06:00

@@ -9,7 +9,7 @@ from project.models import (
 import csv
 import json
 from werkzeug.utils import secure_filename
-from datetime import datetime, timedelta,date
+from datetime import datetime, timedelta, date, timezone
 import io
 import zipfile
 import calendar
@@ -1677,7 +1677,9 @@ def open_bids():
     statuses = ['all', 'Incomplete']
 
     branches = Branch.query.all()
-    now = datetime.now()
+    # Must be timezone-aware: Supabase's timestamptz columns return aware
+    # datetimes, and Jinja compares bid.due_date < now (naive vs aware raises).
+    now = datetime.now(timezone.utc)
     return render_template('open_bids.html', bids_by_plan_type=bids_by_plan_type, sort_column=sort_column, sort_direction=sort_direction,
                            plan_types=plan_types, statuses=statuses, current_status=status_filter, current_plan_type=plan_type_filter,
                            due_date_start=due_date_start_str, due_date_end=due_date_end_str, pagination=pagination, total_bids_by_plan_type=total_bids_by_plan_type,
@@ -1809,6 +1811,24 @@ def completed_bids():
 
     all_bids = query.all()  # No pagination, fetch all
 
+    # open_bids.html expects a `pagination` object (the open-bids route
+    # paginates). Completed bids deliberately shows everything, and the
+    # template's pager links hardcode main.open_bids, so supply a one-page
+    # stub instead of real pagination.
+    class _ShowAllPagination:
+        def __init__(self, total):
+            self.total = total
+            self.per_page = max(total, 1)
+            self.page = 1
+            self.pages = 1
+            self.has_prev = False
+            self.has_next = False
+            self.prev_num = None
+            self.next_num = None
+        def iter_pages(self, **kwargs):
+            return []
+    _pagination = _ShowAllPagination(len(all_bids))
+
     bids_by_plan_type = {}
     for bid in all_bids:
         bids_by_plan_type.setdefault(bid.plan_type, []).append(bid)
@@ -1829,6 +1849,8 @@ def completed_bids():
     statuses = ['all', 'Complete']
 
     return render_template('open_bids.html',
+                           now=datetime.now(timezone.utc),
+                           pagination=_pagination,
                            bids_by_plan_type=bids_by_plan_type,
                            total_bids_by_plan_type=total_bids_by_plan_type,
                            total_open_bids=total_completed_bids, # Renamed for clarity in completed bids context
