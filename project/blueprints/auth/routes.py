@@ -120,13 +120,22 @@ def otp_send():
                                        otp_stage='code', otp_identifier=identifier)
 
             code = f"{random.SystemRandom().randint(0, 999999):06d}"
-            db.session.execute(text("""
+            row = db.session.execute(text("""
                 INSERT INTO public.otp_codes (email, code, expires_at)
                 VALUES (:e, :c, now() + (:ttl || ' minutes')::interval)
-            """), {"e": email, "c": code, "ttl": str(OTP_TTL_MINUTES)})
+                RETURNING id
+            """), {"e": email, "c": code, "ttl": str(OTP_TTL_MINUTES)}).first()
             db.session.commit()
 
-            _send_otp_email(email, code)
+            try:
+                _send_otp_email(email, code)
+            except Exception:
+                # Undo the issued code so a failed send doesn't burn a
+                # rate-limit slot (the insert above is already committed).
+                db.session.execute(text("DELETE FROM public.otp_codes WHERE id = :id"),
+                                   {"id": row[0]})
+                db.session.commit()
+                raise
         except Exception as e:
             current_app.logger.error(f"OTP send failed: {e}")
             db.session.rollback()
