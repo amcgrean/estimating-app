@@ -153,7 +153,7 @@
                 <thead>
                     <tr>
                         <th>
-                            <a href="{{ url_for('main.open_bids', sort='customer_name', direction='desc' if sort_column=='customer_name' and sort_direction=='asc' else 'asc', **request.args) }}"
+                            <a href="{{ url_for('main.open_bids', sort='customer_name', direction='desc' if sort_column=='customer_name' and sort_direction=='asc' else 'asc', **sort_args) }}"
                                 class="text-muted text-decoration-none">
                                 Customer Name
                                 {% if sort_column == 'customer_name' %}
@@ -162,7 +162,7 @@
                             </a>
                         </th>
                         <th>
-                            <a href="{{ url_for('main.open_bids', sort='project_name', direction='desc' if sort_column=='project_name' and sort_direction=='asc' else 'asc', **request.args) }}"
+                            <a href="{{ url_for('main.open_bids', sort='project_name', direction='desc' if sort_column=='project_name' and sort_direction=='asc' else 'asc', **sort_args) }}"
                                 class="text-muted text-decoration-none">
                                 Project Name
                                 {% if sort_column == 'project_name' %}
@@ -172,7 +172,7 @@
                         </th>
                         <th>Files</th>
                         <th>
-                            <a href="{{ url_for('main.open_bids', sort='notes', direction='desc' if sort_column=='notes' and sort_direction=='asc' else 'asc', **request.args) }}"
+                            <a href="{{ url_for('main.open_bids', sort='notes', direction='desc' if sort_column=='notes' and sort_direction=='asc' else 'asc', **sort_args) }}"
                                 class="text-muted text-decoration-none">
                                 Notes
                                 {% if sort_column == 'notes' %}
@@ -181,7 +181,7 @@
                             </a>
                         </th>
                         <th>
-                            <a href="{{ url_for('main.open_bids', sort='estimator', direction='desc' if sort_column=='estimator' and sort_direction=='asc' else 'asc', **request.args) }}"
+                            <a href="{{ url_for('main.open_bids', sort='estimator', direction='desc' if sort_column=='estimator' and sort_direction=='asc' else 'asc', **sort_args) }}"
                                 class="text-muted text-decoration-none">
                                 Estimator
                                 {% if sort_column == 'estimator' %}
@@ -190,7 +190,7 @@
                             </a>
                         </th>
                         <th>
-                            <a href="{{ url_for('main.open_bids', sort='log_date', direction='desc' if sort_column=='log_date' and sort_direction=='asc' else 'asc', **request.args) }}"
+                            <a href="{{ url_for('main.open_bids', sort='log_date', direction='desc' if sort_column=='log_date' and sort_direction=='asc' else 'asc', **sort_args) }}"
                                 class="text-muted text-decoration-none">
                                 Log Date
                                 {% if sort_column == 'log_date' %}
@@ -199,7 +199,7 @@
                             </a>
                         </th>
                         <th>
-                            <a href="{{ url_for('main.open_bids', sort='due_date', direction='desc' if sort_column=='due_date' and sort_direction=='asc' else 'asc', **request.args) }}"
+                            <a href="{{ url_for('main.open_bids', sort='due_date', direction='desc' if sort_column=='due_date' and sort_direction=='asc' else 'asc', **sort_args) }}"
                                 class="text-muted text-decoration-none">
                                 Due Date
                                 {% if sort_column == 'due_date' %}
@@ -275,18 +275,18 @@
             <ul class="pagination mb-0">
                 <li class="page-item {% if not pagination.has_prev %}disabled{% endif %}">
                     <a class="page-link"
-                        href="{{ url_for('main.open_bids', page=pagination.prev_num, **request.args) }}">&laquo;</a>
+                        href="{{ url_for('main.open_bids', page=pagination.prev_num, **page_args) }}">&laquo;</a>
                 </li>
                 {% for page_num in pagination.iter_pages() %}
                 <li class="page-item {% if page_num == pagination.page %}active{% endif %}">
-                    <a class="page-link" href="{{ url_for('main.open_bids', page=page_num, **request.args) }}">{{
+                    <a class="page-link" href="{{ url_for('main.open_bids', page=page_num, **page_args) }}">{{
                         page_num
                         }}</a>
                 </li>
                 {% endfor %}
                 <li class="page-item {% if not pagination.has_next %}disabled{% endif %}">
                     <a class="page-link"
-                        href="{{ url_for('main.open_bids', page=pagination.next_num, **request.args) }}">&raquo;</a>
+                        href="{{ url_for('main.open_bids', page=pagination.next_num, **page_args) }}">&raquo;</a>
                 </li>
             </ul>
         </nav>

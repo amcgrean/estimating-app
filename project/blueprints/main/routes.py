@@ -1561,6 +1561,18 @@ def view_bids():
     bids = Bid.query.all()
     return render_template('view_bids.html', bids=bids)
 
+
+def _pager_arg_dicts():
+    """url_for(..., page=X, **request.args) crashes with 'multiple values for
+    keyword argument' once the URL already carries page/sort/direction. Give
+    templates pre-cleaned dicts instead."""
+    from flask import request as _rq
+    _args = _rq.args.to_dict()
+    return (
+        {k: v for k, v in _args.items() if k != 'page'},                       # page_args
+        {k: v for k, v in _args.items() if k not in ('page', 'sort', 'direction')},  # sort_args
+    )
+
 @main.route('/open_bids', methods=['GET'])
 @login_required
 def open_bids():
@@ -1680,7 +1692,9 @@ def open_bids():
     # Must be timezone-aware: Supabase's timestamptz columns return aware
     # datetimes, and Jinja compares bid.due_date < now (naive vs aware raises).
     now = datetime.now(timezone.utc)
-    return render_template('open_bids.html', bids_by_plan_type=bids_by_plan_type, sort_column=sort_column, sort_direction=sort_direction,
+    page_args, sort_args = _pager_arg_dicts()
+    return render_template('open_bids.html',
+                           page_args=page_args, sort_args=sort_args, bids_by_plan_type=bids_by_plan_type, sort_column=sort_column, sort_direction=sort_direction,
                            plan_types=plan_types, statuses=statuses, current_status=status_filter, current_plan_type=plan_type_filter,
                            due_date_start=due_date_start_str, due_date_end=due_date_end_str, pagination=pagination, total_bids_by_plan_type=total_bids_by_plan_type,
                            branches=branches, current_branch_id=branch_id, now=now, search_query=search_query)
@@ -1848,7 +1862,9 @@ def completed_bids():
     plan_types = [pt[0] for pt in db.session.query(Bid.plan_type).distinct().all()]
     statuses = ['all', 'Complete']
 
+    page_args, sort_args = _pager_arg_dicts()
     return render_template('open_bids.html',
+                           page_args=page_args, sort_args=sort_args,
                            now=datetime.now(timezone.utc),
                            pagination=_pagination,
                            bids_by_plan_type=bids_by_plan_type,
