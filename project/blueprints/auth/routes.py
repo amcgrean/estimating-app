@@ -35,7 +35,7 @@ def _send_otp_email(to_email, code):
     no-reply@beisser.cloud is NOT a verified SES identity and gets 554'd).
     Falls back to Flask-Mail if RESEND_API_KEY isn't configured.
     """
-    import os, json, urllib.request
+    import os, json, urllib.request, urllib.error
     body_text = (f"Your Beisser sign-in code is: {code}\n\n"
                  f"It expires in {OTP_TTL_MINUTES} minutes. "
                  "If you didn't request this, you can ignore this email.")
@@ -50,10 +50,17 @@ def _send_otp_email(to_email, code):
         req = urllib.request.Request(
             "https://api.resend.com/emails", data=payload, method="POST",
             headers={"Authorization": f"Bearer {api_key}",
-                     "Content-Type": "application/json"})
-        with urllib.request.urlopen(req, timeout=15) as resp:
-            if resp.status >= 300:
-                raise RuntimeError(f"Resend HTTP {resp.status}")
+                     "Content-Type": "application/json",
+                     # Cloudflare 403s (error 1010) the default Python-urllib
+                     # user agent — any custom UA passes.
+                     "User-Agent": "beisser-estimating-app/1.0"})
+        try:
+            with urllib.request.urlopen(req, timeout=15) as resp:
+                if resp.status >= 300:
+                    raise RuntimeError(f"Resend HTTP {resp.status}")
+        except urllib.error.HTTPError as e:
+            # Surface Resend/Cloudflare's response body in the logs
+            raise RuntimeError(f"Resend HTTP {e.code}: {e.read()[:200]}")
         return
     msg = Message(subject='Your Beisser sign-in code',
                   recipients=[to_email], body=body_text)
